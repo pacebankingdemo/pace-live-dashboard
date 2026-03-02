@@ -137,7 +137,7 @@ const formatFieldKey = (key) => {
 };
 
 /* ─── CollapsibleReasoning ─── */
-const CollapsibleReasoning = ({ reasoning, messageDetail, reasoningSteps }) => {
+const CollapsibleReasoning = ({ reasoning, messageDetail, reasoningSteps, summaryText }) => {
     const [isOpen, setIsOpen] = useState(false);
     const entries = Object.entries(reasoning || {});
     const hasSteps = Array.isArray(reasoningSteps) && reasoningSteps.length > 0;
@@ -152,6 +152,9 @@ const CollapsibleReasoning = ({ reasoning, messageDetail, reasoningSteps }) => {
 
     /* Collect all displayable lines into a flat array for the tree connector */
     const lines = [];
+    if (summaryText) {
+        lines.push({ type: 'narrative', text: summaryText.replace(/^[•·\-*]\s*/, '') });
+    }
     if (messageDetail) {
         lines.push({ type: 'narrative', text: messageDetail });
     }
@@ -686,6 +689,13 @@ const ProcessDetails = () => {
                                 const classified = logMetaClassified[log.id] || { reasoning: {}, dataArtifacts: [] };
                                 const dbArtifactsForLog = getDbArtifactsForLog(log);
                                 const logDataArtifacts = classified.dataArtifacts;
+                                const _msgSplit = splitLogMessage(log.message);
+                                const _reasoningSteps = log.metadata?.reasoning_steps;
+                                const hasReasoningBox = (
+                                    Object.keys(classified.reasoning || {}).length > 0 ||
+                                    !!_msgSplit.detail ||
+                                    (Array.isArray(_reasoningSteps) && _reasoningSteps.length > 0)
+                                );
 
                                 return (
                                     <div key={log.id} className="flex gap-4 pb-6 relative">
@@ -711,9 +721,9 @@ const ProcessDetails = () => {
                                                 </span>
                                             </div>
                                             {/* Hide summary when reasoning box will show the same content */}
-                                            {!(Object.keys(classified.reasoning || {}).length > 0 || splitLogMessage(log.message).detail || (Array.isArray(log.metadata?.reasoning_steps) && log.metadata.reasoning_steps.length > 0)) && (
+                                            {!hasReasoningBox && (
                                             <p className="text-[12px] text-[#666] mt-0.5 leading-relaxed">
-                                                {splitLogMessage(log.message).summary.replace(/^[•·\-*]\s*/, '')}
+                                                {_msgSplit.summary.replace(/^[•·\-*]\s*/, '')}
                                             </p>
                                             )}
                                             {dbArtifactsForLog.length > 0 && (
@@ -771,7 +781,7 @@ const ProcessDetails = () => {
                                                     </div>
                                                 );
                                             })()}
-                                            <CollapsibleReasoning reasoning={classified.reasoning} messageDetail={splitLogMessage(log.message).detail} reasoningSteps={log.metadata?.reasoning_steps} />
+                                            <CollapsibleReasoning reasoning={classified.reasoning} messageDetail={_msgSplit.detail} reasoningSteps={_reasoningSteps} summaryText={_msgSplit.summary} />
                                         </div>
                                     </div>
                                 );
