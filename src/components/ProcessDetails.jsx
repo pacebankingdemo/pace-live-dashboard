@@ -650,24 +650,27 @@ const ProcessDetails = () => {
                 {/* Header */}
                 <div className="flex-shrink-0 px-6 py-5 border-b border-[#f0f0f0] bg-white">
                     <div className="flex items-center justify-between">
-                        <div>
+                        <div className="flex items-center gap-3">
                             <h2 className="text-[16px] font-semibold text-[#171717]">
-                                Run: {runId?.slice(0, 8)}
+                                {run?.document_name || run?.name || `Run ${runId?.slice(0, 8)}`}
                             </h2>
-                            <p className="text-[12px] text-[#9CA3AF] mt-1">
-                                {run && `${run.status} \u2022 Started ${formatDate(run.started_at)}`}
-                            </p>
+                            {run?.status && (
+                                <span className={`flex items-center gap-1 text-[12px] font-medium ${
+                                    run.status === 'done' ? 'text-[#038408]' :
+                                    run.status === 'in_progress' ? 'text-[#0000A4]' :
+                                    (run.status === 'needs_attention' || run.status === 'needs_review') ? 'text-[#A40000]' :
+                                    'text-[#666]'
+                                }`}>
+                                    {run.status === 'done' && (
+                                        <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none"><path d="M13.3 4.3a1 1 0 010 1.4l-6 6a1 1 0 01-1.4 0l-3-3a1 1 0 011.4-1.4L6.5 9.6l5.3-5.3a1 1 0 011.4 0z" fill="currentColor"/></svg>
+                                    )}
+                                    {run.status.replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase())}
+                                </span>
+                            )}
                         </div>
-                        {run?.status && (
-                            <span className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${
-                                run.status === 'done' ? 'bg-[#E6F3EA] text-[#038408]' :
-                                run.status === 'in_progress' ? 'bg-[#DADAFF] text-[#0000A4]' :
-                                run.status === 'needs_attention' || run.status === 'needs_review' ? 'bg-[#FFDADA] text-[#A40000]' :
-                                'bg-[#f2f2f2] text-[#666]'
-                            }`}>
-                                {run.status.replace(/_/g, ' ')}
-                            </span>
-                        )}
+                        <p className="text-[12px] text-[#9CA3AF]">
+                            {run?.started_at && `Started ${formatDate(run.started_at)}`}
+                        </p>
                     </div>
                 </div>
 
