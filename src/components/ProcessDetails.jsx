@@ -189,15 +189,13 @@ const CollapsibleReasoning = ({ reasoning, messageDetail, reasoningSteps, summar
                                 const isLast = idx === lines.length - 1;
                                 return (
                                     <div key={idx} className="flex items-start gap-2 min-h-[24px]">
-                                        {/* Tree connector — curved elbow for last, tee for others */}
+                                        {/* Tree connector — L-shaped elbow for every item */}
                                         <div className="flex flex-col items-center w-4 flex-shrink-0">
                                             <svg width="16" height="24" viewBox="0 0 16 24" fill="none" className="flex-shrink-0">
-                                                {/* vertical line above */}
+                                                {/* vertical line from top to midpoint */}
                                                 <line x1="4" y1="0" x2="4" y2="12" stroke="#D1D5DB" strokeWidth="1.5" />
                                                 {/* horizontal line to right */}
                                                 <line x1="4" y1="12" x2="16" y2="12" stroke="#D1D5DB" strokeWidth="1.5" />
-                                                {/* vertical line below (not on last item) */}
-                                                {!isLast && <line x1="4" y1="12" x2="4" y2="24" stroke="#D1D5DB" strokeWidth="1.5" />}
                                             </svg>
                                         </div>
                                         {/* Content */}
@@ -662,8 +660,9 @@ const ProcessDetails = () => {
                 .filter(l => l.log_type !== 'artifact' && l.message)
                 .map(l => l.message);
 
-            // Combined message detail
-            const combinedMessage = messages.join(' ');
+            // First message becomes the step title label; remaining go into msgSplit
+            const remainingMessages = messages.slice(1);
+            const combinedMessage = remainingMessages.join(' ');
             const msgSplit = splitLogMessage(combinedMessage);
 
             return {
@@ -792,7 +791,9 @@ const ProcessDetails = () => {
                                 const { firstLog, lastLog, mergedReasoning, allReasoningSteps, msgSplit, dbArtifacts, metaArtifacts, recordings: groupRecordings } = group;
                                 const isLastGroup = groupIndex === groupedLogs.length - 1;
                                 const status = getIconStatus(lastLog, isLastGroup ? logs.length - 1 : logs.indexOf(lastLog));
-                                const stepLabel = group.stepName || getStepName(firstLog);
+                                // Use the first non-artifact message as a descriptive label, fall back to step_name
+                                const summaryPhrase = group.messages?.[0] || '';
+                                const stepLabel = summaryPhrase || group.stepName || getStepName(firstLog);
                                 const hasReasoning = (
                                     Object.keys(mergedReasoning || {}).length > 0 ||
                                     !!msgSplit.detail ||
