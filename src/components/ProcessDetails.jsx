@@ -150,48 +150,72 @@ const CollapsibleReasoning = ({ reasoning, messageDetail, reasoningSteps }) => {
         return String(val);
     };
 
+    /* Collect all displayable lines into a flat array for the tree connector */
+    const lines = [];
+    if (messageDetail) {
+        lines.push({ type: 'narrative', text: messageDetail });
+    }
+    entries.forEach(([key, val]) => {
+        lines.push({ type: 'kv', label: formatFieldKey(key), value: formatValue(val) });
+    });
+    if (hasSteps) {
+        reasoningSteps.forEach((step) => {
+            lines.push({ type: 'step', text: step });
+        });
+    }
+
     return (
         <div className="mt-2.5">
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex items-center gap-1.5 text-[11px] text-[#038408] border border-[#038408]/30 rounded px-2 py-0.5 hover:bg-[#038408]/5 transition-colors font-medium"
-            >
-                <Brain className="w-3 h-3" />
-                <span>{isOpen ? 'Hide reasoning' : 'See reasoning'}</span>
-                {isOpen ? <ChevronUp className="w-2.5 h-2.5" /> : <ChevronDown className="w-2.5 h-2.5" />}
-            </button>
-            {isOpen && (
-                <div className="mt-3 ml-1 space-y-2">
-                    {/* Narrative detail (from split long message) */}
-                    {messageDetail && (
-                        <p className="text-[12px] text-[#555] leading-relaxed whitespace-pre-wrap">{messageDetail}</p>
-                    )}
-                    {/* Key-value reasoning fields — flat table like production */}
-                    {entries.length > 0 && (
-                        <div className="space-y-1.5">
-                            {entries.map(([key, val]) => (
-                                <div key={key} className="flex items-baseline">
-                                    <span className="text-[12px] text-[#6B7280] w-[130px] flex-shrink-0">{formatFieldKey(key)}</span>
-                                    <span className="text-[12px] text-[#171717] font-medium break-all">
-                                        {formatValue(val)}
-                                    </span>
-                                </div>
-                            ))}
+            <div className="border border-[#E5E7EB] rounded-lg overflow-hidden">
+                {/* Toggle row — full-width, grey */}
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="w-full flex items-center justify-between px-3 py-2 text-[12px] text-[#6B7280] hover:bg-[#F9FAFB] transition-colors"
+                >
+                    <span className="font-medium">{isOpen ? 'Hide reasoning' : 'See reasoning'}</span>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {/* Expanded content with tree-branch connectors */}
+                {isOpen && (
+                    <div className="px-3 pb-3 pt-0.5">
+                        <div className="space-y-0">
+                            {lines.map((line, idx) => {
+                                const isLast = idx === lines.length - 1;
+                                return (
+                                    <div key={idx} className="flex items-start gap-2 min-h-[24px]">
+                                        {/* Tree connector — curved elbow for last, tee for others */}
+                                        <div className="flex flex-col items-center w-4 flex-shrink-0">
+                                            <svg width="16" height="24" viewBox="0 0 16 24" fill="none" className="flex-shrink-0">
+                                                {/* vertical line above */}
+                                                <line x1="4" y1="0" x2="4" y2="12" stroke="#D1D5DB" strokeWidth="1.5" />
+                                                {/* horizontal line to right */}
+                                                <line x1="4" y1="12" x2="16" y2="12" stroke="#D1D5DB" strokeWidth="1.5" />
+                                                {/* vertical line below (not on last item) */}
+                                                {!isLast && <line x1="4" y1="12" x2="4" y2="24" stroke="#D1D5DB" strokeWidth="1.5" />}
+                                            </svg>
+                                        </div>
+                                        {/* Content */}
+                                        <div className="flex-1 py-0.5">
+                                            {line.type === 'narrative' && (
+                                                <p className="text-[12px] text-[#555] leading-relaxed whitespace-pre-wrap">{line.text}</p>
+                                            )}
+                                            {line.type === 'kv' && (
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="text-[12px] text-[#6B7280] flex-shrink-0">{line.label}:</span>
+                                                    <span className="text-[12px] text-[#171717] font-medium break-all">{line.value}</span>
+                                                </div>
+                                            )}
+                                            {line.type === 'step' && (
+                                                <span className="text-[12px] text-[#555]">{line.text}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
-                    )}
-                    {/* Tree-style reasoning steps (when explicitly provided) */}
-                    {hasSteps && (
-                        <div className="space-y-1.5 mt-1">
-                            {reasoningSteps.map((step, idx) => (
-                                <div key={idx} className="flex items-baseline">
-                                    <span className="text-[12px] text-[#6B7280] w-[130px] flex-shrink-0">Step {idx + 1}</span>
-                                    <span className="text-[12px] text-[#171717] font-medium">{step}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
