@@ -170,7 +170,7 @@ const CollapsibleReasoning = ({ reasoning, messageDetail, reasoningSteps }) => {
                 {/* Toggle row — compact width, grey */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="w-full flex items-center gap-6 px-3 py-2 text-[12px] text-[#6B7280] hover:bg-[#F9FAFB] transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-2 text-[12px] text-[#6B7280] hover:bg-[#F9FAFB] transition-colors"
                 >
                     <span className="font-medium">{isOpen ? 'Hide reasoning' : 'See reasoning'}</span>
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
