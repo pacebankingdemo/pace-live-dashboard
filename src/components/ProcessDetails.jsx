@@ -951,7 +951,8 @@ const ProcessDetails = () => {
                         </div>
                     )}
 
-                    {/* Run Details */}
+                    {/* Run Details — hidden for NatWest org (Sanction Screening) */}
+                    {run?.process_id !== 'ed6dc37d-111d-46f3-a929-200ca3d21843' && (
                     <div className="mx-4 mb-3 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
                         <div className="flex items-center gap-2 px-4 pt-3.5 pb-2">
                             <Database className="w-3.5 h-3.5 text-[#6B7280]" />
@@ -972,6 +973,7 @@ const ProcessDetails = () => {
                             ))}
                         </div>
                     </div>
+                    )}
 
                     {/* Artifacts */}
                     <div className="mx-4 mb-4 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
