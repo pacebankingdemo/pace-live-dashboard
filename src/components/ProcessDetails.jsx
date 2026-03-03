@@ -630,7 +630,8 @@ const ProcessDetails = () => {
                 group.logs.some(l =>
                     l.log_type === 'artifact' && (
                         l.message?.includes(a.filename) ||
-                        (l.metadata?.artifact_id && l.metadata.artifact_id === a.id)
+                        (l.metadata?.artifact_id && l.metadata.artifact_id === a.id) ||
+                            (l.metadata?.artifact_name && l.metadata.artifact_name === a.filename)
                     )
                 )
             );
