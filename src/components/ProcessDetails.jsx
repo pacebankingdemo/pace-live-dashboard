@@ -30,7 +30,9 @@ const CASE_DETAIL_KEYS = new Set([
     'po_number', 'invoice_amount', 'total', 'currency',
     'match_verdict', 'quality_score', 'final_status',
     'document_type', 'invoice_date', 'po_date', 'department',
-    'linkages', 'decision_by', 'recommendation'
+    'linkages', 'decision_by', 'recommendation',
+    // Sanction screening keys
+    'originator', 'beneficiary', 'amount', 'screening_outcome', 'risk_level'
 ]);
 
 function isLargeData(value) {
