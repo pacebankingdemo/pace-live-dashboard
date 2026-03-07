@@ -9,7 +9,11 @@ import {
     Clock,
     Shield,
     AlertTriangle,
-    Sparkles
+    Sparkles,
+    ListOrdered,
+    Layers,
+    User,
+    FileSearch
 } from 'lucide-react';
 
 const INSIGHTS_PROCESS_ID = '795b85bb-ef67-4e56-aaec-2a07d5ed8c90';
@@ -31,6 +35,7 @@ export default function InsightsPanel() {
                 .from('activity_runs')
                 .select('*')
                 .eq('process_id', INSIGHTS_PROCESS_ID)
+                .neq('status', 'void')
                 .order('created_at', { ascending: false });
             if (runErr) throw runErr;
 
@@ -53,13 +58,13 @@ export default function InsightsPanel() {
 
     function parseInsight(insight) {
         const logs = insight.logs || [];
-        const patternProfile = logs.find(l => l.log_type === 'artifact' && l.metadata?.step_name === 'Pattern Profile');
-        const statsArtifact = logs.find(l => l.log_type === 'artifact' && l.metadata?.step_name === 'Statistical Confidence');
-        const discoveryLog = logs.find(l => l.log_type === 'decision' && l.metadata?.step_name === 'Pattern Discovery');
-        const evidenceLog = logs.find(l => l.log_type === 'decision' && l.metadata?.step_name === 'Historical Evidence');
+        const summaryLog = logs.find(l => l.log_type === 'artifact' && l.metadata?.step_name === 'Summary');
+        const filtersLog = logs.find(l => l.log_type === 'artifact' && l.metadata?.step_name === 'Filters');
+        const kbChangeLog = logs.find(l => l.log_type === 'artifact' && l.metadata?.step_name === 'Knowledge Base Change');
+        const impactLog = logs.find(l => l.log_type === 'artifact' && l.metadata?.step_name === 'Impact');
+        const evidenceLog = logs.find(l => l.log_type === 'artifact' && l.metadata?.step_name === 'Evidence');
         const recommendationLog = logs.find(l => l.log_type === 'decision' && l.metadata?.step_name === 'Recommendation');
-        const approvalLog = logs.find(l => l.log_type === 'decision' && l.metadata?.step_name === 'Pending Approval');
-        return { patternProfile, statsArtifact, discoveryLog, evidenceLog, recommendationLog, approvalLog };
+        return { summaryLog, filtersLog, kbChangeLog, impactLog, evidenceLog, recommendationLog };
     }
 
     function getStatusInfo(insight) {
@@ -97,6 +102,20 @@ export default function InsightsPanel() {
         } finally {
             setActionInProgress(null);
         }
+    }
+
+    function renderDataGrid(data) {
+        if (!data || Object.keys(data).length === 0) return null;
+        return (
+            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                {Object.entries(data).map(([k, v]) => (
+                    <div key={k} className="flex justify-between py-1 border-b border-[#fafafa]">
+                        <span className="text-[12px] text-[#8f8f8f]">{k}</span>
+                        <span className="text-[12px] text-[#171717] font-[500] text-right max-w-[60%]">{v}</span>
+                    </div>
+                ))}
+            </div>
+        );
     }
 
     if (loading) {
@@ -138,8 +157,13 @@ export default function InsightsPanel() {
                         const parsed = parseInsight(insight);
                         const status = getStatusInfo(insight);
                         const isExpanded = expandedInsight === insight.id;
-                        const profile = parsed.patternProfile?.metadata?.data || {};
-                        const stats = parsed.statsArtifact?.metadata?.data || {};
+                        const summary = parsed.summaryLog?.metadata?.data || {};
+                        const filters = parsed.filtersLog?.metadata?.data || {};
+                        const kbChange = parsed.kbChangeLog?.metadata?.data || {};
+                        const impact = parsed.impactLog?.metadata?.data || {};
+                        const evidence = parsed.evidenceLog?.metadata?.data || {};
+                        const reasoningSteps = parsed.recommendationLog?.metadata?.reasoning_steps || [];
+                        const recommendationMsg = parsed.recommendationLog?.message || '';
                         const isPending = status.label === 'Pending Approval';
 
                         return (
@@ -157,8 +181,8 @@ export default function InsightsPanel() {
                                                 {status.label}
                                             </span>
                                         </div>
-                                        <h3 className="text-[14px] font-[550] text-[#171717] mb-1">{profile.insight_title || "Pattern Detected"}</h3>
-                                        <p className="text-[13px] text-[#8f8f8f] line-clamp-2">{parsed.discoveryLog?.message || 'Pattern detected from historical screening data'}</p>
+                                        <h3 className="text-[14px] font-[550] text-[#171717] mb-1">{summary.insight_title || 'Pattern Detected'}</h3>
+                                        <p className="text-[13px] text-[#8f8f8f] line-clamp-2">{summary.Description || 'Pattern detected from historical screening data'}</p>
                                     </div>
                                     <div className="ml-3 mt-1 text-[#cacaca]">
                                         {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -167,58 +191,74 @@ export default function InsightsPanel() {
 
                                 {isExpanded && (
                                     <div className="border-t border-[#f0f0f0]">
-                                        {/* Pattern Profile */}
-                                        <div className="px-5 py-4 border-b border-[#f5f5f5]">
-                                            <div className="flex items-center gap-1.5 mb-3">
-                                                <Shield className="w-3.5 h-3.5 text-blue-500" />
-                                                <span className="text-[12px] font-[600] text-[#171717] uppercase tracking-wide">Pattern Profile</span>
+                                        {/* Section 1: Steps — reasoning from the insight process */}
+                                        {reasoningSteps.length > 0 && (
+                                            <div className="px-5 py-4 border-b border-[#f5f5f5]">
+                                                <div className="flex items-center gap-1.5 mb-3">
+                                                    <ListOrdered className="w-3.5 h-3.5 text-blue-500" />
+                                                    <span className="text-[12px] font-[600] text-[#171717] uppercase tracking-wide">Steps</span>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {reasoningSteps.map((step, i) => (
+                                                        <div key={i} className="flex gap-2">
+                                                            <span className="text-[11px] text-[#cacaca] mt-0.5 shrink-0">{i + 1}.</span>
+                                                            <span className="text-[12px] text-[#525252] leading-relaxed">{step}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-                                                {Object.entries(profile).map(([k, v]) => (
-                                                    <div key={k} className="flex justify-between py-1 border-b border-[#fafafa]">
-                                                        <span className="text-[12px] text-[#8f8f8f]">{k}</span>
-                                                        <span className="text-[12px] text-[#171717] font-[500]">{v}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
+                                        )}
 
-                                        {/* Evidence */}
-                                        <div className="px-5 py-4 border-b border-[#f5f5f5]">
-                                            <div className="flex items-center gap-1.5 mb-3">
-                                                <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                                                <span className="text-[12px] font-[600] text-[#171717] uppercase tracking-wide">Evidence</span>
+                                        {/* Section 2: Pattern — knowledge base change */}
+                                        {Object.keys(kbChange).length > 0 && (
+                                            <div className="px-5 py-4 border-b border-[#f5f5f5]">
+                                                <div className="flex items-center gap-1.5 mb-3">
+                                                    <Layers className="w-3.5 h-3.5 text-violet-500" />
+                                                    <span className="text-[12px] font-[600] text-[#171717] uppercase tracking-wide">Pattern</span>
+                                                </div>
+                                                {renderDataGrid(kbChange)}
                                             </div>
-                                            <div className="space-y-2">
-                                                {(parsed.evidenceLog?.metadata?.reasoning_steps || []).map((step, i) => (
-                                                    <div key={i} className="flex gap-2">
-                                                        <span className="text-[11px] text-[#cacaca] mt-0.5 shrink-0">{i + 1}.</span>
-                                                        <span className="text-[12px] text-[#525252] leading-relaxed">{step}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
+                                        )}
 
-                                        {/* Recommendation */}
-                                        <div className="px-5 py-4 border-b border-[#f5f5f5] bg-[#fefdfb]">
-                                            <div className="flex items-center gap-1.5 mb-2">
-                                                <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
-                                                <span className="text-[12px] font-[600] text-[#171717] uppercase tracking-wide">Recommendation</span>
+                                        {/* Section 3: Profile — filters */}
+                                        {Object.keys(filters).length > 0 && (
+                                            <div className="px-5 py-4 border-b border-[#f5f5f5]">
+                                                <div className="flex items-center gap-1.5 mb-3">
+                                                    <User className="w-3.5 h-3.5 text-cyan-500" />
+                                                    <span className="text-[12px] font-[600] text-[#171717] uppercase tracking-wide">Profile</span>
+                                                </div>
+                                                {renderDataGrid(filters)}
                                             </div>
-                                            <p className="text-[13px] text-[#353535] leading-relaxed">{parsed.recommendationLog?.message}</p>
-                                        </div>
+                                        )}
 
-                                        {/* Confidence */}
-                                        <div className="px-5 py-4 border-b border-[#f5f5f5]">
-                                            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-                                                {Object.entries(stats).map(([k, v]) => (
-                                                    <div key={k} className="flex justify-between py-1">
-                                                        <span className="text-[12px] text-[#8f8f8f]">{k}</span>
-                                                        <span className="text-[12px] text-[#171717] font-[500]">{v}</span>
+                                        {/* Section 4: Evidence — evidence + impact */}
+                                        {(Object.keys(evidence).length > 0 || Object.keys(impact).length > 0) && (
+                                            <div className="px-5 py-4 border-b border-[#f5f5f5]">
+                                                <div className="flex items-center gap-1.5 mb-3">
+                                                    <FileSearch className="w-3.5 h-3.5 text-amber-500" />
+                                                    <span className="text-[12px] font-[600] text-[#171717] uppercase tracking-wide">Evidence</span>
+                                                </div>
+                                                {renderDataGrid(evidence)}
+                                                {Object.keys(impact).length > 0 && Object.keys(evidence).length > 0 && (
+                                                    <div className="mt-3 pt-3 border-t border-[#fafafa]">
+                                                        <span className="text-[11px] font-[550] text-[#8f8f8f] uppercase tracking-wide mb-2 block">Impact</span>
+                                                        {renderDataGrid(impact)}
                                                     </div>
-                                                ))}
+                                                )}
+                                                {Object.keys(impact).length > 0 && Object.keys(evidence).length === 0 && renderDataGrid(impact)}
                                             </div>
-                                        </div>
+                                        )}
+
+                                        {/* Section 5: Recommendation */}
+                                        {recommendationMsg && (
+                                            <div className="px-5 py-4 border-b border-[#f5f5f5] bg-[#fefdfb]">
+                                                <div className="flex items-center gap-1.5 mb-2">
+                                                    <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+                                                    <span className="text-[12px] font-[600] text-[#171717] uppercase tracking-wide">Recommendation</span>
+                                                </div>
+                                                <p className="text-[13px] text-[#353535] leading-relaxed">{recommendationMsg}</p>
+                                            </div>
+                                        )}
 
                                         {/* Action Buttons */}
                                         {isPending && (
