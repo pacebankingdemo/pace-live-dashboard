@@ -7,7 +7,6 @@ import {
     CheckCircle2,
     XCircle,
     Clock,
-    TrendingUp,
     Shield,
     AlertTriangle,
     Sparkles
@@ -56,12 +55,11 @@ export default function InsightsPanel() {
         const logs = insight.logs || [];
         const patternProfile = logs.find(l => l.log_type === 'artifact' && l.metadata?.step_name === 'Pattern Profile');
         const statsArtifact = logs.find(l => l.log_type === 'artifact' && l.metadata?.step_name === 'Statistical Confidence');
-        const impactArtifact = logs.find(l => l.log_type === 'artifact' && l.metadata?.step_name === 'Impact Estimate');
         const discoveryLog = logs.find(l => l.log_type === 'decision' && l.metadata?.step_name === 'Pattern Discovery');
         const evidenceLog = logs.find(l => l.log_type === 'decision' && l.metadata?.step_name === 'Historical Evidence');
         const recommendationLog = logs.find(l => l.log_type === 'decision' && l.metadata?.step_name === 'Recommendation');
         const approvalLog = logs.find(l => l.log_type === 'decision' && l.metadata?.step_name === 'Pending Approval');
-        return { patternProfile, statsArtifact, impactArtifact, discoveryLog, evidenceLog, recommendationLog, approvalLog };
+        return { patternProfile, statsArtifact, discoveryLog, evidenceLog, recommendationLog, approvalLog };
     }
 
     function getStatusInfo(insight) {
@@ -142,7 +140,6 @@ export default function InsightsPanel() {
                         const isExpanded = expandedInsight === insight.id;
                         const profile = parsed.patternProfile?.metadata?.data || {};
                         const stats = parsed.statsArtifact?.metadata?.data || {};
-                        const impact = parsed.impactArtifact?.metadata?.data || {};
                         const isPending = status.label === 'Pending Approval';
 
                         return (
@@ -197,22 +194,6 @@ export default function InsightsPanel() {
                                                     <div key={i} className="flex gap-2">
                                                         <span className="text-[11px] text-[#cacaca] mt-0.5 shrink-0">{i + 1}.</span>
                                                         <span className="text-[12px] text-[#525252] leading-relaxed">{step}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Impact */}
-                                        <div className="px-5 py-4 border-b border-[#f5f5f5]">
-                                            <div className="flex items-center gap-1.5 mb-3">
-                                                <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-                                                <span className="text-[12px] font-[600] text-[#171717] uppercase tracking-wide">Projected Impact</span>
-                                            </div>
-                                            <div className="grid grid-cols-3 gap-4">
-                                                {Object.entries(impact).slice(0, 6).map(([k, v]) => (
-                                                    <div key={k} className="bg-[#fafafa] rounded-lg px-3 py-2.5">
-                                                        <div className="text-[11px] text-[#8f8f8f] mb-0.5">{k}</div>
-                                                        <div className="text-[13px] font-[600] text-[#171717]">{v}</div>
                                                     </div>
                                                 ))}
                                             </div>
