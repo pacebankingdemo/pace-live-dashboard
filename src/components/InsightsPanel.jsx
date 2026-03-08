@@ -182,7 +182,7 @@ export default function InsightsPanel() {
                                             </span>
                                         </div>
                                         <h3 className="text-[14px] font-[550] text-[#171717] mb-1">{summary.insight_title || 'Pattern Detected'}</h3>
-                                        <p className="text-[13px] text-[#8f8f8f] line-clamp-2">{summary.Description || 'Pattern detected from historical screening data'}</p>
+                                        <p className={`text-[13px] text-[#8f8f8f] ${!isExpanded ? "line-clamp-2" : ""}`}>{summary.Description || 'Pattern detected from historical screening data'}</p>
                                     </div>
                                     <div className="ml-3 mt-1 text-[#cacaca]">
                                         {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
