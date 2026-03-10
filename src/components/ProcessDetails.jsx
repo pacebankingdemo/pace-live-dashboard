@@ -10,6 +10,7 @@ import {
 import { fetchLogs, fetchArtifacts, fetchBrowserRecordings, subscribeToTable } from '../services/supabase';
 import { supabase } from '../services/supabase';
 import VideoPlayer from './VideoPlayer';
+import HitlDecisionPanel from './HitlDecisionPanel';
 
 /* ─── Helpers: classify metadata fields ─── */
 const REASONING_KEYS = new Set([
@@ -779,6 +780,9 @@ const ProcessDetails = () => {
                         </p>
                     </div>
                 </div>
+
+                {/* HITL Decision Panel */}
+                <HitlDecisionPanel run={run} logs={logs} />
 
                 {/* Timeline */}
                 <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar">
