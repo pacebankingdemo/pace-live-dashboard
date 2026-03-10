@@ -52,7 +52,7 @@ const VideoPlayer = ({ recording, onClose }) => {
         if (!videoUrl) return;
         const a = document.createElement('a');
         a.href = videoUrl;
-        a.download = title.endsWith('.mp4') ? title : `${title}.mp4`;
+        a.download = title.endsWith('.mp4') || title.endsWith('.webm') ? title : `${title}.mp4`;
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
         document.body.appendChild(a);

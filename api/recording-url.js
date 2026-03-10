@@ -28,7 +28,7 @@ export default async function handler(req, res) {
 
   const key = req.query.key;
   if (!key) return res.status(400).json({ error: "Missing 'key' query parameter" });
-  if (!key.endsWith(".mp4")) return res.status(400).json({ error: "Invalid key format" });
+  if (!key.endsWith(".mp4") && !key.endsWith(".webm")) return res.status(400).json({ error: "Invalid key format" });
 
   const bucket = process.env.AWS_S3_BUCKET || "zamp-prd-us-selenium-grid-bucket";
 
