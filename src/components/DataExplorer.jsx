@@ -189,7 +189,7 @@ export default function DataExplorer() {
     }
 
     return (
-        <div className="flex flex-col h-full bg-white overflow-hidden">
+        <div className="flex flex-col h-full min-h-0 bg-white overflow-hidden">
             {/* Header bar */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                 <div className="flex items-center gap-3">
@@ -261,7 +261,7 @@ export default function DataExplorer() {
                     </div>
 
                     {/* Data table */}
-                    <div className="flex-1 overflow-auto">
+                    <div className="flex-1 min-h-0 overflow-auto">
                         {rowsLoading ? (
                             <div className="flex items-center justify-center py-12 text-gray-400">
                                 <div className="animate-pulse text-sm">Loading rows...</div>
