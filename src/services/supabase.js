@@ -162,3 +162,80 @@ export async function fetchAllDatasetRows(datasetId) {
     if (error) throw error;
     return data || [];
 }
+
+// --- KB Edit & Save (demo mode — uses service role key for Storage writes) ---
+const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzdmpjcG14bmRnYXVqeGx2aWt3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjAyOTkzNiwiZXhwIjoyMDg3NjA1OTM2fQ.81sjVPgI5QzYLlwz1YwbkCNxK-07Rki98px_JUhK6To';
+
+export async function saveKnowledgeBase(processId, markdownContent) {
+    const storagePath = `${processId}/kb.md`;
+    const now = new Date();
+    const version = Math.floor(now.getTime() / 1000);
+
+    // 1. Upload markdown to Supabase Storage (upsert)
+    const uploadUrl = `${supabaseUrl}/storage/v1/object/knowledge-base/${storagePath}`;
+    const uploadResp = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+            'Content-Type': 'text/markdown',
+            'x-upsert': 'true',
+        },
+        body: markdownContent,
+    });
+
+    if (!uploadResp.ok) {
+        const err = await uploadResp.text();
+        throw new Error(`Storage upload failed: ${err}`);
+    }
+
+    // 2. Fetch existing process metadata to preserve fields
+    const { data: proc, error: fetchErr } = await supabase
+        .from('processes')
+        .select('knowledge_base')
+        .eq('id', processId)
+        .single();
+
+    if (fetchErr) throw fetchErr;
+
+    let existingMeta = {};
+    try {
+        existingMeta = typeof proc.knowledge_base === 'string'
+            ? JSON.parse(proc.knowledge_base)
+            : (proc.knowledge_base || {});
+    } catch { existingMeta = {}; }
+
+    // 3. Build updated metadata (preserve triggers, integrations, execution_skill)
+    const meta = {
+        ...existingMeta,
+        version,
+        storage_path: `knowledge-base/${storagePath}`,
+        updated_at: now.toISOString(),
+    };
+
+    // If execution_skill exists, flag it as stale
+    if (meta.execution_skill) {
+        meta.execution_skill.kb_version_at_generation = existingMeta.version || 0;
+        meta.execution_skill.needs_regen = true;
+    }
+
+    // 4. Update process record with new metadata (using service role client)
+    const patchUrl = `${supabaseUrl}/rest/v1/processes?id=eq.${processId}`;
+    const patchResp = await fetch(patchUrl, {
+        method: 'PATCH',
+        headers: {
+            'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+            'apikey': SERVICE_ROLE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation',
+        },
+        body: JSON.stringify({ knowledge_base: JSON.stringify(meta) }),
+    });
+
+    if (!patchResp.ok) {
+        const err = await patchResp.text();
+        throw new Error(`Process update failed: ${err}`);
+    }
+
+    const updated = await patchResp.json();
+    return updated[0] || updated;
+}
