@@ -331,21 +331,57 @@ export default function DataExplorer() {
                     </div>
 
                     {/* Pagination */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-between px-4 py-2 border-t border-gray-100">
+                    {totalRows > 0 && (
+                        <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 border-t border-gray-100 bg-white">
                             <span className="text-[10px] text-gray-400">
-                                Page {page + 1} of {totalPages} ({totalRows} total)
+                                {totalPages > 1
+                                    ? `Page ${page + 1} of ${totalPages} (${totalRows} total rows)`
+                                    : `${totalRows} ${totalRows === 1 ? 'row' : 'rows'}`}
                             </span>
-                            <div className="flex items-center gap-1">
-                                <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
-                                    className="px-2 py-1 text-[10px] rounded border border-gray-200 disabled:opacity-30 hover:bg-gray-50">
-                                    Prev
-                                </button>
-                                <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
-                                    className="px-2 py-1 text-[10px] rounded border border-gray-200 disabled:opacity-30 hover:bg-gray-50">
-                                    Next
-                                </button>
-                            </div>
+                            {totalPages > 1 && (
+                                <div className="flex items-center gap-1">
+                                    <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
+                                        className="px-2 py-1 text-[10px] rounded border border-gray-200 disabled:opacity-30 hover:bg-gray-50 transition-colors">
+                                        Prev
+                                    </button>
+
+                                    {/* Page number buttons */}
+                                    {(() => {
+                                        const pages = [];
+                                        const showPage = (p) => (
+                                            <button key={p} onClick={() => setPage(p)}
+                                                className={`px-2 py-1 text-[10px] rounded border transition-colors ${
+                                                    p === page
+                                                        ? 'bg-gray-900 text-white border-gray-900'
+                                                        : 'border-gray-200 hover:bg-gray-50 text-gray-600'
+                                                }`}>
+                                                {p + 1}
+                                            </button>
+                                        );
+                                        const ellipsis = (key) => (
+                                            <span key={key} className="px-1 text-[10px] text-gray-300">…</span>
+                                        );
+
+                                        if (totalPages <= 7) {
+                                            for (let i = 0; i < totalPages; i++) pages.push(showPage(i));
+                                        } else {
+                                            pages.push(showPage(0));
+                                            if (page > 2) pages.push(ellipsis('start'));
+                                            const start = Math.max(1, page - 1);
+                                            const end = Math.min(totalPages - 2, page + 1);
+                                            for (let i = start; i <= end; i++) pages.push(showPage(i));
+                                            if (page < totalPages - 3) pages.push(ellipsis('end'));
+                                            pages.push(showPage(totalPages - 1));
+                                        }
+                                        return pages;
+                                    })()}
+
+                                    <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
+                                        className="px-2 py-1 text-[10px] rounded border border-gray-200 disabled:opacity-30 hover:bg-gray-50 transition-colors">
+                                        Next
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </>
