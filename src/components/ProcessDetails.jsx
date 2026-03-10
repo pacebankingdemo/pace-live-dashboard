@@ -781,8 +781,6 @@ const ProcessDetails = () => {
                     </div>
                 </div>
 
-                {/* HITL Decision Panel */}
-                <HitlDecisionPanel run={run} logs={logs} />
 
                 {/* Timeline */}
                 <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar">
@@ -905,6 +903,10 @@ const ProcessDetails = () => {
                                                         </button>
                                                     ))}
                                                 </div>
+                                            )}
+                                            {/* HITL decision buttons - inline at end of last log entry */}
+                                            {isLastGroup && run.status === 'needs_attention' && (
+                                                <HitlDecisionPanel run={run} logs={logs} />
                                             )}
                                         </div>
                                     </div>
