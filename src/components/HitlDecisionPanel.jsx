@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// Use service role key for HITL writes (bypasses RLS)
 const sbUrl = import.meta.env.VITE_SUPABASE_URL;
 const sbServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzdmpjcG14bmRnYXVqeGx2aWt3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjAyOTkzNiwiZXhwIjoyMDg3NjA1OTM2fQ.81sjVPgI5QzYLlwz1YwbkCNxK-07Rki98px_JUhK6To';
 const supabase = createClient(sbUrl, sbServiceKey);
@@ -22,7 +21,9 @@ export default function HitlDecisionPanel({ run, logs }) {
 
     if (!run || run.status !== 'needs_attention') return null;
 
-    const alreadyDecided = logs?.some(l => l.log_type === 'hitl_response');
+    const alreadyDecided = logs?.some(l =>
+        l.log_type === 'system' && l.metadata?.hitl_decision === true
+    );
     if (alreadyDecided || decided) return null;
 
     const submitDecision = async (decision) => {
@@ -35,29 +36,29 @@ export default function HitlDecisionPanel({ run, logs }) {
         setSubmitting(decision.id);
 
         const decLabel = `${decision.label} (${decision.desc})`;
-        const message = `${decLabel} — approved by ${name.trim()}`;
 
         try {
-            // 1. Log the HITL response (Phase 2 polls for this)
+            // 1. Write system log with hitl_decision marker (Phase 2 polls for this)
             const { error: e1 } = await supabase.from('activity_logs').insert({
                 run_id: run.id,
                 step_number: 5,
-                log_type: 'hitl_response',
+                log_type: 'system',
                 message: `Human decision: ${decision.id}`,
                 metadata: {
                     step_name: 'Human Decision',
+                    hitl_decision: true,
                     decision: decision.id,
                     decided_by: name.trim(),
                 },
             });
-            if (e1) throw new Error(`hitl_response insert: ${e1.message}`);
+            if (e1) throw new Error(`system log insert: ${e1.message}`);
 
-            // 2. Log the human-readable decision as a visible activity entry
+            // 2. Write visible decision log for timeline
             const { error: e2 } = await supabase.from('activity_logs').insert({
                 run_id: run.id,
                 step_number: 5,
                 log_type: 'decision',
-                message: message,
+                message: `${decLabel} — approved by ${name.trim()}`,
                 metadata: {
                     step_name: 'Human Decision',
                     decision: decision.id,
@@ -65,9 +66,9 @@ export default function HitlDecisionPanel({ run, logs }) {
                     decided_by: name.trim(),
                 },
             });
-            if (e2) throw new Error(`decision insert: ${e2.message}`);
+            if (e2) throw new Error(`decision log insert: ${e2.message}`);
 
-            // 3. Move run to running so Phase 2 can proceed
+            // 3. Move run to running
             const { error: e3 } = await supabase
                 .from('activity_runs')
                 .update({
