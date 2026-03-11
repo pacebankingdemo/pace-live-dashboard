@@ -53,8 +53,8 @@ const BUTTON_STYLES = {
 export default function HitlDecisionPanel({ run, logs }) {
     const [submitting, setSubmitting] = useState(null);
     const [decided, setDecided] = useState(false);
-    const [name, setName] = useState('');
-    const [showNameError, setShowNameError] = useState(false);
+    const name = 'Prabhu';
+    
     const [error, setError] = useState(null);
 
     if (!run || run.status !== 'needs_attention') return null;
@@ -68,11 +68,7 @@ export default function HitlDecisionPanel({ run, logs }) {
     const decisions = PROCESS_DECISIONS[run.process_id] || DEFAULT_DECISIONS;
 
     const submitDecision = async (decision) => {
-        if (!name.trim()) {
-            setShowNameError(true);
-            return;
-        }
-        setShowNameError(false);
+
         setError(null);
         setSubmitting(decision.id);
 
@@ -143,20 +139,7 @@ export default function HitlDecisionPanel({ run, logs }) {
                     Error: {error}
                 </div>
             )}
-            <div className="flex items-center gap-2 mb-3">
-                <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => { setName(e.target.value); setShowNameError(false); }}
-                    placeholder="Your name"
-                    className={`px-2.5 py-1.5 text-[12px] rounded-lg border bg-white outline-none transition-colors w-44 ${
-                        showNameError ? 'border-red-400 placeholder-red-300' : 'border-[#E5E7EB] focus:border-[#171717]'
-                    }`}
-                />
-                {showNameError && (
-                    <span className="text-[11px] text-red-500">Enter your name</span>
-                )}
-            </div>
+
             <div className="flex flex-wrap gap-2">
                 {decisions.map(d => {
                     const style = BUTTON_STYLES[d.style] || BUTTON_STYLES.primary;
@@ -178,9 +161,7 @@ export default function HitlDecisionPanel({ run, logs }) {
                     );
                 })}
             </div>
-            <div className="mt-1.5 text-[10px] text-[#9CA3AF]">
-                {decisions.map(d => d.desc).join(' · ')}
-            </div>
+
         </div>
     );
 }
