@@ -18,6 +18,17 @@ function getS3Client() {
   });
 }
 
+// Strip SDK-injected query params that break browser <video> HEAD preflights.
+// @aws-sdk/s3-request-presigner v3 appends x-amz-checksum-mode=ENABLED and
+// x-id=GetObject. The S3 bucket policy blocks HEAD requests, so the browser's
+// preflight 403s and the video player shows "Unable to load video".
+function stripChecksumParams(url) {
+  const u = new URL(url);
+  u.searchParams.delete("x-amz-checksum-mode");
+  u.searchParams.delete("x-id");
+  return u.toString();
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
@@ -35,7 +46,8 @@ export default async function handler(req, res) {
   try {
     const s3 = getS3Client();
     const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-    const url = await getSignedUrl(s3, command, { expiresIn: URL_EXPIRY_SECONDS });
+    const rawUrl = await getSignedUrl(s3, command, { expiresIn: URL_EXPIRY_SECONDS });
+    const url = stripChecksumParams(rawUrl);
     return res.status(200).json({ url, expires_in: URL_EXPIRY_SECONDS });
   } catch (err) {
     console.error("Failed to generate pre-signed URL:", err.message);
