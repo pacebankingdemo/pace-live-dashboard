@@ -41,6 +41,12 @@ const CASE_DETAIL_KEYS = new Set([
     'priority', 'customer_name', 'kyc_status', 'risk_rating',
     'ubo_sanctions_status', 'ultimate_beneficial_owner',
     'confidence', 'value_date', 'screening_party',
+    // Chubb FI D&O Submission Intake keys
+    'case_id', 'named_insured', 'ticker', 'institution_type',
+    'total_assets', 'broker', 'underwriter', 'line',
+    'transaction_type', 'effective_date', 'prior_policy',
+    'documents_received', 'regulatory_flag', 'prior_do_claim',
+    'triage_decision', 'premium_indication', 'pace_processing_time',
 ]);
 
 function isLargeData(value) {
@@ -991,7 +997,7 @@ const ProcessDetails = () => {
                     <div className="mx-4 mb-3 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
                         <div className="flex items-center gap-2 px-4 pt-3.5 pb-2">
                             <Database className="w-3.5 h-3.5 text-[#6B7280]" />
-                            <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Run Details</span>
+                            <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">{run?.process_id === '480108a8-5ec2-412c-ae0c-87a1457d547b' ? 'Case Details' : 'Run Details'}</span>
                         </div>
                         <div className="px-4 pb-3.5 space-y-3">
                             {[
