@@ -292,6 +292,72 @@ function getDocumentType(artifact) {
     if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg', 'tiff', 'tif'].includes(ext)) return 'image';
     return 'unknown';
 }
+function isEmailFile(artifact) {
+    if (!artifact) return false;
+    const fname = artifact.filename || '';
+    if (fname.toLowerCase().endsWith('.eml')) return true;
+    const mime = artifact.metadata?.file_type || artifact.file_type || '';
+    if (mime === 'message/rfc822') return true;
+    return false;
+}
+
+/* ─── EmailArtifactPill ─── */
+const GmailIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+        <path d="M2 6C2 4.89543 2.89543 4 4 4H20C21.1046 4 22 4.89543 22 6V18C22 19.1046 21.1046 20 20 20H4C2.89543 20 2 19.1046 2 18V6Z" fill="white"/>
+        <path d="M4 4L12 13L20 4" stroke="#EA4335" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M2 6L9.5 12.5" stroke="#4285F4" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M22 6L14.5 12.5" stroke="#34A853" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M2 18L9.5 12.5" stroke="#FBBC05" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M22 18L14.5 12.5" stroke="#EA4335" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+);
+
+const EmailArtifactPill = ({ artifact, onClick }) => {
+    const meta = artifact.metadata || {};
+    const displayName = meta.artifact_name || artifact.filename || 'Email';
+    const cleanName = displayName.replace(/\.eml$/i, '');
+    return (
+        <button
+            onClick={() => onClick && onClick(artifact)}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1a1a1a] hover:bg-[#333] transition-colors text-white text-[12px] font-medium max-w-full"
+            style={{maxWidth: '100%'}}
+        >
+            <GmailIcon />
+            <span className="truncate">{cleanName}</span>
+        </button>
+    );
+};
+
+/* ─── EmailViewer modal ─── */
+const EmailViewer = ({ artifact, onClose }) => {
+    const meta = artifact.metadata || {};
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E7EB]">
+                    <div className="flex items-center gap-2.5">
+                        <GmailIcon />
+                        <span className="text-[14px] font-semibold text-[#171717]">{(meta.artifact_name || artifact.filename || 'Email').replace(/\.eml$/i, '')}</span>
+                    </div>
+                    <button onClick={onClose} className="text-[#9CA3AF] hover:text-[#374151] text-xl font-light leading-none">×</button>
+                </div>
+                <div className="px-5 py-4 space-y-1.5 bg-[#F9FAFB] border-b border-[#E5E7EB]">
+                    {meta.email_from && <div className="flex gap-2 text-[12px]"><span className="text-[#6B7280] w-12 flex-shrink-0">From</span><span className="text-[#171717] font-medium">{meta.email_from}</span></div>}
+                    {meta.email_to && <div className="flex gap-2 text-[12px]"><span className="text-[#6B7280] w-12 flex-shrink-0">To</span><span className="text-[#171717]">{meta.email_to}</span></div>}
+                    {meta.email_cc && <div className="flex gap-2 text-[12px]"><span className="text-[#6B7280] w-12 flex-shrink-0">CC</span><span className="text-[#171717]">{meta.email_cc}</span></div>}
+                    {meta.email_date && <div className="flex gap-2 text-[12px]"><span className="text-[#6B7280] w-12 flex-shrink-0">Date</span><span className="text-[#171717]">{meta.email_date}</span></div>}
+                    {meta.email_subject && <div className="flex gap-2 text-[12px]"><span className="text-[#6B7280] w-12 flex-shrink-0">Subject</span><span className="text-[#171717] font-medium">{meta.email_subject}</span></div>}
+                </div>
+                <div className="px-5 py-4 max-h-80 overflow-y-auto">
+                    <pre className="text-[12px] text-[#374151] whitespace-pre-wrap font-sans leading-relaxed">{meta.email_body || '(No body)'}</pre>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 
 /* ─── DocumentPreview ─── */
 const DocumentPreview = ({ artifact, onClose }) => {
@@ -554,6 +620,7 @@ const ProcessDetails = () => {
     const [run, setRun] = useState(null);
     const [recordings, setRecordings] = useState([]);
     const [selectedArtifact, setSelectedArtifact] = useState(null);
+    const [selectedEmail, setSelectedEmail] = useState(null);
     const [artifactWidth, setArtifactWidth] = useState(550);
     const [isResizing, setIsResizing] = useState(false);
     const logsEndRef = useRef(null);
@@ -607,14 +674,26 @@ const ProcessDetails = () => {
     }, [logs]);
 
     const allArtifacts = useMemo(() => {
-        const combined = [...artifacts];
+        // Build a map from artifact_id → email log metadata for EML enrichment
+        const emailLogMap = {};
+        logs.forEach(l => {
+            if (l.log_type === 'artifact' && l.metadata?.email_from && l.metadata?.artifact_id) {
+                emailLogMap[l.metadata.artifact_id] = l.metadata;
+            }
+        });
+        const combined = artifacts.map(a => {
+            if (a.file_type === 'message/rfc822' && emailLogMap[a.id]) {
+                return { ...a, metadata: emailLogMap[a.id] };
+            }
+            return a;
+        });
         Object.values(logMetaClassified).forEach(({ dataArtifacts }) => {
             dataArtifacts.forEach(da => {
                 if (!combined.some(a => a.id === da.id)) combined.push(da);
             });
         });
         return combined;
-    }, [artifacts, logMetaClassified]);
+    }, [artifacts, logs, logMetaClassified]);
 
     // Extract case details from log metadata
     const caseDetails = useMemo(() => extractCaseDetails(logs), [logs]);
@@ -672,7 +751,22 @@ const ProcessDetails = () => {
                             (l.metadata?.artifact_name && l.metadata.artifact_name === a.filename)
                     )
                 )
-            );
+            ).map(a => {
+                // Enrich EML artifacts with email fields from the matching artifact log
+                if (a.file_type === 'message/rfc822') {
+                    const emailLog = group.logs.find(l =>
+                        l.log_type === 'artifact' && (
+                            (l.metadata?.artifact_id && l.metadata.artifact_id === a.id) ||
+                            (l.metadata?.artifact_name) ||
+                            l.message?.includes(a.filename)
+                        ) && l.metadata?.email_from
+                    );
+                    if (emailLog) {
+                        return { ...a, metadata: emailLog.metadata };
+                    }
+                }
+                return a;
+            });
 
             // Collect all meta artifacts from classified metadata
             const metaArts = [];
@@ -895,6 +989,11 @@ const ProcessDetails = () => {
                                             {hasAttachments && (
                                                 <div className="flex flex-wrap gap-2 mt-2.5">
                                                     {uniqueDbArts.map(art => {
+                                                        if (isEmailFile(art)) {
+                                                            return (
+                                                                <EmailArtifactPill key={art.id} artifact={art} onClick={() => setSelectedEmail(art)} />
+                                                            );
+                                                        }
                                                         const isPdf = art.filename?.toLowerCase().endsWith('.pdf');
                                                         const isImg = /\.(png|jpg|jpeg|gif|webp)$/i.test(art.filename || '');
                                                         return (
@@ -992,29 +1091,6 @@ const ProcessDetails = () => {
                         </div>
                     )}
 
-                    {/* Run Details — hidden for NatWest org (Sanction Screening) */}
-                    {run?.process_id !== 'ed6dc37d-111d-46f3-a929-200ca3d21843' && run?.process_id !== '499ade3b-0c28-44e0-ad0c-8d8681498c94' && (
-                    <div className="mx-4 mb-3 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-                        <div className="flex items-center gap-2 px-4 pt-3.5 pb-2">
-                            <Database className="w-3.5 h-3.5 text-[#6B7280]" />
-                            <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">{run?.process_id === '480108a8-5ec2-412c-ae0c-87a1457d547b' ? 'Case Details' : 'Run Details'}</span>
-                        </div>
-                        <div className="px-4 pb-3.5 space-y-3">
-                            {[
-                                ['Run ID', runId?.slice(0, 8)],
-                                ['Status', run?.status?.replace(/_/g, ' ')],
-                                ['Started', run?.started_at ? formatDate(run.started_at) + ' ' + formatTime(run.started_at) : '\u2014'],
-                                ['Completed', run?.completed_at ? formatDate(run.completed_at) + ' ' + formatTime(run.completed_at) : '\u2014'],
-                                ['Steps', logs.length.toString()],
-                            ].map(([label, value]) => (
-                                <div key={label}>
-                                    <p className="text-[10px] font-medium text-[#9CA3AF] uppercase tracking-wider mb-0.5">{label}</p>
-                                    <p className="text-[13px] text-[#171717] font-medium">{value || '\u2014'}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    )}
 
                     {/* Artifacts */}
                     <div className="mx-4 mb-4 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
@@ -1028,6 +1104,13 @@ const ProcessDetails = () => {
                             ) : (
                                 <div className="space-y-1">
                                     {allArtifacts.map(art => {
+                                        if (isEmailFile(art)) {
+                                            return (
+                                                <div key={art.id} className="py-1">
+                                                    <EmailArtifactPill artifact={art} onClick={() => setSelectedEmail(art)} />
+                                                </div>
+                                            );
+                                        }
                                         const isPdf = art.filename?.toLowerCase().endsWith('.pdf');
                                         const isImg = /\.(png|jpg|jpeg|gif|webp)$/i.test(art.filename || '');
                                         return (
@@ -1063,6 +1146,10 @@ const ProcessDetails = () => {
                 </div>
             )}
         </div>
+        {/* Email viewer modal */}
+        {selectedEmail && (
+            <EmailViewer artifact={selectedEmail} onClose={() => setSelectedEmail(null)} />
+        )}
     );
 };
 
