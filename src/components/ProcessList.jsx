@@ -117,6 +117,7 @@ const ProcessList = () => {
                             <tr className="f-12-450 text-[#8f8f8f]">
                                 <th className="w-12 px-6 py-2"></th>
                                 <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Document</th>
+                                <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Type</th>
                                 <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Current Status</th>
                                 <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Time</th>
                             </tr>
@@ -150,6 +151,19 @@ const ProcessList = () => {
                                     </td>
                                     <td className="px-4 py-2.5 text-[13px] font-[450] text-[#171717] max-w-[250px] truncate">
                                         {run.document_name || run.name}
+                                    </td>
+                                    <td className="px-4 py-2.5 whitespace-nowrap">
+                                        {run.metadata?.workflow_type ? (
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-[600] tracking-wide uppercase ${
+                                                run.metadata.workflow_type === 'EXP_TO_FA'
+                                                    ? 'bg-[#EAF3FF] text-[#2546F5] border border-[#c3d8ff]'
+                                                    : 'bg-[#FFF4E5] text-[#B45309] border border-[#fcd99c]'
+                                            }`}>
+                                                {run.metadata.workflow_type === 'EXP_TO_FA' ? 'Fixed Asset' : 'Prepaid'}
+                                            </span>
+                                        ) : (
+                                            <span className="text-[12px] text-[#d1d5db]">—</span>
+                                        )}
                                     </td>
                                     <td className="px-4 py-2.5 text-[13px] font-[450] text-[#171717] max-w-[350px] truncate">
                                         {run.current_status_text}

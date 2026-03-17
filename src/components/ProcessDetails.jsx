@@ -47,6 +47,13 @@ const CASE_DETAIL_KEYS = new Set([
     'transaction_type', 'effective_date', 'prior_policy',
     'documents_received', 'regulatory_flag', 'prior_do_claim',
     'triage_decision', 'premium_indication', 'pace_processing_time',
+    // Block OPEX Review keys
+    'txn_number', 'workflow_type', 'invoice_amount', 'gl_account',
+    'vendor', 'vendor_name', 'cost_center', 'entity',
+    'classification', 'reclassification_type', 'useful_life',
+    'asset_category', 'prepaid_months', 'amortization_start',
+    'g8_filter', 'accap_eligible', 'po_number', 'invoice_date',
+    'journal_entry', 'approver', 'classification_rationale',
 ]);
 
 function isLargeData(value) {
@@ -876,6 +883,15 @@ const ProcessDetails = () => {
                             <h2 className="text-[16px] font-semibold text-[#171717]">
                                 {run?.document_name || run?.name || `Run ${runId?.slice(0, 8)}`}
                             </h2>
+                            {run?.metadata?.workflow_type && (
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-[600] tracking-wide uppercase ${
+                                    run.metadata.workflow_type === 'EXP_TO_FA'
+                                        ? 'bg-[#EAF3FF] text-[#2546F5] border border-[#c3d8ff]'
+                                        : 'bg-[#FFF4E5] text-[#B45309] border border-[#fcd99c]'
+                                }`}>
+                                    {run.metadata.workflow_type === 'EXP_TO_FA' ? 'Fixed Asset' : 'Prepaid'}
+                                </span>
+                            )}
                             {run?.status && (
                                 <span className={`flex items-center gap-1 text-[12px] font-medium ${
                                     run.status === 'done' ? 'text-[#038408]' :
