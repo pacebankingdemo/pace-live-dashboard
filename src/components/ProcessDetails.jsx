@@ -23,26 +23,13 @@ const REASONING_KEYS = new Set([
     'decision_by', 'final_status', 'match_verdict', 'line_items_total'
 ]);
 
-const SKIP_KEYS = new Set([
-    'step_name', 'reasoning_steps', 'dataset_name',
-    // DXC process — never render these as sidebar rows
-    'start_date', 'end_date', 'artifacts',
-    'source_run_id', 'source_run_name', 'source_process', 'linked_process_id',
-    'expense_booking_triggered', 'ariba_push_status', 'erp_breakdown', 'invoice_ids',
-    'total_invoices_synced', 'linked_process',
-    // P2 expense booking — keep clean
-    'payment_ref', 'payment_status', 'journal_entry', 'gl_account', 'cost_centre',
-    'booked_amount_usd', 'hitl_required', 'flag_reason', 'void_reason',
-    'from_currency', 'to_currency', 'exchange_rate', 'original_amount', 'converted_amount',
-    'records_input', 'duplicates_removed', 'records_output', 'records_passed',
-    'ineligible_removed', 'invoices_mapped',
-]);
+const SKIP_KEYS = new Set(['step_name', 'reasoning_steps', 'dataset_name']);
 
 /* Fields we want to surface in Case Details sidebar */
 const CASE_DETAIL_KEYS = new Set([
     'vendor', 'vendor_name', 'invoice_number', 'invoice_no',
-    'po_number', 'invoice_amount', 'total', 'currency',
-    'match_verdict', 'quality_score', 'final_status',
+    'po_number', 'total', 'currency',
+    'match_verdict', 'quality_score',
     'document_type', 'invoice_date', 'po_date', 'department',
     'linkages', 'decision_by', 'recommendation',
     // Sanction screening keys (snake_case normalized from actual data)
@@ -67,7 +54,10 @@ const CASE_DETAIL_KEYS = new Set([
     'asset_category', 'prepaid_months', 'amortization_start',
     'g8_filter', 'accap_eligible', 'po_number', 'invoice_date',
     'journal_entry', 'approver', 'classification_rationale',
-    // DXC Delta Sync keys (removed — sidebar no longer shows these)
+    // DXC Delta Sync keys
+    'current_status', 'date', 'start_date', 'end_date',
+    'erp_records_found', 'erp_records_processed', 'erp_invoices_extracted',
+
 ]);
 
 function isLargeData(value) {
@@ -1134,7 +1124,7 @@ const ProcessDetails = () => {
 
                     {/* DXC Delta Sync — structured 12-field panel */}
                     {(() => {
-                        const dxcKeys = ['current_status','date','start_date','end_date','erp_records_found','erp_records_processed','erp_invoices_extracted','erp_lh','erp_gsap','erp_compass','ariba_lh_compass','ariba_gsap'];
+                        const dxcKeys = ['current_status','date','start_date','end_date','erp_records_found','erp_records_processed','erp_invoices_extracted'];
                         const hasDxc = dxcKeys.some(k => caseDetails[k]);
                         if (!hasDxc) return null;
 
@@ -1157,14 +1147,10 @@ const ProcessDetails = () => {
                             erp_records_found: 'ERP Records Found',
                             erp_records_processed: 'ERP Records Processed',
                             erp_invoices_extracted: 'ERP Invoices Extracted',
-                            erp_lh: 'ERP — LH',
-                            erp_gsap: 'ERP — GSAP',
-                            erp_compass: 'ERP — Compass',
-                            ariba_lh_compass: 'Ariba — LH / Compass',
-                            ariba_gsap: 'Ariba — GSAP',
+
                         };
 
-                        const dividerAfter = new Set(['end_date', 'erp_invoices_extracted', 'erp_compass']);
+                        const dividerAfter = new Set(['end_date', 'erp_invoices_extracted']);
 
                         return (
                             <div className="mx-4 mb-3 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
@@ -1195,7 +1181,7 @@ const ProcessDetails = () => {
 
                     {/* Case Details - extracted from log metadata (non-DXC processes) */}
                     {(() => {
-                        const dxcKeys = new Set(['current_status','date','start_date','end_date','erp_records_found','erp_records_processed','erp_invoices_extracted','erp_lh','erp_gsap','erp_compass','ariba_lh_compass','ariba_gsap']);
+                        const dxcKeys = new Set(['current_status','date','start_date','end_date','erp_records_found','erp_records_processed','erp_invoices_extracted']);
                         const nonDxc = Object.fromEntries(Object.entries(caseDetails).filter(([k]) => !dxcKeys.has(k)));
                         if (Object.keys(nonDxc).length === 0) return null;
                         return (
