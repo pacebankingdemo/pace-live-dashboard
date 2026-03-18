@@ -190,9 +190,11 @@ const ProcessList = () => {
                                         {currentProcess?.id === P2_PROCESS_ID ? (
                                             <>
                                                 <td className="px-4 py-2.5 text-right font-[500] text-[#171717] whitespace-nowrap">
-                                                    {meta.currency && meta.amount
-                                                        ? `${meta.currency} ${Number(meta.amount).toLocaleString()}`
-                                                        : '—'}
+                                                    {meta.invoice_value
+                                                        ? `$${Number(meta.invoice_value).toLocaleString()}`
+                                                        : meta.currency && meta.amount
+                                                            ? `${meta.currency} ${Number(meta.amount).toLocaleString()}`
+                                                            : '—'}
                                                 </td>
                                                 <td className="px-4 py-2.5 text-center text-[#555]">
                                                     {meta.prepaid_year ? `${meta.prepaid_year} yr` : '—'}
