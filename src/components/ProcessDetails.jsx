@@ -54,6 +54,11 @@ const CASE_DETAIL_KEYS = new Set([
     'asset_category', 'prepaid_months', 'amortization_start',
     'g8_filter', 'accap_eligible', 'po_number', 'invoice_date',
     'journal_entry', 'approver', 'classification_rationale',
+    // DXC Delta Sync keys
+    'current_status', 'date', 'start_date', 'end_date',
+    'erp_records_found', 'erp_records_processed', 'erp_invoices_extracted',
+    'erp_lh', 'erp_gsap', 'erp_compass',
+    'ariba_lh_compass', 'ariba_gsap',
 ]);
 
 function isLargeData(value) {
@@ -1082,25 +1087,91 @@ const ProcessDetails = () => {
                         <h3 className="text-[14px] font-semibold text-[#171717]">Key Details</h3>
                     </div>
 
-                    {/* Case Details - extracted from log metadata */}
-                    {Object.keys(caseDetails).length > 0 && (
-                        <div className="mx-4 mb-3 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-                            <div className="flex items-center gap-2 px-4 pt-3.5 pb-2">
-                                <Briefcase className="w-3.5 h-3.5 text-[#6B7280]" />
-                                <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Case Details</span>
+                    {/* DXC Delta Sync — structured 12-field panel */}
+                    {(() => {
+                        const dxcKeys = ['current_status','date','start_date','end_date','erp_records_found','erp_records_processed','erp_invoices_extracted','erp_lh','erp_gsap','erp_compass','ariba_lh_compass','ariba_gsap'];
+                        const hasDxc = dxcKeys.some(k => caseDetails[k]);
+                        if (!hasDxc) return null;
+
+                        const statusPill = (val) => {
+                            if (!val) return <span className="text-[13px] text-[#9CA3AF]">—</span>;
+                            const v = String(val);
+                            const color = v === 'Complete' ? 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]'
+                                        : v === 'In Progress' ? 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]'
+                                        : v === 'Awaiting' ? 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
+                                        : 'bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]';
+                            return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${color}`}>{v}</span>;
+                        };
+
+                        const statusKeys = new Set(['current_status','erp_lh','erp_gsap','erp_compass','ariba_lh_compass','ariba_gsap']);
+                        const sectionLabels = {
+                            current_status: 'Current Status',
+                            date: 'Date',
+                            start_date: 'Start Date',
+                            end_date: 'End Date',
+                            erp_records_found: 'ERP Records Found',
+                            erp_records_processed: 'ERP Records Processed',
+                            erp_invoices_extracted: 'ERP Invoices Extracted',
+                            erp_lh: 'ERP — LH',
+                            erp_gsap: 'ERP — GSAP',
+                            erp_compass: 'ERP — Compass',
+                            ariba_lh_compass: 'Ariba — LH / Compass',
+                            ariba_gsap: 'Ariba — GSAP',
+                        };
+
+                        const dividerAfter = new Set(['end_date', 'erp_invoices_extracted', 'erp_compass']);
+
+                        return (
+                            <div className="mx-4 mb-3 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                                <div className="flex items-center gap-2 px-4 pt-3.5 pb-2">
+                                    <Briefcase className="w-3.5 h-3.5 text-[#6B7280]" />
+                                    <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Run Details</span>
+                                </div>
+                                <div className="px-4 pb-3.5 space-y-0">
+                                    {dxcKeys.map((key, idx) => {
+                                        const val = caseDetails[key];
+                                        return (
+                                            <React.Fragment key={key}>
+                                                <div className="flex items-center justify-between py-2.5">
+                                                    <p className="text-[12px] text-[#6B7280]">{sectionLabels[key]}</p>
+                                                    {statusKeys.has(key)
+                                                        ? statusPill(val)
+                                                        : <p className="text-[13px] font-semibold text-[#171717]">{val || '—'}</p>
+                                                    }
+                                                </div>
+                                                {dividerAfter.has(key) && <div className="border-t border-[#F3F4F6]" />}
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                            <div className="px-4 pb-3.5 space-y-3">
-                                {Object.entries(caseDetails).map(([key, value]) => (
-                                    <div key={key}>
-                                        <p className="text-[10px] font-medium text-[#9CA3AF] uppercase tracking-wider mb-0.5">{formatFieldKey(key)}</p>
-                                        <p className="text-[13px] text-[#171717] font-medium break-words leading-snug">
-                                            {formatCaseValue(key, value)}
-                                        </p>
-                                    </div>
-                                ))}
+                        );
+                    })()}
+
+                    {/* Case Details - extracted from log metadata (non-DXC processes) */}
+                    {(() => {
+                        const dxcKeys = new Set(['current_status','date','start_date','end_date','erp_records_found','erp_records_processed','erp_invoices_extracted','erp_lh','erp_gsap','erp_compass','ariba_lh_compass','ariba_gsap']);
+                        const nonDxc = Object.fromEntries(Object.entries(caseDetails).filter(([k]) => !dxcKeys.has(k)));
+                        if (Object.keys(nonDxc).length === 0) return null;
+                        return (
+                            <div className="mx-4 mb-3 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                                <div className="flex items-center gap-2 px-4 pt-3.5 pb-2">
+                                    <Briefcase className="w-3.5 h-3.5 text-[#6B7280]" />
+                                    <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Case Details</span>
+                                </div>
+                                <div className="px-4 pb-3.5 space-y-3">
+                                    {Object.entries(nonDxc).map(([key, value]) => (
+                                        <div key={key}>
+                                            <p className="text-[10px] font-medium text-[#9CA3AF] uppercase tracking-wider mb-0.5">{formatFieldKey(key)}</p>
+                                            <p className="text-[13px] text-[#171717] font-medium break-words leading-snug">
+                                                {formatCaseValue(key, value)}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        );
+                    })()}
 
 
                     {/* Artifacts */}
@@ -1141,7 +1212,11 @@ const ProcessDetails = () => {
                                                     )}
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="text-[12px] font-medium text-[#171717] truncate">{art.filename}</p>
+                                                    <p className="text-[12px] font-medium text-[#171717] truncate">
+                                                        {art._isMetaArtifact
+                                                            ? (run?.name || art.filename)
+                                                            : art.filename}
+                                                    </p>
                                                     <p className="text-[10px] text-[#9CA3AF]">
                                                         {art._isMetaArtifact ? 'Extracted data' : (art.file_type || 'file')}
                                                     </p>

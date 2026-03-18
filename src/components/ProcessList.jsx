@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { Filter, Check, Activity, SlidersHorizontal } from 'lucide-react';
 import { fetchRuns, subscribeToTable } from '../services/supabase';
+import { supabase } from '../services/supabase';
 
 const ProcessList = () => {
     const navigate = useNavigate();
@@ -15,7 +16,20 @@ const ProcessList = () => {
         const loadRuns = async () => {
             try {
                 const data = await fetchRuns(currentProcess.id);
-                setRuns(data);
+                // Enrich each run with metadata from its step-1 log
+                const runIds = data.map(r => r.id);
+                let metaMap = {};
+                if (runIds.length > 0) {
+                    const { data: logs } = await supabase
+                        .from('activity_logs')
+                        .select('run_id, metadata')
+                        .in('run_id', runIds)
+                        .eq('step_number', 1);
+                    (logs || []).forEach(l => {
+                        metaMap[l.run_id] = l.metadata || {};
+                    });
+                }
+                setRuns(data.map(r => ({ ...r, _meta: metaMap[r.id] || {} })));
             } catch (err) {
                 console.error('Error fetching runs:', err);
             }
@@ -112,71 +126,64 @@ const ProcessList = () => {
             {/* Table */}
             <div className="flex-1 overflow-auto">
                 {currentRuns.length > 0 ? (
-                    <table className="min-w-full border-collapse">
+                    <table className="min-w-full border-collapse text-[12px]">
                         <thead className="sticky top-0 bg-white z-10 border-t border-b border-[#ebebeb]">
-                            <tr className="f-12-450 text-[#8f8f8f]">
-                                <th className="w-12 px-6 py-2"></th>
-                                <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Document</th>
-                                <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Type</th>
+                            <tr className="text-[#8f8f8f] font-normal">
+                                <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Run Name</th>
                                 <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Current Status</th>
-                                <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Time</th>
+                                <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Date</th>
+                                <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Start Date</th>
+                                <th className="px-4 py-2 text-left font-normal whitespace-nowrap">End Date</th>
+                                <th className="px-4 py-2 text-right font-normal whitespace-nowrap">ERP Records Found</th>
+                                <th className="px-4 py-2 text-right font-normal whitespace-nowrap">ERP Records Processed</th>
+                                <th className="px-4 py-2 text-right font-normal whitespace-nowrap">ERP Invoices Extracted</th>
+                                <th className="px-4 py-2 text-center font-normal whitespace-nowrap">ERP — LH</th>
+                                <th className="px-4 py-2 text-center font-normal whitespace-nowrap">ERP — GSAP</th>
+                                <th className="px-4 py-2 text-center font-normal whitespace-nowrap">ERP — Compass</th>
+                                <th className="px-4 py-2 text-center font-normal whitespace-nowrap">Ariba — LH / Compass</th>
+                                <th className="px-4 py-2 text-center font-normal whitespace-nowrap">Ariba — GSAP</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {currentRuns.map(run => (
-                                <tr
-                                    key={run.id}
-                                    className="hover:bg-[#f9f9f9] cursor-pointer transition-colors border-b border-[#f2f2f2] last:border-0"
-                                    onClick={() => navigate(`/done/process/${run.id}`)}
-                                >
-                                    <td className="px-6 py-2.5 whitespace-nowrap">
-                                        <div className="flex items-center gap-3">
-                                            {run.status === 'needs_attention' ? (
-                                                <Activity className="w-2.5 h-2.5 text-[#ff1515]" />
-                                            ) : run.status === 'done' ? (
-                                                <Check className="w-2.5 h-2.5 text-[#0da425]" />
-                                            ) : run.status === 'in_progress' || run.status === 'ready' ? (
-                                                <Activity className="w-2.5 h-2.5 text-[#2445ff]" />
-                                            ) : (
-                                                <div className="w-2.5 h-2.5" />
-                                            )}
-                                            <div className={`w-2 h-2 rounded-[1.5px] border ${
-                                                run.status === 'needs_attention' ? "bg-[#FFDADA] border-[#A40000]" :
-                                                run.status === 'needs_review' ? "bg-[#FCEDB9] border-[#ED6704]" :
-                                                run.status === 'void' ? "bg-[#EBEBEB] border-[#8F8F8F]" :
-                                                run.status === 'in_progress' || run.status === 'ready' ? "bg-[#EAF3FF] border-[#2546F5]" :
-                                                "bg-[#E2F1EB] border-[#038408]"
-                                            }`} />
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-2.5 text-[13px] font-[450] text-[#171717] max-w-[250px] truncate">
-                                        {run.document_name || run.name}
-                                    </td>
-                                    <td className="px-4 py-2.5 whitespace-nowrap">
-                                        {(() => {
-                                            const name = run.document_name || run.name || '';
-                                            const isFA  = name.includes('EXP_TO_FA');
-                                            const isPPD = name.includes('EXP_TO_PPD');
-                                            if (!isFA && !isPPD) return <span className="text-[12px] text-[#d1d5db]">—</span>;
-                                            return (
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-[600] tracking-wide uppercase ${
-                                                    isFA
-                                                        ? 'bg-[#EAF3FF] text-[#2546F5] border border-[#c3d8ff]'
-                                                        : 'bg-[#FFF4E5] text-[#B45309] border border-[#fcd99c]'
-                                                }`}>
-                                                    {isFA ? 'Fixed Asset' : 'Prepaid'}
-                                                </span>
-                                            );
-                                        })()}
-                                    </td>
-                                    <td className="px-4 py-2.5 text-[13px] font-[450] text-[#171717] max-w-[350px] truncate">
-                                        {run.current_status_text}
-                                    </td>
-                                    <td className="px-4 py-2.5 text-[12px] text-[#8f8f8f] whitespace-nowrap">
-                                        {formatTime(run.updated_at || run.created_at)}
-                                    </td>
-                                </tr>
-                            ))}
+                            {currentRuns.map(run => {
+                                const meta = run._meta || {};
+                                const statusPill = (val) => {
+                                    if (!val) return <span className="text-[#d1d5db]">—</span>;
+                                    const color = val === 'Complete'
+                                        ? 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]'
+                                        : val === 'In Progress'
+                                        ? 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]'
+                                        : val === 'Awaiting'
+                                        ? 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
+                                        : 'bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]';
+                                    return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${color}`}>{val}</span>;
+                                };
+                                return (
+                                    <tr
+                                        key={run.id}
+                                        className="hover:bg-[#f9f9f9] cursor-pointer transition-colors border-b border-[#f2f2f2] last:border-0"
+                                        onClick={() => navigate(`/done/process/${run.id}`)}
+                                    >
+                                        <td className="px-4 py-2.5 font-[500] text-[#171717] whitespace-nowrap max-w-[220px] truncate">
+                                            {run.name}
+                                        </td>
+                                        <td className="px-4 py-2.5 whitespace-nowrap">
+                                            {statusPill(meta.current_status || (run.status === 'done' ? 'Complete' : run.status === 'in_progress' ? 'In Progress' : null))}
+                                        </td>
+                                        <td className="px-4 py-2.5 text-[#555] whitespace-nowrap">{meta.date || '—'}</td>
+                                        <td className="px-4 py-2.5 text-[#555] whitespace-nowrap">{meta.start_date || '—'}</td>
+                                        <td className="px-4 py-2.5 text-[#555] whitespace-nowrap">{meta.end_date || '—'}</td>
+                                        <td className="px-4 py-2.5 text-right font-[500] text-[#171717]">{meta.erp_records_found || '—'}</td>
+                                        <td className="px-4 py-2.5 text-right font-[500] text-[#171717]">{meta.erp_records_processed || '—'}</td>
+                                        <td className="px-4 py-2.5 text-right font-[500] text-[#171717]">{meta.erp_invoices_extracted || '—'}</td>
+                                        <td className="px-4 py-2.5 text-center">{statusPill(meta.erp_lh)}</td>
+                                        <td className="px-4 py-2.5 text-center">{statusPill(meta.erp_gsap)}</td>
+                                        <td className="px-4 py-2.5 text-center">{statusPill(meta.erp_compass)}</td>
+                                        <td className="px-4 py-2.5 text-center">{statusPill(meta.ariba_lh_compass)}</td>
+                                        <td className="px-4 py-2.5 text-center">{statusPill(meta.ariba_gsap)}</td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 ) : (
