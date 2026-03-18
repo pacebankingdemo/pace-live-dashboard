@@ -873,6 +873,7 @@ const ProcessDetails = () => {
     };
 
     return (
+        <>
         <div className="flex h-full bg-white overflow-hidden">
             {/* Main content - NO margin-right, flex handles it */}
             <div className="flex-1 flex flex-col min-w-0">
@@ -1160,6 +1161,7 @@ const ProcessDetails = () => {
         {selectedEmail && (
             <EmailViewer artifact={selectedEmail} onClose={() => setSelectedEmail(null)} />
         )}
+        </>
     );
 };
 
