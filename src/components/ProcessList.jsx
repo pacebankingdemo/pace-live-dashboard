@@ -4,6 +4,8 @@ import { Filter, Check, Activity, SlidersHorizontal } from 'lucide-react';
 import { fetchRuns, subscribeToTable } from '../services/supabase';
 import { supabase } from '../services/supabase';
 
+const P2_PROCESS_ID = 'c9846f46-ff57-4cc8-9f71-addf4185aeb5';
+
 const ProcessList = () => {
     const navigate = useNavigate();
     const { currentProcess } = useOutletContext();
@@ -131,17 +133,30 @@ const ProcessList = () => {
                             <tr className="text-[#8f8f8f] font-normal">
                                 <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Run Name</th>
                                 <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Current Status</th>
-                                <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Date</th>
-                                <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Start Date</th>
-                                <th className="px-4 py-2 text-left font-normal whitespace-nowrap">End Date</th>
-                                <th className="px-4 py-2 text-right font-normal whitespace-nowrap">ERP Records Found</th>
-                                <th className="px-4 py-2 text-right font-normal whitespace-nowrap">ERP Records Processed</th>
-                                <th className="px-4 py-2 text-right font-normal whitespace-nowrap">ERP Invoices Extracted</th>
-                                <th className="px-4 py-2 text-center font-normal whitespace-nowrap">ERP — LH</th>
-                                <th className="px-4 py-2 text-center font-normal whitespace-nowrap">ERP — GSAP</th>
-                                <th className="px-4 py-2 text-center font-normal whitespace-nowrap">ERP — Compass</th>
-                                <th className="px-4 py-2 text-center font-normal whitespace-nowrap">Ariba — LH / Compass</th>
-                                <th className="px-4 py-2 text-center font-normal whitespace-nowrap">Ariba — GSAP</th>
+                                {currentProcess?.id === P2_PROCESS_ID ? (
+                                    <>
+                                        <th className="px-4 py-2 text-right font-normal whitespace-nowrap">Invoice Value</th>
+                                        <th className="px-4 py-2 text-center font-normal whitespace-nowrap">Prepaid Year No.</th>
+                                        <th className="px-4 py-2 text-center font-normal whitespace-nowrap">POP</th>
+                                        <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Service / Commodity Code</th>
+                                        <th className="px-4 py-2 text-left font-normal whitespace-nowrap">GL Code</th>
+                                        <th className="px-4 py-2 text-center font-normal whitespace-nowrap">Amortization Schedule</th>
+                                    </>
+                                ) : (
+                                    <>
+                                        <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Date</th>
+                                        <th className="px-4 py-2 text-left font-normal whitespace-nowrap">Start Date</th>
+                                        <th className="px-4 py-2 text-left font-normal whitespace-nowrap">End Date</th>
+                                        <th className="px-4 py-2 text-right font-normal whitespace-nowrap">ERP Records Found</th>
+                                        <th className="px-4 py-2 text-right font-normal whitespace-nowrap">ERP Records Processed</th>
+                                        <th className="px-4 py-2 text-right font-normal whitespace-nowrap">ERP Invoices Extracted</th>
+                                        <th className="px-4 py-2 text-center font-normal whitespace-nowrap">ERP — LH</th>
+                                        <th className="px-4 py-2 text-center font-normal whitespace-nowrap">ERP — GSAP</th>
+                                        <th className="px-4 py-2 text-center font-normal whitespace-nowrap">ERP — Compass</th>
+                                        <th className="px-4 py-2 text-center font-normal whitespace-nowrap">Ariba — LH / Compass</th>
+                                        <th className="px-4 py-2 text-center font-normal whitespace-nowrap">Ariba — GSAP</th>
+                                    </>
+                                )}
                             </tr>
                         </thead>
                         <tbody>
@@ -149,12 +164,14 @@ const ProcessList = () => {
                                 const meta = run._meta || {};
                                 const statusPill = (val) => {
                                     if (!val) return <span className="text-[#d1d5db]">—</span>;
-                                    const color = val === 'Complete'
+                                    const color = val === 'Complete' || val === 'Verified'
                                         ? 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]'
-                                        : val === 'In Progress'
+                                        : val === 'In Progress' || val === 'Pending'
                                         ? 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]'
                                         : val === 'Awaiting'
                                         ? 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
+                                        : val === 'Not Required'
+                                        ? 'bg-[#F3F4F6] text-[#6B7280] border-[#E5E7EB]'
                                         : 'bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]';
                                     return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${color}`}>{val}</span>;
                                 };
@@ -170,17 +187,44 @@ const ProcessList = () => {
                                         <td className="px-4 py-2.5 whitespace-nowrap">
                                             {statusPill(meta.current_status || (run.status === 'done' ? 'Complete' : run.status === 'in_progress' ? 'In Progress' : null))}
                                         </td>
-                                        <td className="px-4 py-2.5 text-[#555] whitespace-nowrap">{meta.date || '—'}</td>
-                                        <td className="px-4 py-2.5 text-[#555] whitespace-nowrap">{meta.start_date || '—'}</td>
-                                        <td className="px-4 py-2.5 text-[#555] whitespace-nowrap">{meta.end_date || '—'}</td>
-                                        <td className="px-4 py-2.5 text-right font-[500] text-[#171717]">{meta.erp_records_found || '—'}</td>
-                                        <td className="px-4 py-2.5 text-right font-[500] text-[#171717]">{meta.erp_records_processed || '—'}</td>
-                                        <td className="px-4 py-2.5 text-right font-[500] text-[#171717]">{meta.erp_invoices_extracted || '—'}</td>
-                                        <td className="px-4 py-2.5 text-center">{statusPill(meta.erp_lh)}</td>
-                                        <td className="px-4 py-2.5 text-center">{statusPill(meta.erp_gsap)}</td>
-                                        <td className="px-4 py-2.5 text-center">{statusPill(meta.erp_compass)}</td>
-                                        <td className="px-4 py-2.5 text-center">{statusPill(meta.ariba_lh_compass)}</td>
-                                        <td className="px-4 py-2.5 text-center">{statusPill(meta.ariba_gsap)}</td>
+                                        {currentProcess?.id === P2_PROCESS_ID ? (
+                                            <>
+                                                <td className="px-4 py-2.5 text-right font-[500] text-[#171717] whitespace-nowrap">
+                                                    {meta.currency && meta.amount
+                                                        ? `${meta.currency} ${Number(meta.amount).toLocaleString()}`
+                                                        : '—'}
+                                                </td>
+                                                <td className="px-4 py-2.5 text-center text-[#555]">
+                                                    {meta.prepaid_year ? `${meta.prepaid_year} yr` : '—'}
+                                                </td>
+                                                <td className="px-4 py-2.5 text-center">
+                                                    {statusPill(meta.pop)}
+                                                </td>
+                                                <td className="px-4 py-2.5 text-[#555] whitespace-nowrap font-mono text-[11px]">
+                                                    {meta.service_commodity_code || '—'}
+                                                </td>
+                                                <td className="px-4 py-2.5 text-[#555] whitespace-nowrap font-mono text-[11px]">
+                                                    {meta.gl_code || '—'}
+                                                </td>
+                                                <td className="px-4 py-2.5 text-center">
+                                                    {statusPill(meta.amortization_schedule)}
+                                                </td>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <td className="px-4 py-2.5 text-[#555] whitespace-nowrap">{meta.date || '—'}</td>
+                                                <td className="px-4 py-2.5 text-[#555] whitespace-nowrap">{meta.start_date || '—'}</td>
+                                                <td className="px-4 py-2.5 text-[#555] whitespace-nowrap">{meta.end_date || '—'}</td>
+                                                <td className="px-4 py-2.5 text-right font-[500] text-[#171717]">{meta.erp_records_found || '—'}</td>
+                                                <td className="px-4 py-2.5 text-right font-[500] text-[#171717]">{meta.erp_records_processed || '—'}</td>
+                                                <td className="px-4 py-2.5 text-right font-[500] text-[#171717]">{meta.erp_invoices_extracted || '—'}</td>
+                                                <td className="px-4 py-2.5 text-center">{statusPill(meta.erp_lh)}</td>
+                                                <td className="px-4 py-2.5 text-center">{statusPill(meta.erp_gsap)}</td>
+                                                <td className="px-4 py-2.5 text-center">{statusPill(meta.erp_compass)}</td>
+                                                <td className="px-4 py-2.5 text-center">{statusPill(meta.ariba_lh_compass)}</td>
+                                                <td className="px-4 py-2.5 text-center">{statusPill(meta.ariba_gsap)}</td>
+                                            </>
+                                        )}
                                     </tr>
                                 );
                             })}
