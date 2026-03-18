@@ -200,23 +200,8 @@ const DashboardLayout = () => {
                 {/* ════════ TOP BAR ════════ */}
                 <header className="h-11 flex items-center justify-between px-3 bg-[#FAFAFA] border-b border-[#ebebeb] relative">
 
-                    {/* LEFT — toggle · checkbox · back · breadcrumb */}
-                    <div className={`flex items-center gap-1 min-w-0 ${!isSidebarOpen ? 'pl-8' : ''}`}>
-
-                        {isSidebarOpen && (
-                            <button onClick={() => setIsSidebarOpen(false)}
-                                className="flex items-center justify-center w-7 h-7 rounded-md text-[#b8b8b8] hover:text-[#555] hover:bg-[#f0f0f0] transition-colors flex-shrink-0">
-                                <SidebarIcon />
-                            </button>
-                        )}
-
-                        {/* checkbox icon */}
-                        <button className="flex items-center justify-center w-7 h-7 rounded-md text-[#b8b8b8] hover:text-[#555] hover:bg-[#f0f0f0] transition-colors flex-shrink-0">
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                                <rect x="1.5" y="1.5" width="13" height="13" rx="3" stroke="currentColor" strokeWidth="1.4"/>
-                                <path d="M4.5 8L7 10.5L11.5 5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        </button>
+                    {/* LEFT — back · breadcrumb */}
+                    <div className="flex items-center gap-1 min-w-0 pl-2">
 
                         {/* back arrow — only on detail/KB pages */}
                         {(isProcessDetailPage || isKBPage) && (
