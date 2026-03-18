@@ -1128,6 +1128,54 @@ const ProcessDetails = () => {
                         <h3 className="text-[14px] font-semibold text-[#171717]">Key Details</h3>
                     </div>
 
+                    {/* P2 Prepaid Expense Booking — Key Details panel */}
+                    {(() => {
+                        if (run?.process_id !== 'c9846f46-ff57-4cc8-9f71-addf4185aeb5') return null;
+                        const meta = logs?.find(l => l.step_number === 1)?.metadata || {};
+                        if (!meta.invoice_value) return null;
+                        const fmt = (n) => n != null ? `USD ${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
+                        const rows = [
+                            { label: 'Vendor',               value: meta.vendor || '—' },
+                            { label: 'Invoice No.',          value: meta.invoice_no || '—' },
+                            { label: 'Invoice Value',        value: fmt(meta.invoice_value) },
+                            { label: 'Currency',             value: meta.currency || 'USD' },
+                            { label: 'GL Code',              value: meta.gl_code || '—' },
+                            { label: 'Service / Commodity',  value: meta.service_commodity_code || '—' },
+                            { label: 'Period of Performance',value: meta.pop || '—' },
+                            { label: 'Prepaid Term',         value: meta.prepaid_year ? `${meta.prepaid_year} year${meta.prepaid_year > 1 ? 's' : ''}` : '—' },
+                            { label: 'Amortization Schedule',value: meta.amortization_schedule || '—' },
+                        ];
+                        // pull amort monthly from step 12
+                        const amortLog = logs?.find(l => l.step_number === 12);
+                        if (amortLog?.metadata?.monthly_amount != null) {
+                            rows.push({ label: 'Monthly Amort. Amount', value: fmt(amortLog.metadata.monthly_amount) });
+                        }
+                        const catchupLog = logs?.find(l => l.step_number === 11);
+                        if (catchupLog?.metadata?.catchup_amount != null) {
+                            rows.push({ label: 'Catch-up Expense', value: fmt(catchupLog.metadata.catchup_amount) });
+                        }
+                        const dividerAfter = new Set([2, 5, 8]);
+                        return (
+                            <div className="mx-4 mb-3 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                                <div className="flex items-center gap-2 px-4 pt-3.5 pb-2">
+                                    <Briefcase className="w-3.5 h-3.5 text-[#6B7280]" />
+                                    <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Invoice Details</span>
+                                </div>
+                                <div className="px-4 pb-3.5 space-y-0">
+                                    {rows.map((row, idx) => (
+                                        <React.Fragment key={row.label}>
+                                            <div className="flex items-start justify-between py-2.5 gap-4">
+                                                <p className="text-[12px] text-[#6B7280] whitespace-nowrap">{row.label}</p>
+                                                <p className="text-[12px] font-semibold text-[#171717] text-right">{row.value}</p>
+                                            </div>
+                                            {dividerAfter.has(idx) && <div className="border-t border-[#F3F4F6]" />}
+                                        </React.Fragment>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })()}
+
                     {/* DXC Delta Sync — structured 12-field panel */}
                     {(() => {
                         const dxcKeys = ['current_status','date','start_date','end_date','erp_records_found','erp_records_processed','erp_invoices_extracted'];
