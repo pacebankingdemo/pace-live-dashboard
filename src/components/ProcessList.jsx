@@ -71,13 +71,21 @@ const PROCESS_COLUMNS = {
         { id: 'svc',        header: 'Service Code',     align: 'left',   render: (r,m) => mono(m.service_commodity_code) },
     ],
 
-    /* DXC — Prepaid Data Ingestion (P1) */
+    /* DXC — Prepaid Data Ingestion (P1) — preserved exactly as original */
     'c4e944f7-1133-4961-a8c3-2378ca591857': [
-        { id: 'period',   header: 'Sync Period',          align: 'left',   render: (r,m) => bold(m.start_date ? `${m.start_date} → ${m.end_date}` : r.name) },
-        { id: 'found',    header: 'ERP Records Found',    align: 'right',  render: (r,m) => num(m.erp_records_found) },
-        { id: 'proc',     header: 'Records Processed',    align: 'right',  render: (r,m) => num(m.erp_records_processed) },
-        { id: 'inv',      header: 'Invoices Extracted',   align: 'right',  render: (r,m) => num(m.erp_invoices_extracted) },
-        { id: 'status',   header: 'Status',               align: 'center', render: (r,m) => autoPill(m.current_status || (r.status === 'done' ? 'Complete' : null)) },
+        { id: 'name',     header: 'Run Name',                  align: 'left',   render: (r,m) => <span className="font-[500] text-[#171717] whitespace-nowrap max-w-[220px] truncate block">{r.name}</span> },
+        { id: 'cstatus',  header: 'Current Status',            align: 'left',   render: (r,m) => autoPill(m.current_status || (r.status === 'done' ? 'Complete' : r.status === 'in_progress' ? 'In Progress' : null)) },
+        { id: 'date',     header: 'Date',                      align: 'left',   render: (r,m) => <span className="text-[#555] whitespace-nowrap">{m.date || '—'}</span> },
+        { id: 'start',    header: 'Start Date',                align: 'left',   render: (r,m) => <span className="text-[#555] whitespace-nowrap">{m.start_date || '—'}</span> },
+        { id: 'end',      header: 'End Date',                  align: 'left',   render: (r,m) => <span className="text-[#555] whitespace-nowrap">{m.end_date || '—'}</span> },
+        { id: 'found',    header: 'ERP Records Found',         align: 'right',  render: (r,m) => <span className="font-[500] text-[#171717]">{m.erp_records_found || '—'}</span> },
+        { id: 'proc',     header: 'ERP Records Processed',     align: 'right',  render: (r,m) => <span className="font-[500] text-[#171717]">{m.erp_records_processed || '—'}</span> },
+        { id: 'inv',      header: 'ERP Invoices Extracted',    align: 'right',  render: (r,m) => <span className="font-[500] text-[#171717]">{m.erp_invoices_extracted || '—'}</span> },
+        { id: 'erp_lh',   header: 'ERP — LH',                 align: 'center', render: (r,m) => autoPill(m.erp_lh) },
+        { id: 'erp_gsap', header: 'ERP — GSAP',               align: 'center', render: (r,m) => autoPill(m.erp_gsap) },
+        { id: 'erp_comp', header: 'ERP — Compass',            align: 'center', render: (r,m) => autoPill(m.erp_compass) },
+        { id: 'ariba_lh', header: 'Ariba — LH / Compass',     align: 'center', render: (r,m) => autoPill(m.ariba_lh_compass) },
+        { id: 'ariba_gs', header: 'Ariba — GSAP',             align: 'center', render: (r,m) => autoPill(m.ariba_gsap) },
     ],
 
     /* DXC — Billing Ops Contract Setup */
