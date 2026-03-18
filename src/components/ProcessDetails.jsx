@@ -868,6 +868,22 @@ const ProcessDetails = () => {
     };
 
     const handleArtifactClick = (art) => {
+        // Excel files with base64 content → trigger browser download
+        const isExcelArt = /\.(xlsx|xls|csv)$/i.test(art.filename || '') || art.file_type?.includes('spreadsheet') || art.file_type?.includes('excel');
+        if (isExcelArt && art.content) {
+            try {
+                const raw = atob(art.content);
+                const bytes = new Uint8Array(raw.length);
+                for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+                const blob = new Blob([bytes], { type: art.file_type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = art.filename || 'file.xlsx';
+                document.body.appendChild(a); a.click();
+                document.body.removeChild(a); URL.revokeObjectURL(url);
+            } catch (e) { console.error('xlsx download error', e); }
+            return;
+        }
         if (art._isVideo) {
             setSelectedArtifact(art);
         } else if (isDocumentFile(art)) {
@@ -1326,7 +1342,7 @@ const ProcessDetails = () => {
                                                     </div>
                                                     <div className="min-w-0 flex-1">
                                                         <p className="text-[12px] font-medium text-[#171717] truncate">{art.filename}</p>
-                                                        <p className="text-[10px] text-[#9CA3AF]">Excel · SharePoint</p>
+                                                        <p className="text-[10px] text-[#9CA3AF]">{art.content ? 'Excel · Click to download' : 'Excel · SharePoint'}</p>
                                                     </div>
                                                     <Eye className="w-3.5 h-3.5 text-[#d1d5db] group-hover:text-[#9CA3AF] flex-shrink-0" />
                                                 </button>
