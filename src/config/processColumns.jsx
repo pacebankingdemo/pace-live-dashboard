@@ -130,26 +130,30 @@ export const PROCESS_COLUMNS = {
 
     /* ── DXC: Prepaid — Expense Booking (P2) ─────────────────────── */
     'c9846f46-ff57-4cc8-9f71-addf4185aeb5': [
-        { id: 'vendor',  header: 'Vendor',          align: 'left',
+        { id: 'vendor',  header: 'Vendor',               align: 'left',
           render: (r, m) => bold(m.vendor) },
-        { id: 'inv_no',  header: 'Invoice No.',     align: 'left',
+        { id: 'inv_no',  header: 'Invoice No.',          align: 'left',
           render: (r, m) => mono(m.invoice_no) },
-        { id: 'amount',  header: 'Invoice Value',   align: 'right',
+        { id: 'amount',  header: 'Invoice Value',        align: 'right',
           render: (r, m) => usd(m.invoice_value) },
-        { id: 'monthly', header: 'Monthly Amort.',  align: 'right',
+        { id: 'monthly', header: 'Monthly Amort.',       align: 'right',
           render: (r, m) => m.monthly_amount
-              ? <span className="font-[500] text-[#171717]">${Number(m.monthly_amount).toLocaleString()}</span>
+              ? <span className="font-[500] text-[#171717]">${Number(m.monthly_amount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
               : <span className="text-[#d1d5db]">—</span> },
-        { id: 'pop',     header: 'POP',             align: 'center',
+        { id: 'amort',   header: 'Amort. Schedule',      align: 'left',
+          render: (r, m) => m.amortization_schedule
+              ? <span className="text-[#555] text-[11px]">{m.amortization_schedule}</span>
+              : <span className="text-[#d1d5db]">—</span> },
+        { id: 'pop',     header: 'POP',                  align: 'center',
           render: (r, m) => m.pop ? pill(m.pop, 'blue') : <span className="text-[#d1d5db]">—</span> },
-        { id: 'term',    header: 'Term',            align: 'center',
+        { id: 'term',    header: 'Term',                 align: 'center',
           render: (r, m) => m.prepaid_year
               ? <span className="text-[#555]">{m.prepaid_year * 12} mo</span>
               : <span className="text-[#d1d5db]">—</span> },
-        { id: 'gl',      header: 'GL Code',         align: 'left',
+        { id: 'gl',      header: 'GL Code',              align: 'left',
           render: (r, m) => mono(m.gl_code) },
-        { id: 'svc',     header: 'Service Code',    align: 'left',
-          render: (r, m) => mono(m.service_commodity_code) },
+        { id: 'svc',     header: 'Service Type',         align: 'center',
+          render: (r, m) => m.service_type ? pill(m.service_type, 'indigo') : <span className="text-[#d1d5db]">—</span> },
     ],
 
     /* ── DXC: Billing Operations — Contract Setup ─────────────────── */
