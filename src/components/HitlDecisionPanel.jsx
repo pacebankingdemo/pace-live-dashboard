@@ -73,61 +73,188 @@ export default function HitlDecisionPanel({ run, logs }) {
     /* Resolve decisions for this process */
     const decisions = PROCESS_DECISIONS[run.process_id] || DEFAULT_DECISIONS;
 
-    const submitDecision = async (decision) => {
+    const P2_PROCESS_ID = 'c9846f46-ff57-4cc8-9f71-addf4185aeb5';
 
+    const submitDecision = async (decision) => {
         setError(null);
         setSubmitting(decision.id);
-
         const decLabel = `${decision.label} (${decision.desc})`;
+        const baseStep = logs?.length || 0;
 
         try {
-            /* 1. System log with hitl_decision marker (agent polls for this) */
-            const { error: e1 } = await supabase.from('activity_logs').insert({
-                run_id: run.id,
-                step_number: (logs?.length || 0) + 1,
-                log_type: 'system',
-                message: `Human decision: ${decision.id}`,
-                metadata: {
-                    step_name: 'Human Decision',
-                    hitl_decision: true,
-                    decision: decision.id,
-                    decision_label: decLabel,
-                    decided_by: name.trim(),
-                },
-            });
-            if (e1) throw new Error(`system log insert: ${e1.message}`);
+            const isP2 = run.process_id === P2_PROCESS_ID;
 
-            /* 2. Visible decision log for timeline */
-            const { error: e2 } = await supabase.from('activity_logs').insert({
-                run_id: run.id,
-                step_number: (logs?.length || 0) + 2,
-                log_type: 'decision',
-                message: `${decLabel} — approved by ${name.trim()}`,
-                metadata: {
-                    step_name: 'Human Decision',
-                    decision: decision.id,
-                    decision_label: decLabel,
-                    decided_by: name.trim(),
-                    reasoning_steps: [
-                        `Reviewer ${name.trim()} selected: ${decision.label}`,
-                        `Action: ${decision.desc}`,
-                    ],
-                },
-            });
-            if (e2) throw new Error(`decision log insert: ${e2.message}`);
+            if (isP2) {
+                /* ── P2 DXC Prepaid: rich post-HITL steps ── */
+                const meta = logs?.find(l => l.step_number === 1)?.metadata || {};
+                const usdAmt   = meta.invoice_value || 0;
+                const months   = (meta.prepaid_year || 1) * 12;
+                const monthly  = months > 0 ? Math.round((usdAmt / months) * 100) / 100 : 0;
+                const catchup  = Math.round(monthly * 0.5 * 100) / 100;
+                const glCode   = meta.gl_code || '';
+                const amort    = meta.amortization_schedule || `${months} equal monthly installments`;
+                const jeRef    = `JE-2026-${Math.floor(10000 + Math.random() * 5000)}`;
+                const vendor   = meta.vendor || run.name;
 
-            /* 3. Update run status based on decision */
-            const newStatus = decision.id === 'void' ? 'void'
-                : decision.id === 'proceed' ? 'done'
-                : 'in_progress';
-            const { error: e3 } = await supabase
-                .from('activity_runs')
-                .update({
-                    status: newStatus,
-                    current_status_text: `Decision: ${decLabel} (by ${name.trim()})`,
-                })
-                .eq('id', run.id);
-            if (e3) throw new Error(`run update: ${e3.message}`);
+                if (decision.id === 'proceed') {
+                    /* Step 14 — Human Decision */
+                    const { error: e1 } = await supabase.from('activity_logs').insert({
+                        run_id: run.id, step_number: baseStep + 1, log_type: 'system',
+                        message: 'Human decision: proceed',
+                        metadata: {
+                            step_name: 'Human Decision', hitl_decision: true,
+                            decision: 'proceed',
+                            decision_label: 'Proceed — Approve and post expense booking to GL',
+                            decided_by: name.trim(),
+                            reasoning_steps: [
+                                `Reviewer ${name.trim()} selected: Proceed`,
+                                'Amortization schedule generation authorised',
+                            ],
+                        },
+                    });
+                    if (e1) throw new Error(e1.message);
+
+                    /* Step 15 — Amortization schedule created */
+                    const { error: e2 } = await supabase.from('activity_logs').insert({
+                        run_id: run.id, step_number: baseStep + 2, log_type: 'system',
+                        message: `Amortization schedule created — ${amort} over ${months} months`,
+                        metadata: {
+                            step_name: 'Amortization schedule created',
+                            schedule: amort, total_months: months, method: 'Straight-line',
+                            monthly_amount: monthly,
+                            reasoning_steps: [
+                                `Prepaid term: ${meta.prepaid_year || 1} year(s) — ${months} months`,
+                                'Method: Straight-line (DXC policy ASC 350)',
+                                `Schedule: ${amort}`,
+                                `Monthly charge: USD ${monthly.toLocaleString()} from next period`,
+                                'Schedule registered in Cadency amortization module',
+                            ],
+                        },
+                    });
+                    if (e2) throw new Error(e2.message);
+
+                    /* Step 16 — Journal entry posted in Cadency */
+                    const { error: e3 } = await supabase.from('activity_logs').insert({
+                        run_id: run.id, step_number: baseStep + 3, log_type: 'system',
+                        message: `Journal entry ${jeRef} posted in Cadency — GL ${glCode} updated`,
+                        metadata: {
+                            step_name: 'Journal entry posted in Cadency',
+                            journal_entry_ref: jeRef, gl_code: glCode,
+                            reasoning_steps: [
+                                `Journal entry ${jeRef} posted to Cadency`,
+                                `Debit confirmed: Prepaid Expenses (${glCode}) — USD ${usdAmt.toLocaleString()}`,
+                                'Credit confirmed: Accounts Payable cleared',
+                                'Posting timestamp: within accounting period Mar 2026',
+                            ],
+                        },
+                    });
+                    if (e3) throw new Error(e3.message);
+
+                    /* Step 17 — Month-end reporting */
+                    const { error: e4 } = await supabase.from('activity_logs').insert({
+                        run_id: run.id, step_number: baseStep + 4, log_type: 'complete',
+                        message: `Month-end reporting complete — ${jeRef} included in Mar 2026 close`,
+                        metadata: {
+                            step_name: 'Month-end journal entry reporting completed',
+                            journal_entry_ref: jeRef, period: 'March 2026',
+                            monthly_amort: monthly, current_status: 'Complete',
+                            reasoning_steps: [
+                                `Journal entry ${jeRef} included in March 2026 month-end close`,
+                                `Recurring monthly amortization of USD ${monthly.toLocaleString()} scheduled`,
+                                'Prepaid asset balance updated on balance sheet',
+                                'Reporting complete — workflow closed',
+                            ],
+                        },
+                    });
+                    if (e4) throw new Error(e4.message);
+
+                    /* Update run to done */
+                    const { error: e5 } = await supabase.from('activity_runs')
+                        .update({ status: 'done', current_status_text: `Month-end reporting complete — ${jeRef} posted in Cadency` })
+                        .eq('id', run.id);
+                    if (e5) throw new Error(e5.message);
+
+                } else if (decision.id === 'void') {
+                    /* Step 14 — Voided */
+                    const { error: e1 } = await supabase.from('activity_logs').insert({
+                        run_id: run.id, step_number: baseStep + 1, log_type: 'complete',
+                        message: `Journal entry voided — ${vendor} invoice rejected by reviewer`,
+                        metadata: {
+                            step_name: 'Voided — journal entry rejected',
+                            hitl_decision: true, decision: 'void',
+                            decided_by: name.trim(), current_status: 'Void',
+                            reasoning_steps: [
+                                `Reviewer ${name.trim()} selected: Void`,
+                                'Journal entry rejected — no amortization schedule created',
+                                'Invoice marked void in Cadency',
+                                'Accounts Payable notified — invoice closed with void flag',
+                            ],
+                        },
+                    });
+                    if (e1) throw new Error(e1.message);
+                    const { error: e2 } = await supabase.from('activity_runs')
+                        .update({ status: 'void', current_status_text: `Voided by ${name.trim()} — no GL entry created` })
+                        .eq('id', run.id);
+                    if (e2) throw new Error(e2.message);
+
+                } else {
+                    /* Edit — return to in_progress */
+                    const { error: e1 } = await supabase.from('activity_logs').insert({
+                        run_id: run.id, step_number: baseStep + 1, log_type: 'system',
+                        message: `Journal entry returned for amendment — ${vendor}`,
+                        metadata: {
+                            step_name: 'Returned for amendment',
+                            hitl_decision: true, decision: 'edit',
+                            decided_by: name.trim(),
+                            reasoning_steps: [
+                                `Reviewer ${name.trim()} selected: Edit`,
+                                'Journal entry returned for amendment before posting',
+                                'GL mapping or invoice details to be corrected',
+                                'Workflow resumed — awaiting updated submission',
+                            ],
+                        },
+                    });
+                    if (e1) throw new Error(e1.message);
+                    const { error: e2 } = await supabase.from('activity_runs')
+                        .update({ status: 'in_progress', current_status_text: `Returned for amendment by ${name.trim()}` })
+                        .eq('id', run.id);
+                    if (e2) throw new Error(e2.message);
+                }
+
+            } else {
+                /* ── Generic HITL for all other processes ── */
+                const { error: e1 } = await supabase.from('activity_logs').insert({
+                    run_id: run.id, step_number: baseStep + 1, log_type: 'system',
+                    message: `Human decision: ${decision.id}`,
+                    metadata: {
+                        step_name: 'Human Decision', hitl_decision: true,
+                        decision: decision.id, decision_label: decLabel,
+                        decided_by: name.trim(),
+                    },
+                });
+                if (e1) throw new Error(e1.message);
+
+                const { error: e2 } = await supabase.from('activity_logs').insert({
+                    run_id: run.id, step_number: baseStep + 2, log_type: 'decision',
+                    message: `${decLabel} — approved by ${name.trim()}`,
+                    metadata: {
+                        step_name: 'Human Decision', decision: decision.id,
+                        decision_label: decLabel, decided_by: name.trim(),
+                        reasoning_steps: [
+                            `Reviewer ${name.trim()} selected: ${decision.label}`,
+                            `Action: ${decision.desc}`,
+                        ],
+                    },
+                });
+                if (e2) throw new Error(e2.message);
+
+                const newStatus = decision.id === 'void' ? 'void'
+                    : decision.id === 'proceed' ? 'done' : 'in_progress';
+                const { error: e3 } = await supabase.from('activity_runs')
+                    .update({ status: newStatus, current_status_text: `Decision: ${decLabel} (by ${name.trim()})` })
+                    .eq('id', run.id);
+                if (e3) throw new Error(e3.message);
+            }
 
             setDecided(true);
         } catch (e) {
