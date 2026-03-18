@@ -47,8 +47,8 @@ const BUTTON_STYLES = {
         active: 'bg-gray-200 text-gray-500 cursor-wait',
     },
     warning: {
-        base: 'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] hover:bg-[#FDE68A]',
-        active: 'bg-yellow-200 text-yellow-700 cursor-wait',
+        base: 'bg-[#F3F4F6] text-[#374151] border border-[#E5E7EB] hover:bg-[#E5E7EB]',
+        active: 'bg-gray-200 text-gray-500 cursor-wait',
     },
     ghost: {
         base: 'bg-transparent text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB] hover:text-[#374151]',
@@ -267,9 +267,6 @@ export default function HitlDecisionPanel({ run, logs }) {
 
     return (
         <div className="mt-4 pt-3 border-t border-dashed border-[#E5E7EB]">
-            <div className="text-[11px] font-semibold text-[#A40000] uppercase tracking-wide mb-2">
-                Action Required — Human Review
-            </div>
             {error && (
                 <div className="text-[11px] text-red-600 bg-red-50 rounded px-2 py-1 mb-2">
                     Error: {error}
