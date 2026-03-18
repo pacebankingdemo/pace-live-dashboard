@@ -23,7 +23,20 @@ const REASONING_KEYS = new Set([
     'decision_by', 'final_status', 'match_verdict', 'line_items_total'
 ]);
 
-const SKIP_KEYS = new Set(['step_name', 'reasoning_steps', 'dataset_name']);
+const SKIP_KEYS = new Set([
+    'step_name', 'reasoning_steps', 'dataset_name',
+    // DXC process — never render these as sidebar rows
+    'start_date', 'end_date', 'artifacts',
+    'source_run_id', 'source_run_name', 'source_process', 'linked_process_id',
+    'expense_booking_triggered', 'ariba_push_status', 'erp_breakdown', 'invoice_ids',
+    'total_invoices_synced', 'linked_process',
+    // P2 expense booking — keep clean
+    'payment_ref', 'payment_status', 'journal_entry', 'gl_account', 'cost_centre',
+    'booked_amount_usd', 'hitl_required', 'flag_reason', 'void_reason',
+    'from_currency', 'to_currency', 'exchange_rate', 'original_amount', 'converted_amount',
+    'records_input', 'duplicates_removed', 'records_output', 'records_passed',
+    'ineligible_removed', 'invoices_mapped',
+]);
 
 /* Fields we want to surface in Case Details sidebar */
 const CASE_DETAIL_KEYS = new Set([
@@ -54,11 +67,7 @@ const CASE_DETAIL_KEYS = new Set([
     'asset_category', 'prepaid_months', 'amortization_start',
     'g8_filter', 'accap_eligible', 'po_number', 'invoice_date',
     'journal_entry', 'approver', 'classification_rationale',
-    // DXC Delta Sync keys
-    'current_status', 'date', 'start_date', 'end_date',
-    'erp_records_found', 'erp_records_processed', 'erp_invoices_extracted',
-    'erp_lh', 'erp_gsap', 'erp_compass',
-    'ariba_lh_compass', 'ariba_gsap',
+    // DXC Delta Sync keys (removed — sidebar no longer shows these)
 ]);
 
 function isLargeData(value) {
