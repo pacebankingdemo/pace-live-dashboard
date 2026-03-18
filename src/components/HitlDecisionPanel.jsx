@@ -21,6 +21,12 @@ const PROCESS_DECISIONS = {
         { id: 'correct', label: 'Correct value', desc: 'Enter commodity', style: 'secondary' },
         { id: 'reject', label: 'Reject load', desc: 'Escalate', style: 'warning' },
     ],
+    /* DXC — Prepaid Expense Booking (P2) */
+    'c9846f46-ff57-4cc8-9f71-addf4185aeb5': [
+        { id: 'proceed', label: 'Proceed', desc: 'Approve and post expense booking to GL', style: 'primary' },
+        { id: 'edit', label: 'Edit', desc: 'Amend GL mapping or invoice details before posting', style: 'secondary' },
+        { id: 'void', label: 'Void', desc: 'Reject invoice — mark as void, no GL entry created', style: 'warning' },
+    ],
 };
 
 /* Fallback for any process not in the map */
@@ -57,7 +63,7 @@ export default function HitlDecisionPanel({ run, logs }) {
     
     const [error, setError] = useState(null);
 
-    if (!run || run.status !== 'needs_attention') return null;
+    if (!run || (run.status !== 'needs_attention' && run.status !== 'needs_review')) return null;
 
     const alreadyDecided = logs?.some(l =>
         l.log_type === 'system' && l.metadata?.hitl_decision === true
@@ -110,11 +116,14 @@ export default function HitlDecisionPanel({ run, logs }) {
             });
             if (e2) throw new Error(`decision log insert: ${e2.message}`);
 
-            /* 3. Move run back to in_progress */
+            /* 3. Update run status based on decision */
+            const newStatus = decision.id === 'void' ? 'void'
+                : decision.id === 'proceed' ? 'done'
+                : 'in_progress';
             const { error: e3 } = await supabase
                 .from('activity_runs')
                 .update({
-                    status: 'in_progress',
+                    status: newStatus,
                     current_status_text: `Decision: ${decLabel} (by ${name.trim()})`,
                 })
                 .eq('id', run.id);
