@@ -1193,8 +1193,53 @@ const ProcessDetails = () => {
                                                 </div>
                                             );
                                         }
-                                        const isPdf = art.filename?.toLowerCase().endsWith('.pdf');
-                                        const isImg = /\.(png|jpg|jpeg|gif|webp)$/i.test(art.filename || '');
+                                        const isPdf       = art.filename?.toLowerCase().endsWith('.pdf');
+                                        const isImg       = /\.(png|jpg|jpeg|gif|webp)$/i.test(art.filename || '');
+                                        const isExcel     = /\.(xlsx|xls|csv)$/i.test(art.filename || '') || art.file_type?.includes('spreadsheet') || art.file_type?.includes('excel');
+                                        const isSharePoint = art.file_type === 'sharepoint';
+
+                                        if (isSharePoint) {
+                                            return (
+                                                <a key={art.id} href={art.url || '#'} target="_blank" rel="noreferrer"
+                                                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[#f0f6ff] transition-colors text-left group border border-[#e1ecff] bg-[#f7fbff] mb-1">
+                                                    {/* SharePoint logo SVG */}
+                                                    <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 bg-white border border-[#d0e4ff] shadow-sm">
+                                                        <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <circle cx="12" cy="12" r="10" fill="#0364B8"/>
+                                                            <circle cx="21" cy="19" r="9" fill="#0078D4"/>
+                                                            <circle cx="12" cy="22" r="8" fill="#1490DF"/>
+                                                            <ellipse cx="17" cy="28" rx="11" ry="4" fill="#28A8E8"/>
+                                                            <text x="7" y="22" fontFamily="Arial" fontWeight="bold" fontSize="12" fill="white">S</text>
+                                                        </svg>
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-[12px] font-semibold text-[#0364B8] truncate">{art.filename}</p>
+                                                        <p className="text-[10px] text-[#0078D4]">SharePoint · Open site</p>
+                                                    </div>
+                                                    <svg className="w-3 h-3 text-[#0078D4] flex-shrink-0" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                                </a>
+                                            );
+                                        }
+
+                                        if (isExcel) {
+                                            return (
+                                                <button key={art.id} onClick={() => handleArtifactClick(art)}
+                                                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[#f0fff4] transition-colors text-left group">
+                                                    <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 bg-[#e6f4ea] border border-[#c6e8ce]">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                                            <rect x="2" y="3" width="20" height="18" rx="2" fill="#217346"/>
+                                                            <path d="M8 8l3 4-3 4M12 8l4 8" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                                                        </svg>
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-[12px] font-medium text-[#171717] truncate">{art.filename}</p>
+                                                        <p className="text-[10px] text-[#9CA3AF]">Excel · SharePoint</p>
+                                                    </div>
+                                                    <Eye className="w-3.5 h-3.5 text-[#d1d5db] group-hover:text-[#9CA3AF] flex-shrink-0" />
+                                                </button>
+                                            );
+                                        }
+
                                         return (
                                             <button key={art.id} onClick={() => handleArtifactClick(art)}
                                                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[#f5f5f5] transition-colors text-left group">
