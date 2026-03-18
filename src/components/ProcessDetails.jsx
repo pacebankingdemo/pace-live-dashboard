@@ -8,6 +8,12 @@ import {
     Play
 } from 'lucide-react';
 import { fetchLogs, fetchArtifacts, fetchBrowserRecordings, subscribeToTable } from '../services/supabase';
+
+// Processes that use the structured DXC sidebar — suppress generic Case Details block for these
+const DXC_PROCESS_IDS = new Set([
+    'c4e944f7-1133-4961-a8c3-2378ca591857', // P1 — Prepaid Data Ingestion
+    'c9846f46-ff57-4cc8-9f71-addf4185aeb5', // P2 — Prepaid Expense Booking
+]);
 import { supabase } from '../services/supabase';
 import VideoPlayer from './VideoPlayer';
 import HitlDecisionPanel from './HitlDecisionPanel';
@@ -1179,9 +1185,17 @@ const ProcessDetails = () => {
                         );
                     })()}
 
-                    {/* Case Details - extracted from log metadata (non-DXC processes) */}
+                    {/* Case Details - extracted from log metadata (non-DXC processes only) */}
                     {(() => {
-                        const dxcKeys = new Set(['current_status','date','start_date','end_date','erp_records_found','erp_records_processed','erp_invoices_extracted']);
+                        // Suppress entirely for DXC P1/P2 — they use the structured Run Details panel above
+                        if (DXC_PROCESS_IDS.has(run?.process_id)) return null;
+                        const dxcKeys = new Set([
+                            'current_status','date','start_date','end_date',
+                            'erp_records_found','erp_records_processed','erp_invoices_extracted',
+                            'erp_lh','erp_gsap','erp_compass','ariba_lh_compass','ariba_gsap',
+                            'final_status','invoice_amount','invoice_number','vendor',
+                            'step_name','reasoning_steps','data','artifacts',
+                        ]);
                         const nonDxc = Object.fromEntries(Object.entries(caseDetails).filter(([k]) => !dxcKeys.has(k)));
                         if (Object.keys(nonDxc).length === 0) return null;
                         return (
