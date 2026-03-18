@@ -103,8 +103,24 @@ function classifyMetadata(metadata) {
     // Use dataset_name or step_name as the artifact label instead of the raw key
     const preferredLabel = metadata.dataset_name || metadata.step_name || null;
 
+    // Handle explicit artifacts array — pass through directly (SharePoint, Excel, etc.)
+    if (Array.isArray(metadata.artifacts)) {
+        metadata.artifacts.forEach((art, i) => {
+            dataArtifacts.push({
+                id: art.id || `meta-artifact-${i}`,
+                filename: art.filename || art.name || 'Artifact',
+                file_type: art.file_type || 'file',
+                url: art.url || null,
+                description: art.description || null,
+                _isMetaArtifact: true,
+                _isExplicit: true,
+            });
+        });
+    }
+
     Object.entries(metadata).forEach(([key, value]) => {
         if (SKIP_KEYS.has(key)) return;
+        if (key === 'artifacts') return; // already handled above
 
         if (isLargeData(value)) {
             const fallbackLabel = key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim();
@@ -1031,14 +1047,34 @@ const ProcessDetails = () => {
                                                             </button>
                                                         );
                                                     })}
-                                                    {metaArtifacts.map(da => (
-                                                        <button key={da.id} onClick={() => setSelectedArtifact(da)}
-                                                            className="bg-[#f2f2f2] hover:bg-gray-200 rounded-[6px] px-2 py-1 flex items-center gap-1.5 transition-colors group/chip">
-                                                            <Database className="h-3.5 w-3.5 text-[#666]" strokeWidth={1.5} />
-                                                            <span className="text-xs font-normal text-black">{da.filename}</span>
-                                                            <Eye className="h-3 w-3 text-[#D1D5DB] group-hover/chip:text-[#9CA3AF] flex-shrink-0 ml-0.5" strokeWidth={1.5} />
-                                                        </button>
-                                                    ))}
+                                                    {metaArtifacts.map(da => {
+                                                        if (da.file_type === 'sharepoint') {
+                                                            return (
+                                                                <a key={da.id} href={da.url || '#'} target="_blank" rel="noreferrer"
+                                                                    className="bg-[#f0f6ff] hover:bg-[#e1ecff] border border-[#c8dfff] rounded-lg px-2.5 py-1.5 flex items-center gap-2 transition-colors group/chip no-underline">
+                                                                    <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 bg-white border border-[#d0e4ff]">
+                                                                        <svg width="12" height="12" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                            <circle cx="12" cy="12" r="10" fill="#0364B8"/>
+                                                                            <circle cx="21" cy="19" r="9" fill="#0078D4"/>
+                                                                            <circle cx="12" cy="22" r="8" fill="#1490DF"/>
+                                                                            <ellipse cx="17" cy="28" rx="11" ry="4" fill="#28A8E8"/>
+                                                                            <text x="7" y="22" fontFamily="Arial" fontWeight="bold" fontSize="12" fill="white">S</text>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <span className="text-[11px] font-medium text-[#0364B8]">{da.filename}</span>
+                                                                    <svg className="h-3 w-3 text-[#0078D4] flex-shrink-0 ml-0.5" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                                                </a>
+                                                            );
+                                                        }
+                                                        return (
+                                                            <button key={da.id} onClick={() => setSelectedArtifact(da)}
+                                                                className="bg-[#f2f2f2] hover:bg-gray-200 rounded-[6px] px-2 py-1 flex items-center gap-1.5 transition-colors group/chip">
+                                                                <Database className="h-3.5 w-3.5 text-[#666]" strokeWidth={1.5} />
+                                                                <span className="text-xs font-normal text-black">{da.filename}</span>
+                                                                <Eye className="h-3 w-3 text-[#D1D5DB] group-hover/chip:text-[#9CA3AF] flex-shrink-0 ml-0.5" strokeWidth={1.5} />
+                                                            </button>
+                                                        );
+                                                    })}
                                                     {groupRecordings.map(rec => (
                                                         <button key={rec.id}
                                                             onClick={() => handleArtifactClick({ ...rec, _isVideo: true })}
