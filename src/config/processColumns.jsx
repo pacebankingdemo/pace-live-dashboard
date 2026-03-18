@@ -140,10 +140,6 @@ export const PROCESS_COLUMNS = {
           render: (r, m) => m.monthly_amount
               ? <span className="font-[500] text-[#171717]">${Number(m.monthly_amount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
               : <span className="text-[#d1d5db]">—</span> },
-        { id: 'amort',   header: 'Amort. Schedule',      align: 'left',
-          render: (r, m) => m.amortization_schedule
-              ? <span className="text-[#555] text-[11px]">{m.amortization_schedule}</span>
-              : <span className="text-[#d1d5db]">—</span> },
         { id: 'pop',     header: 'POP',                  align: 'center',
           render: (r, m) => m.pop ? pill(m.pop, 'blue') : <span className="text-[#d1d5db]">—</span> },
         { id: 'term',    header: 'Term',                 align: 'center',
