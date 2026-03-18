@@ -1094,7 +1094,7 @@ const ProcessDetails = () => {
                                                 </div>
                                             )}
                                             {/* HITL decision buttons - inline at end of last log entry */}
-                                            {isLastGroup && run?.status === 'needs_attention' && (
+                                            {isLastGroup && (run?.status === 'needs_attention' || run?.status === 'needs_review') && (
                                                 <HitlDecisionPanel run={run} logs={logs} />
                                             )}
                                         </div>
