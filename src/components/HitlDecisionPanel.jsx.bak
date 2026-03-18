@@ -5,9 +5,6 @@ const sbUrl = import.meta.env.VITE_SUPABASE_URL;
 const sbServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzdmpjcG14bmRnYXVqeGx2aWt3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjAyOTkzNiwiZXhwIjoyMDg3NjA1OTM2fQ.81sjVPgI5QzYLlwz1YwbkCNxK-07Rki98px_JUhK6To';
 const supabase = createClient(sbUrl, sbServiceKey);
 
-/* helper: promisified delay */
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 /* ── Process-specific HITL decision configs ── */
 const PROCESS_DECISIONS = {
     /* Dispute Resolution — Uber Eats */
@@ -59,20 +56,11 @@ const BUTTON_STYLES = {
     },
 };
 
-/* ── Processing status labels shown while steps post ── */
-const P2_STEP_LABELS = [
-    'Recording decision…',
-    'Generating amortization schedule…',
-    'Posting journal entry to Cadency…',
-    'Finalising month-end reporting…',
-];
-
-export default function HitlDecisionPanel({ run, logs, artifacts }) {
+export default function HitlDecisionPanel({ run, logs }) {
     const [submitting, setSubmitting] = useState(null);
     const [decided, setDecided] = useState(false);
-    const [processingLabel, setProcessingLabel] = useState('');
     const name = 'Prabhu';
-
+    
     const [error, setError] = useState(null);
 
     if (!run || (run.status !== 'needs_attention' && run.status !== 'needs_review')) return null;
@@ -87,24 +75,6 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
 
     const P2_PROCESS_ID = 'c9846f46-ff57-4cc8-9f71-addf4185aeb5';
 
-    /* Helper: insert a log row */
-    const insertLog = async (payload) => {
-        const { error } = await supabase.from('activity_logs').insert(payload);
-        if (error) throw new Error(error.message);
-    };
-
-    /* Helper: update run status */
-    const updateRun = async (status, statusText) => {
-        const { error } = await supabase.from('activity_runs')
-            .update({ status, current_status_text: statusText })
-            .eq('id', run.id);
-        if (error) throw new Error(error.message);
-    };
-
-    /* Helper: find artifact ID by filename substring */
-    const findArtifact = (substr) =>
-        artifacts?.find(a => a.filename?.includes(substr));
-
     const submitDecision = async (decision) => {
         setError(null);
         setSubmitting(decision.id);
@@ -115,21 +85,20 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
             const isP2 = run.process_id === P2_PROCESS_ID;
 
             if (isP2) {
-                /* ── P2 DXC Prepaid: rich post-HITL steps with staged delays ── */
+                /* ── P2 DXC Prepaid: rich post-HITL steps ── */
                 const meta = logs?.find(l => l.step_number === 1)?.metadata || {};
-                const usdAmt  = meta.invoice_value || 0;
-                const months  = (meta.prepaid_year || 1) * 12;
-                const monthly = months > 0 ? Math.round((usdAmt / months) * 100) / 100 : 0;
-                const glCode  = meta.gl_code || '';
-                const amort   = meta.amortization_schedule || `${months} equal monthly installments`;
-                const jeRef   = `JE-2026-${Math.floor(10000 + Math.random() * 5000)}`;
-                const vendor  = meta.vendor || run.name;
+                const usdAmt   = meta.invoice_value || 0;
+                const months   = (meta.prepaid_year || 1) * 12;
+                const monthly  = months > 0 ? Math.round((usdAmt / months) * 100) / 100 : 0;
+                const catchup  = Math.round(monthly * 0.5 * 100) / 100;
+                const glCode   = meta.gl_code || '';
+                const amort    = meta.amortization_schedule || `${months} equal monthly installments`;
+                const jeRef    = `JE-2026-${Math.floor(10000 + Math.random() * 5000)}`;
+                const vendor   = meta.vendor || run.name;
 
                 if (decision.id === 'proceed') {
-
-                    /* ── Step 14: Human Decision ── */
-                    setProcessingLabel(P2_STEP_LABELS[0]);
-                    await insertLog({
+                    /* Step 14 — Human Decision */
+                    const { error: e1 } = await supabase.from('activity_logs').insert({
                         run_id: run.id, step_number: baseStep + 1, log_type: 'system',
                         message: 'Human decision: proceed',
                         metadata: {
@@ -143,11 +112,10 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                             ],
                         },
                     });
-                    await sleep(1800);
+                    if (e1) throw new Error(e1.message);
 
-                    /* ── Step 15: Amortization schedule created ── */
-                    setProcessingLabel(P2_STEP_LABELS[1]);
-                    await insertLog({
+                    /* Step 15 — Amortization schedule created */
+                    const { error: e2 } = await supabase.from('activity_logs').insert({
                         run_id: run.id, step_number: baseStep + 2, log_type: 'system',
                         message: `Amortization schedule created — ${amort} over ${months} months`,
                         metadata: {
@@ -163,25 +131,10 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                             ],
                         },
                     });
+                    if (e2) throw new Error(e2.message);
 
-                    /* Artifact log: Amortization XLSX (step 15) */
-                    const amortXlsx = findArtifact('.xlsx') && artifacts?.find(a => a.filename?.includes('Amortization') && a.filename?.endsWith('.xlsx'));
-                    if (amortXlsx) {
-                        await insertLog({
-                            run_id: run.id, step_number: baseStep + 2, log_type: 'artifact',
-                            message: 'Amortization Schedule exported to Excel',
-                            metadata: {
-                                artifact_name: amortXlsx.filename,
-                                artifact_id: amortXlsx.id,
-                                step_name: 'Amortization Excel',
-                            },
-                        });
-                    }
-                    await sleep(2000);
-
-                    /* ── Step 16: Journal entry posted in Cadency ── */
-                    setProcessingLabel(P2_STEP_LABELS[2]);
-                    await insertLog({
+                    /* Step 16 — Journal entry posted in Cadency */
+                    const { error: e3 } = await supabase.from('activity_logs').insert({
                         run_id: run.id, step_number: baseStep + 3, log_type: 'system',
                         message: `Journal entry ${jeRef} posted in Cadency — GL ${glCode} updated`,
                         metadata: {
@@ -195,25 +148,10 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                             ],
                         },
                     });
+                    if (e3) throw new Error(e3.message);
 
-                    /* Artifact log: Cadency MJE XLSX (step 16) */
-                    const cadencyXlsx = artifacts?.find(a => a.filename?.includes('Cadency') && a.filename?.endsWith('.xlsx'));
-                    if (cadencyXlsx) {
-                        await insertLog({
-                            run_id: run.id, step_number: baseStep + 3, log_type: 'artifact',
-                            message: 'Cadency MJE template exported',
-                            metadata: {
-                                artifact_name: cadencyXlsx.filename,
-                                artifact_id: cadencyXlsx.id,
-                                step_name: 'Cadency MJE Export',
-                            },
-                        });
-                    }
-                    await sleep(1800);
-
-                    /* ── Step 17: Month-end reporting complete ── */
-                    setProcessingLabel(P2_STEP_LABELS[3]);
-                    await insertLog({
+                    /* Step 17 — Month-end reporting */
+                    const { error: e4 } = await supabase.from('activity_logs').insert({
                         run_id: run.id, step_number: baseStep + 4, log_type: 'complete',
                         message: `Month-end reporting complete — ${jeRef} included in Mar 2026 close`,
                         metadata: {
@@ -228,14 +166,17 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                             ],
                         },
                     });
-                    await sleep(800);
+                    if (e4) throw new Error(e4.message);
 
                     /* Update run to done */
-                    await updateRun('done', `Month-end reporting complete — ${jeRef} posted in Cadency`);
+                    const { error: e5 } = await supabase.from('activity_runs')
+                        .update({ status: 'done', current_status_text: `Month-end reporting complete — ${jeRef} posted in Cadency` })
+                        .eq('id', run.id);
+                    if (e5) throw new Error(e5.message);
 
                 } else if (decision.id === 'void') {
-                    setProcessingLabel('Voiding invoice…');
-                    await insertLog({
+                    /* Step 14 — Voided */
+                    const { error: e1 } = await supabase.from('activity_logs').insert({
                         run_id: run.id, step_number: baseStep + 1, log_type: 'complete',
                         message: `Journal entry voided — ${vendor} invoice rejected by reviewer`,
                         metadata: {
@@ -250,12 +191,15 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                             ],
                         },
                     });
-                    await updateRun('void', `Voided by ${name.trim()} — no GL entry created`);
+                    if (e1) throw new Error(e1.message);
+                    const { error: e2 } = await supabase.from('activity_runs')
+                        .update({ status: 'void', current_status_text: `Voided by ${name.trim()} — no GL entry created` })
+                        .eq('id', run.id);
+                    if (e2) throw new Error(e2.message);
 
                 } else {
                     /* Edit — return to in_progress */
-                    setProcessingLabel('Returning for amendment…');
-                    await insertLog({
+                    const { error: e1 } = await supabase.from('activity_logs').insert({
                         run_id: run.id, step_number: baseStep + 1, log_type: 'system',
                         message: `Journal entry returned for amendment — ${vendor}`,
                         metadata: {
@@ -270,12 +214,16 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                             ],
                         },
                     });
-                    await updateRun('in_progress', `Returned for amendment by ${name.trim()}`);
+                    if (e1) throw new Error(e1.message);
+                    const { error: e2 } = await supabase.from('activity_runs')
+                        .update({ status: 'in_progress', current_status_text: `Returned for amendment by ${name.trim()}` })
+                        .eq('id', run.id);
+                    if (e2) throw new Error(e2.message);
                 }
 
             } else {
                 /* ── Generic HITL for all other processes ── */
-                await insertLog({
+                const { error: e1 } = await supabase.from('activity_logs').insert({
                     run_id: run.id, step_number: baseStep + 1, log_type: 'system',
                     message: `Human decision: ${decision.id}`,
                     metadata: {
@@ -284,8 +232,9 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                         decided_by: name.trim(),
                     },
                 });
+                if (e1) throw new Error(e1.message);
 
-                await insertLog({
+                const { error: e2 } = await supabase.from('activity_logs').insert({
                     run_id: run.id, step_number: baseStep + 2, log_type: 'decision',
                     message: `${decLabel} — approved by ${name.trim()}`,
                     metadata: {
@@ -297,10 +246,14 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                         ],
                     },
                 });
+                if (e2) throw new Error(e2.message);
 
                 const newStatus = decision.id === 'void' ? 'void'
                     : decision.id === 'proceed' ? 'done' : 'in_progress';
-                await updateRun(newStatus, `Decision: ${decLabel} (by ${name.trim()})`);
+                const { error: e3 } = await supabase.from('activity_runs')
+                    .update({ status: newStatus, current_status_text: `Decision: ${decLabel} (by ${name.trim()})` })
+                    .eq('id', run.id);
+                if (e3) throw new Error(e3.message);
             }
 
             setDecided(true);
@@ -309,7 +262,6 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
             setError(e.message || 'Submit failed');
         } finally {
             setSubmitting(null);
-            setProcessingLabel('');
         }
     };
 
@@ -318,16 +270,6 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
             {error && (
                 <div className="text-[11px] text-red-600 bg-red-50 rounded px-2 py-1 mb-2">
                     Error: {error}
-                </div>
-            )}
-
-            {submitting && processingLabel && (
-                <div className="flex items-center gap-1.5 mb-2">
-                    <svg className="animate-spin h-3 w-3 text-[#6B7280]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                    </svg>
-                    <span className="text-[11px] text-[#6B7280]">{processingLabel}</span>
                 </div>
             )}
 
@@ -347,7 +289,7 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                                 ${isDisabled ? 'opacity-40' : ''}
                             `}
                         >
-                            {isActive ? 'Processing…' : d.label}
+                            {isActive ? 'Submitting...' : d.label}
                         </button>
                     );
                 })}
@@ -356,4 +298,4 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
         </div>
     );
 }
-// Build trigger: 20260318T120000Z
+// Build trigger: 20260310T182500Z
