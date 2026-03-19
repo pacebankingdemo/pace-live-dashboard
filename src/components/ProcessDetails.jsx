@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import {
     Check, Activity, FileText, Clock, ExternalLink, Loader2, X,
-    Database, Asterisk, Presentation, Maximize2, ChevronDown, ChevronUp,
-    Download, Sliders, Filter, Layout, LayoutGrid, Menu, Brain, Briefcase,
-    Eye, Paperclip, Image, ZoomIn, ZoomOut, RotateCw, ChevronLeft, ChevronRight,
+    Database, Presentation, ChevronDown, ChevronUp,
+    Download, Briefcase,
+    Eye, Image, ZoomIn, ZoomOut, RotateCw, ChevronLeft, ChevronRight,
     Play, Hash, ToggleLeft, Calendar, Type, ArrowUpDown
 } from 'lucide-react';
 import { fetchLogs, fetchArtifacts, fetchBrowserRecordings, subscribeToTable } from '../services/supabase';
@@ -610,21 +610,19 @@ const DocumentPreview = ({ artifact, onClose }) => {
 
 /* ─── DatasetViewer ─── */
 const DatasetViewer = ({ artifact, onClose }) => {
-    const [viewMode, setViewMode] = useState('list');
 
     // Infer a type label from a JS value (matches DataExplorer type icons)
     const inferType = (v) => {
-        if (v === null || v === undefined) return 'text';
+        if (v === null || v === undefined) return 'string';
         if (typeof v === 'boolean') return 'boolean';
         if (typeof v === 'number') return 'number';
-        if (Array.isArray(v)) return 'array';
-        if (typeof v === 'object') return 'object';
-        // string heuristics
+        if (Array.isArray(v)) return 'json';
+        if (typeof v === 'object') return 'json';
         const s = String(v);
         if (/^\d{4}-\d{2}-\d{2}/.test(s)) return 'date';
         if (/^\$[\d,.]+/.test(s) || /^-?\d[\d,]*\.\d{2}$/.test(s)) return 'number';
         if (/^(true|false)$/i.test(s)) return 'boolean';
-        return 'text';
+        return 'string';
     };
 
     const parsedData = useMemo(() => {
@@ -641,149 +639,130 @@ const DatasetViewer = ({ artifact, onClose }) => {
 
     const isTableData = Array.isArray(parsedData);
 
-    // Build schema-like fields array from data keys (mimics DataExplorer's dataset.schema.fields)
-    const fields = useMemo(() => {
-        if (isTableData) {
-            if (!parsedData.length) return [];
-            // Union all keys across rows
-            const keySet = new Set();
-            parsedData.forEach(row => { if (row && typeof row === 'object') Object.keys(row).forEach(k => keySet.add(k)); });
-            return Array.from(keySet).map(k => {
-                const sample = parsedData.find(r => r[k] !== null && r[k] !== undefined)?.[k];
-                return { name: k, type: inferType(sample) };
-            });
-        }
-        // Single object — each key becomes a field
-        return Object.entries(parsedData).map(([k, v]) => ({ name: k, type: inferType(v) }));
+    // Always normalise to an array of row objects
+    const rowData = useMemo(() => {
+        if (isTableData) return parsedData;
+        return [parsedData];
     }, [parsedData, isTableData]);
 
-    // Flatten nested values for display
-    const formatValue = (v) => {
-        if (v === null || v === undefined) return '\u2014';
-        if (Array.isArray(v)) return v.map(item => typeof item === 'object' ? JSON.stringify(item) : String(item)).join(', ');
-        if (typeof v === 'object') return JSON.stringify(v);
-        return String(v);
+    // Build schema fields from union of all keys (matches DataExplorer)
+    const fields = useMemo(() => {
+        const keySet = new Set();
+        rowData.forEach(row => {
+            if (row && typeof row === 'object') Object.keys(row).forEach(k => keySet.add(k));
+        });
+        return Array.from(keySet).map(k => {
+            const sample = rowData.find(r => r[k] !== null && r[k] !== undefined)?.[k];
+            return { name: k, type: inferType(sample) };
+        });
+    }, [rowData]);
+
+    // Format cell values identically to DataExplorer
+    const formatCell = (value, type) => {
+        if (value === null || value === undefined) return <span className="text-gray-300">—</span>;
+        if (type === 'json' || typeof value === 'object') {
+            return <span className="font-mono text-[10px] text-gray-500">{JSON.stringify(value).slice(0, 80)}</span>;
+        }
+        if (type === 'number') return <span className="font-mono">{value}</span>;
+        if (type === 'boolean') return value ? '✓' : '✗';
+        if (type === 'date') {
+            try { return new Date(value).toLocaleDateString(); } catch { return String(value); }
+        }
+        const s = String(value);
+        return s.length > 60 ? s.slice(0, 57) + '...' : s;
     };
+
+    // Type icon helper (same as DataExplorer)
+    const typeIcon = (type) => {
+        switch (type) {
+            case 'number': return <Hash className="w-3 h-3" />;
+            case 'boolean': return <ToggleLeft className="w-3 h-3" />;
+            case 'date': return <Calendar className="w-3 h-3" />;
+            case 'json': return <Database className="w-3 h-3" />;
+            default: return <Type className="w-3 h-3" />;
+        }
+    };
+
+    const [sortField, setSortField] = useState(null);
+    const [sortAsc, setSortAsc] = useState(true);
+    const handleSort = (fieldName) => {
+        if (sortField === fieldName) setSortAsc(!sortAsc);
+        else { setSortField(fieldName); setSortAsc(true); }
+    };
+    const sortedRows = useMemo(() => {
+        if (!sortField) return rowData;
+        return [...rowData].sort((a, b) => {
+            const va = a?.[sortField] ?? '';
+            const vb = b?.[sortField] ?? '';
+            const cmp = String(va).localeCompare(String(vb), undefined, { numeric: true });
+            return sortAsc ? cmp : -cmp;
+        });
+    }, [rowData, sortField, sortAsc]);
 
     return (
         <div className="flex flex-col h-full bg-white flex-1 min-w-[400px] overflow-hidden">
-            {/* Header — matches DataExplorer */}
+            {/* Header — matches DataExplorer exactly */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white z-10 w-full">
                 <div className="flex items-center gap-3">
-                    <button className="p-1.5 hover:bg-gray-100 rounded text-gray-600">
-                        <Menu className="w-4 h-4" />
-                    </button>
-                    <span className="text-[14px] font-normal text-[#171717]">
+                    <Database className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm font-semibold text-gray-900">
                         {artifact?._stepName || artifact?.filename || 'Artifact Data'}
                     </span>
-                    <span className="text-[11px] text-gray-400">
-                        {isTableData ? `${parsedData.length} rows` : `${fields.length} fields`}
+                    <span className="text-[10px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">
+                        {rowData.length} {rowData.length === 1 ? 'row' : 'rows'} · {fields.length} fields
                     </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <button className="p-1.5 hover:bg-gray-100 rounded text-gray-400"><Maximize2 className="w-4 h-4" /></button>
                     <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
                 </div>
             </div>
 
-            {/* Schema bar — same style as DataExplorer */}
+            {/* Schema bar — same as DataExplorer */}
             {fields.length > 0 && (
                 <div className="flex items-center gap-3 px-4 py-1.5 bg-gray-50/50 border-b border-gray-100 overflow-x-auto flex-shrink-0">
                     <span className="text-[9px] uppercase tracking-wider text-gray-400 font-semibold whitespace-nowrap">Schema</span>
                     {fields.map(f => (
                         <span key={f.name} className="flex items-center gap-1 text-[10px] text-gray-500 whitespace-nowrap">
-                            {f.type === 'number' ? <Hash className="w-3 h-3" /> :
-                             f.type === 'boolean' ? <ToggleLeft className="w-3 h-3" /> :
-                             f.type === 'date' ? <Calendar className="w-3 h-3" /> :
-                             <Type className="w-3 h-3" />}
+                            {typeIcon(f.type)}
                             <span className="font-medium">{f.name}</span>
-                            <span className="text-gray-300">({f.type})</span>
                         </span>
                     ))}
                 </div>
             )}
 
-            {/* Toolbar */}
-            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 flex-shrink-0">
-                <div className="flex items-center gap-2">
-                    <button className="p-1.5 border border-gray-200 rounded-[4px] hover:bg-gray-50 text-gray-500">
-                        <Filter className="w-3 h-3" />
-                    </button>
-                </div>
-                <div className="flex items-center gap-3 text-gray-400">
-                    <Download className="w-3.5 h-3.5 cursor-pointer hover:text-gray-600 transition-colors" />
-                    <div className="flex items-center border border-gray-200 rounded-[6px] p-0.5 bg-gray-50/50">
-                        <button onClick={() => setViewMode('list')} title="Detail View"
-                            className={`p-1 rounded-[4px] transition-all ${viewMode === 'list' ? 'bg-white border border-gray-200 shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
-                            <Layout className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => setViewMode('table')} title="Table View"
-                            className={`p-1 rounded-[4px] transition-all ${viewMode === 'table' ? 'bg-white border border-gray-200 shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
-                            <LayoutGrid className="w-3.5 h-3.5" />
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Content */}
+            {/* Data table — always horizontal, matching DataExplorer grid */}
             <div className="flex-1 overflow-auto bg-white custom-scrollbar min-h-0">
                 {artifact?._loading ? (
                     <div className="flex items-center justify-center h-full gap-2 text-gray-400">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         <span className="text-[12px]">Loading data…</span>
                     </div>
-                ) : viewMode === 'table' || isTableData ? (
-                    /* ── Table mode (array data or user toggled) ── */
+                ) : (
                     <div className="w-full h-full overflow-auto">
                         <table className="min-w-full text-left border-collapse">
                             <thead className="sticky top-0 bg-white z-10">
                                 <tr className="border-b border-gray-100">
                                     {fields.map(f => (
-                                        <th key={f.name} className="px-3 py-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                                        <th key={f.name}
+                                            onClick={() => handleSort(f.name)}
+                                            className="px-3 py-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-gray-600 select-none">
                                             <span className="flex items-center gap-1">
-                                                {formatFieldKey(f.name)}
-                                                <ArrowUpDown className="w-2.5 h-2.5 text-gray-300" />
+                                                {typeIcon(f.type)}
+                                                {f.name}
+                                                <ArrowUpDown className={`w-2.5 h-2.5 ${sortField === f.name ? 'text-gray-600' : 'text-gray-300'}`} />
                                             </span>
                                         </th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
-                                {(isTableData ? parsedData : [parsedData]).map((row, i) => (
+                                {sortedRows.map((row, i) => (
                                     <tr key={i} className={`border-b border-gray-50 hover:bg-gray-50/50 transition-colors ${i % 2 === 0 ? '' : 'bg-gray-50/30'}`}>
                                         {fields.map(f => (
                                             <td key={f.name} className="px-3 py-2 text-[11px] text-gray-700 max-w-[200px] truncate">
-                                                {formatValue(row?.[f.name])}
+                                                {formatCell(row?.[f.name], f.type)}
                                             </td>
                                         ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    /* ── Detail mode (single object as field/value table) ── */
-                    <div className="w-full h-full overflow-auto">
-                        <table className="min-w-full text-left border-collapse">
-                            <thead className="sticky top-0 bg-white z-10">
-                                <tr className="border-b border-gray-100">
-                                    <th className="px-3 py-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-[180px]">Field</th>
-                                    <th className="px-3 py-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Value</th>
-                                    <th className="px-3 py-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-[60px]">Type</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {fields.map((f, i) => (
-                                    <tr key={f.name} className={`border-b border-gray-50 hover:bg-gray-50/50 transition-colors ${i % 2 === 0 ? '' : 'bg-gray-50/30'}`}>
-                                        <td className="px-3 py-2 text-[11px] font-medium text-gray-900 whitespace-nowrap">
-                                            {formatFieldKey(f.name)}
-                                        </td>
-                                        <td className="px-3 py-2 text-[11px] text-gray-700">
-                                            {formatValue(parsedData[f.name])}
-                                        </td>
-                                        <td className="px-3 py-2">
-                                            <span className="text-[9px] text-gray-400">{f.type}</span>
-                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
