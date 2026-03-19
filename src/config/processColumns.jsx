@@ -192,20 +192,6 @@ export const PROCESS_COLUMNS = {
               return pill(je, 'blue');
           }},
 
-        /* Run status */
-        { id: 'status',     header: 'Status',               align: 'center',
-          render: (r) => {
-              const map = {
-                  done:            ['Complete',      'green'],
-                  needs_review:    ['Needs Review',  'amber'],
-                  needs_attention: ['Needs Attention','red'],
-                  in_progress:     ['In Progress',   'blue'],
-                  void:            ['Void',          'gray'],
-              };
-              const [label, color] = map[r.status] || [r.status, 'gray'];
-              return pill(label, color);
-          }},
-
         /* Last status text */
         { id: 'txt',        header: 'Notes',                align: 'left',
           render: (r) => trunc(r.current_status_text, 60) },
