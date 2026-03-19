@@ -106,6 +106,61 @@ function splitLogMessage(message) {
     return { summary: message.slice(0, 120) + '...', detail: message };
 }
 
+/* --- Artifact-to-Dataset schema transformers ---
+ * When an artifact_url JSON is fetched, transform it to match the canonical
+ * dataset schema so the DatasetViewer renders it identically to the Datasets tab.
+ */
+const ARTIFACT_TRANSFORMERS = {
+    // FA Classification artifact -> Classifications dataset schema
+    'FA Classification': (raw) => ({
+        transaction_number: raw.transaction_number,
+        party_name: raw.vendor,
+        net_amount: raw.amount,
+        decision: raw.capitalize ? 'capitalize' : 'no_action',
+        confidence: raw.confidence,
+        asset_category: raw.category,
+        reason: raw.category,
+        reasoning: raw.reasoning,
+        is_laptop: raw.is_laptop,
+        is_cip: raw.is_cip,
+        cip_asset_number: raw.cip_asset_number,
+    }),
+    // JE Build artifact -> Journal Entries dataset schema (array of je_lines)
+    'JE Build': (raw) => {
+        if (!raw.je_lines || !Array.isArray(raw.je_lines)) return raw;
+        return raw.je_lines.map(line => ({
+            JE_NAME: line.je_name,
+            JE_CATEGORY: line.je_type,
+            ACCOUNT: line.account,
+            CODE_COMBINATION: line.coa_string,
+            ENTERED_DR: line.debit,
+            ENTERED_CR: line.credit,
+            PARTY_NAME: line.party_name,
+            COMPANY: line.entity,
+            DESCRIPTION: line.description,
+            REVERSING: line.reversing,
+            REVERSAL_DATE: line.reversal_date,
+            ITEM_ID: line.item_id,
+        }));
+    },
+    // Enrichment Data -> structured flat view matching PO Data / Invoice PDF Extractions
+    'Enrichment Data': (raw) => ({
+        transaction_number: raw.transaction_number,
+        party_name: raw.vendor,
+        net_amount: raw.amount,
+        po_number: raw.po_number,
+        po_description: raw.po_description,
+        invoice_pdf_available: raw.invoice_pdf_available,
+    }),
+};
+
+function transformArtifactData(stepName, rawData) {
+    const transformer = ARTIFACT_TRANSFORMERS[stepName];
+    if (transformer) return transformer(rawData);
+    // No transformer — return raw data as-is (DatasetViewer handles flat objects fine)
+    return rawData;
+}
+
 function classifyMetadata(metadata) {
     if (!metadata || typeof metadata !== 'object') return { reasoning: {}, dataArtifacts: [], narrative: null };
 
@@ -142,6 +197,7 @@ function classifyMetadata(metadata) {
             url: metadata.artifact_url,
             _isMetaArtifact: true,
             _isExplicit: true,
+            _stepName: metadata.step_name || null,
         });
     }
 
@@ -595,7 +651,7 @@ const DatasetViewer = ({ artifact, onClose }) => {
                         <Menu className="w-4 h-4" />
                     </button>
                     <span className="text-[14px] font-normal text-[#171717]">
-                        {artifact?.filename || 'Artifact Data'}
+                        {artifact?._stepName || artifact?.filename || 'Artifact Data'}
                     </span>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -982,9 +1038,13 @@ const ProcessDetails = () => {
                 setSelectedArtifact({ ...art, _loading: true });
                 fetch(art.url)
                     .then(r => r.json())
-                    .then(data => setSelectedArtifact(prev =>
-                        prev?.id === art.id ? { ...art, data } : prev
-                    ))
+                    .then(rawData => {
+                        // Transform to match dataset schema based on step_name
+                        const data = transformArtifactData(art._stepName, rawData);
+                        setSelectedArtifact(prev =>
+                            prev?.id === art.id ? { ...art, data } : prev
+                        );
+                    })
                     .catch(() => setSelectedArtifact(prev =>
                         prev?.id === art.id ? { ...art, data: { error: 'Failed to load content' } } : prev
                     ));
