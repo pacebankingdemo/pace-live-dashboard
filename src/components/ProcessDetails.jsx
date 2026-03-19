@@ -609,7 +609,8 @@ const DocumentPreview = ({ artifact, onClose }) => {
 };
 
 /* ─── DatasetViewer ─── */
-const DatasetViewer = ({ artifact, onClose }) => {
+/* ─── DatasetViewer (enhanced: tabs + row navigation) ─── */
+const DatasetViewer = ({ artifact, onClose, allDataArtifacts, onSelectTab }) => {
 
     // Infer a type label from a JS value (matches DataExplorer type icons)
     const inferType = (v) => {
@@ -645,6 +646,11 @@ const DatasetViewer = ({ artifact, onClose }) => {
         return [parsedData];
     }, [parsedData, isTableData]);
 
+    // Row navigation state
+    const [currentRow, setCurrentRow] = useState(0);
+    // Reset row when artifact changes
+    useEffect(() => { setCurrentRow(0); }, [artifact?.id]);
+
     // Build schema fields from union of all keys (matches DataExplorer)
     const fields = useMemo(() => {
         const keySet = new Set();
@@ -659,17 +665,17 @@ const DatasetViewer = ({ artifact, onClose }) => {
 
     // Format cell values identically to DataExplorer
     const formatCell = (value, type) => {
-        if (value === null || value === undefined) return <span className="text-gray-300">—</span>;
+        if (value === null || value === undefined) return <span className="text-gray-300">\u2014</span>;
         if (type === 'json' || typeof value === 'object') {
             return <span className="font-mono text-[10px] text-gray-500">{JSON.stringify(value).slice(0, 80)}</span>;
         }
         if (type === 'number') return <span className="font-mono">{value}</span>;
-        if (type === 'boolean') return value ? '✓' : '✗';
+        if (type === 'boolean') return value ? '\u2713' : '\u2717';
         if (type === 'date') {
             try { return new Date(value).toLocaleDateString(); } catch { return String(value); }
         }
         const s = String(value);
-        return s.length > 60 ? s.slice(0, 57) + '...' : s;
+        return s.length > 120 ? s.slice(0, 117) + '...' : s;
     };
 
     // Type icon helper (same as DataExplorer)
@@ -699,8 +705,35 @@ const DatasetViewer = ({ artifact, onClose }) => {
         });
     }, [rowData, sortField, sortAsc]);
 
+    // Determine view mode: vertical key-value for single rows, table for multiple
+    const useVerticalView = rowData.length <= 1;
+    const currentRowData = sortedRows[currentRow] || {};
+
+    // Tabs from allDataArtifacts
+    const hasTabs = Array.isArray(allDataArtifacts) && allDataArtifacts.length > 1;
+    const activeTabId = artifact?.id;
+
     return (
-        <div className="flex flex-col h-full bg-white flex-1 min-w-[400px] overflow-hidden">
+        <div className="flex flex-col h-full bg-white flex-1 min-w-[340px] overflow-hidden">
+            {/* Tabs row — only if multiple data artifacts */}
+            {hasTabs && (
+                <div className="flex items-center gap-0 border-b border-gray-100 bg-[#FAFAFA] overflow-x-auto flex-shrink-0">
+                    {allDataArtifacts.map(da => (
+                        <button
+                            key={da.id}
+                            onClick={() => onSelectTab && onSelectTab(da)}
+                            className={`px-4 py-2.5 text-[12px] font-medium whitespace-nowrap border-b-2 transition-colors ${
+                                da.id === activeTabId
+                                    ? 'border-[#171717] text-[#171717] bg-white'
+                                    : 'border-transparent text-[#9CA3AF] hover:text-[#6B7280] hover:bg-gray-50'
+                            }`}
+                        >
+                            {da._stepName || da.filename || 'Data'}
+                        </button>
+                    ))}
+                </div>
+            )}
+
             {/* Header — matches DataExplorer exactly */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white z-10 w-full">
                 <div className="flex items-center gap-3">
@@ -709,35 +742,63 @@ const DatasetViewer = ({ artifact, onClose }) => {
                         {artifact?._stepName || artifact?.filename || 'Artifact Data'}
                     </span>
                     <span className="text-[10px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">
-                        {rowData.length} {rowData.length === 1 ? 'row' : 'rows'} · {fields.length} fields
+                        {rowData.length} {rowData.length === 1 ? 'row' : 'rows'} \u00b7 {fields.length} fields
                     </span>
                 </div>
                 <div className="flex items-center gap-1.5">
+                    {/* Row navigation for multi-row data */}
+                    {rowData.length > 1 && useVerticalView && (
+                        <div className="flex items-center gap-1 mr-2">
+                            <button
+                                onClick={() => setCurrentRow(r => Math.max(0, r - 1))}
+                                disabled={currentRow === 0}
+                                className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <ChevronUp className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="text-[11px] text-[#6B7280] font-medium tabular-nums min-w-[60px] text-center">
+                                ROW {currentRow + 1} / {rowData.length}
+                            </span>
+                            <button
+                                onClick={() => setCurrentRow(r => Math.min(rowData.length - 1, r + 1))}
+                                disabled={currentRow >= rowData.length - 1}
+                                className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <ChevronDown className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+                    )}
                     <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
                 </div>
             </div>
 
-            {/* Schema bar — same as DataExplorer */}
-            {fields.length > 0 && (
-                <div className="flex items-center gap-3 px-4 py-1.5 bg-gray-50/50 border-b border-gray-100 overflow-x-auto flex-shrink-0">
-                    <span className="text-[9px] uppercase tracking-wider text-gray-400 font-semibold whitespace-nowrap">Schema</span>
-                    {fields.map(f => (
-                        <span key={f.name} className="flex items-center gap-1 text-[10px] text-gray-500 whitespace-nowrap">
-                            {typeIcon(f.type)}
-                            <span className="font-medium">{f.name}</span>
-                        </span>
-                    ))}
-                </div>
-            )}
-
-            {/* Data table — always horizontal, matching DataExplorer grid */}
+            {/* Data content */}
             <div className="flex-1 overflow-auto bg-white custom-scrollbar min-h-0">
                 {artifact?._loading ? (
                     <div className="flex items-center justify-center h-full gap-2 text-gray-400">
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span className="text-[12px]">Loading data…</span>
+                        <span className="text-[12px]">Loading data\u2026</span>
+                    </div>
+                ) : useVerticalView ? (
+                    /* ── Vertical key-value view (single row / row-by-row navigation) ── */
+                    <div className="divide-y divide-gray-50">
+                        {fields.map(f => {
+                            const val = currentRowData[f.name];
+                            return (
+                                <div key={f.name} className="flex items-start gap-4 px-4 py-3 hover:bg-gray-50/50 transition-colors">
+                                    <div className="flex items-center gap-1.5 min-w-[140px] max-w-[180px] flex-shrink-0">
+                                        <span className="text-[#9CA3AF]">{typeIcon(f.type)}</span>
+                                        <span className="text-[12px] text-[#6B7280] font-medium truncate">{f.name}</span>
+                                    </div>
+                                    <div className="flex-1 text-[12px] text-[#171717] font-[500] break-words">
+                                        {formatCell(val, f.type)}
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 ) : (
+                    /* ── Horizontal table view (multiple rows) ── */
                     <div className="w-full h-full overflow-auto">
                         <table className="min-w-full text-left border-collapse">
                             <thead className="sticky top-0 bg-white z-10">
@@ -786,6 +847,10 @@ const ProcessDetails = () => {
     const [artifactWidth, setArtifactWidth] = useState(550);
     const [isResizing, setIsResizing] = useState(false);
     const logsEndRef = useRef(null);
+
+    // Three-panel mode state
+    const [selectedDocument, setSelectedDocument] = useState(null);   // PDF for right panel
+    const [dataArtifactTabs, setDataArtifactTabs] = useState([]);     // all data artifacts for tabs
 
     useEffect(() => {
         if (!runId) return;
@@ -849,6 +914,21 @@ const ProcessDetails = () => {
     }, [artifacts, logs, logMetaClassified]);
 
     // Extract case details from log metadata
+
+    // Collect all PDF artifacts available in this run (for auto-detection)
+    const pdfArtifacts = useMemo(() => {
+        return allArtifacts.filter(a => isDocumentFile(a) && getDocumentType(a) === 'pdf');
+    }, [allArtifacts]);
+
+    // Collect all data artifacts (non-document, viewable) for tabs
+    const allViewableDataArtifacts = useMemo(() => {
+        return allArtifacts.filter(a => !isDocumentFile(a) && (a.content || a.data || a._isMetaArtifact || (a.url && (a.file_type === 'application/json' || a.file_type === 'json' || a.filename?.endsWith('.json')))));
+    }, [allArtifacts]);
+
+    // Three-panel mode is active when we have both a data artifact AND a document
+    const threePanelActive = selectedArtifact && !selectedArtifact._isVideo && !selectedArtifact._isDocument && selectedDocument;
+
+
     const caseDetails = useMemo(() => extractCaseDetails(logs), [logs]);
 
     /* ─── Group logs by step_number so sub-steps render as one entry ─── */
@@ -1047,22 +1127,36 @@ const ProcessDetails = () => {
             return;
         }
         if (art._isVideo) {
+            setSelectedDocument(null);
             setSelectedArtifact(art);
         } else if (isDocumentFile(art)) {
-            setSelectedArtifact({ ...art, _isDocument: true });
+            // Document clicked directly — show in right panel as document
+            // If we already have a data artifact open, keep it and show PDF alongside
+            if (selectedArtifact && !selectedArtifact._isDocument && !selectedArtifact._isVideo) {
+                setSelectedDocument({ ...art, _isDocument: true });
+            } else {
+                setSelectedDocument(null);
+                setSelectedArtifact({ ...art, _isDocument: true });
+            }
         } else if (isViewableArtifact(art) && (art.content || art.data)) {
-            // Inline content already available — open DatasetViewer directly
+            // Data artifact with inline content — open DatasetViewer
+            // Auto-detect PDF to show alongside
+            const pdf = pdfArtifacts[0] || null;
             setSelectedArtifact(art);
+            setSelectedDocument(pdf ? { ...pdf, _isDocument: true } : null);
+            // Build tabs from all meta artifacts in the same group
+            setDataArtifactTabs(allViewableDataArtifacts.length > 1 ? allViewableDataArtifacts : []);
         } else if (art.url) {
-            // URL-only artifact (e.g. OPEX artifact_url pattern)
-            // Fetch JSON content and open inline in DatasetViewer, same as dataset rows
             const isJson = art.file_type === 'application/json' || art.file_type === 'json' || art.filename?.endsWith('.json');
             if (isJson) {
+                // Auto-detect PDF to show alongside
+                const pdf = pdfArtifacts[0] || null;
                 setSelectedArtifact({ ...art, _loading: true });
+                setSelectedDocument(pdf ? { ...pdf, _isDocument: true } : null);
+                setDataArtifactTabs(allViewableDataArtifacts.length > 1 ? allViewableDataArtifacts : []);
                 fetch(art.url)
                     .then(r => r.json())
                     .then(rawData => {
-                        // Transform to match dataset schema based on step_name
                         const data = transformArtifactData(art._stepName, rawData);
                         setSelectedArtifact(prev =>
                             prev?.id === art.id ? { ...art, data } : prev
@@ -1072,7 +1166,12 @@ const ProcessDetails = () => {
                         prev?.id === art.id ? { ...art, data: { error: 'Failed to load content' } } : prev
                     ));
             } else if (isDocumentFile(art)) {
-                setSelectedArtifact({ ...art, _isDocument: true });
+                if (selectedArtifact && !selectedArtifact._isDocument && !selectedArtifact._isVideo) {
+                    setSelectedDocument({ ...art, _isDocument: true });
+                } else {
+                    setSelectedDocument(null);
+                    setSelectedArtifact({ ...art, _isDocument: true });
+                }
             } else {
                 window.open(art.url, '_blank');
             }
@@ -1335,8 +1434,29 @@ const ProcessDetails = () => {
                 </div>
             </div>
 
-            {/* Right panel: Artifact viewer OR Key Details sidebar */}
-            {selectedArtifact ? (
+            {/* Right panel: Three-panel (data + PDF) OR single artifact viewer OR Key Details sidebar */}
+            {threePanelActive ? (
+                <>
+                    {/* Middle panel: DatasetViewer with tabs */}
+                    <div className="w-1 cursor-col-resize hover:bg-blue-200 active:bg-blue-300 transition-colors flex-shrink-0"
+                        onMouseDown={() => setIsResizing(true)} />
+                    <div className="flex-1 min-w-[340px] border-l border-[#f0f0f0]">
+                        <DatasetViewer
+                            artifact={selectedArtifact}
+                            onClose={() => { setSelectedArtifact(null); setSelectedDocument(null); setDataArtifactTabs([]); }}
+                            allDataArtifacts={dataArtifactTabs}
+                            onSelectTab={(da) => handleArtifactClick(da)}
+                        />
+                    </div>
+                    {/* Right panel: PDF DocumentPreview */}
+                    <div className="w-[480px] flex-shrink-0 border-l border-[#f0f0f0]">
+                        <DocumentPreview
+                            artifact={selectedDocument}
+                            onClose={() => setSelectedDocument(null)}
+                        />
+                    </div>
+                </>
+            ) : selectedArtifact ? (
                 <>
                     <div className="w-1 cursor-col-resize hover:bg-blue-200 active:bg-blue-300 transition-colors flex-shrink-0"
                         onMouseDown={() => setIsResizing(true)} />
@@ -1346,7 +1466,12 @@ const ProcessDetails = () => {
                         ) : selectedArtifact._isDocument ? (
                             <DocumentPreview artifact={selectedArtifact} onClose={() => setSelectedArtifact(null)} />
                         ) : (
-                            <DatasetViewer artifact={selectedArtifact} onClose={() => setSelectedArtifact(null)} />
+                            <DatasetViewer
+                                artifact={selectedArtifact}
+                                onClose={() => { setSelectedArtifact(null); setDataArtifactTabs([]); }}
+                                allDataArtifacts={dataArtifactTabs}
+                                onSelectTab={(da) => handleArtifactClick(da)}
+                            />
                         )}
                     </div>
                 </>
