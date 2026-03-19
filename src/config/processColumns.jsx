@@ -129,13 +129,13 @@ export const PROCESS_COLUMNS = {
                          : <span className="text-[#d1d5db]">—</span>;
           }},
 
-        /* Entity — Journal Entry has entity with full name; Classification Result may have it too */
+        /* Entity — Invoice Details is the canonical source in the locked 8-step format */
         { id: 'entity',     header: 'Entity',               align: 'center',
           render: (r, m) => {
-              const raw = m.artMeta?.['Journal Entry']?.Entity
+              const raw = m.artMeta?.['Invoice Details']?.Entity
                        || m.artMeta?.['Classification Result']?.Entity
                        || m.artMeta?.['Phase 1 — Data Fetch Summary']?.Entity
-                       || m.artMeta?.['Invoice Details']?.Entity;
+                       || m.artMeta?.['Journal Entry']?.Entity;
               if (!raw) return <span className="text-[#d1d5db]">—</span>;
               // "101 — Block, Inc." → show just "101"
               const num = String(raw).match(/^(\d+)/);
@@ -193,13 +193,13 @@ export const PROCESS_COLUMNS = {
               return <span className="text-[#555] text-[13px] font-[450]">{c}</span>;
           }},
 
-        /* JE type — Journal Entry > Classification Result > Payment Detection Result */
+        /* JE type — Payment Detection Result is canonical (clean ACCAP1/PPD1); others as fallback */
         { id: 'je',         header: 'JE Type',              align: 'center',
           render: (r, m) => {
-              const je = m.artMeta?.['Journal Entry']?.['JE Type']
+              const je = m.artMeta?.['Payment Detection Result']?.['JE Type']
+                      || m.artMeta?.['Journal Entry']?.['JE Type']
                       || m.artMeta?.['Classification Result']?.['JE Type']
-                      || m.artMeta?.['Payment Detection Result']?.['JE Type']
-                      || m.artMeta?.['Journal Entry Lines']?.['JE Name']?.split('_')[1];
+                      || m.artMeta?.['Journal Entry Lines']?.['JE Name'];
               if (!je) return <span className="text-[#d1d5db]">—</span>;
               return <span className="text-[#555] text-[13px] font-[450]">{je}</span>;
           }},
