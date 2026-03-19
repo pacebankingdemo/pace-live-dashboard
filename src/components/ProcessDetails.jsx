@@ -29,7 +29,7 @@ const REASONING_KEYS = new Set([
     'decision_by', 'final_status', 'match_verdict', 'line_items_total'
 ]);
 
-const SKIP_KEYS = new Set(['step_name', 'reasoning_steps', 'dataset_name']);
+const SKIP_KEYS = new Set(['step_name', 'reasoning_steps', 'dataset_name', 'artifact_url', 'artifact_name', 'artifact_id']);
 
 /* Fields we want to surface in Case Details sidebar */
 const CASE_DETAIL_KEYS = new Set([
@@ -120,6 +120,21 @@ function classifyMetadata(metadata) {
                 _isMetaArtifact: true,
                 _isExplicit: true,
             });
+        });
+    }
+
+    // Handle artifact_url + artifact_name pattern (Gen-2 Block OPEX logs)
+    // e.g. { artifact_url: "https://...storage.../K32388450103_classification.json", artifact_name: "K32388450103_classification.json" }
+    if (metadata.artifact_url) {
+        const fname = metadata.artifact_name || metadata.artifact_url.split('/').pop() || 'Artifact';
+        const artId = metadata.artifact_id || `url-artifact-${fname}`;
+        dataArtifacts.push({
+            id: artId,
+            filename: fname,
+            file_type: fname.endsWith('.json') ? 'application/json' : 'file',
+            url: metadata.artifact_url,
+            _isMetaArtifact: true,
+            _isExplicit: true,
         });
     }
 
@@ -888,9 +903,11 @@ const ProcessDetails = () => {
             setSelectedArtifact(art);
         } else if (isDocumentFile(art)) {
             setSelectedArtifact({ ...art, _isDocument: true });
-        } else if (isViewableArtifact(art)) {
+        } else if (isViewableArtifact(art) && (art.content || art.data)) {
+            // Only open inline viewer when there's actual content to display
             setSelectedArtifact(art);
         } else if (art.url) {
+            // URL-only artifacts (e.g. Gen-2 artifact_url references) → open in new tab
             window.open(art.url, '_blank');
         }
     };
