@@ -29,7 +29,13 @@ const REASONING_KEYS = new Set([
     'decision_by', 'final_status', 'match_verdict', 'line_items_total'
 ]);
 
-const SKIP_KEYS = new Set(['step_name', 'reasoning_steps', 'dataset_name', 'artifact_url', 'artifact_name', 'artifact_id']);
+const SKIP_KEYS = new Set([
+    'step_name', 'reasoning_steps', 'dataset_name',
+    'artifact_url', 'artifact_name', 'artifact_id',
+    // OPEX noise keys — routing/control fields, not display-worthy
+    'routing', 'capitalize', 'enriched', 'pdf_available', 'file_count',
+    'g17_valid', 'je_line_count', 'clearing_account',
+]);
 
 /* Fields we want to surface in Case Details sidebar */
 const CASE_DETAIL_KEYS = new Set([
@@ -101,10 +107,11 @@ function splitLogMessage(message) {
 }
 
 function classifyMetadata(metadata) {
-    if (!metadata || typeof metadata !== 'object') return { reasoning: {}, dataArtifacts: [] };
+    if (!metadata || typeof metadata !== 'object') return { reasoning: {}, dataArtifacts: [], narrative: null };
 
     const reasoning = {};
     const dataArtifacts = [];
+    let narrative = null;
     // Use dataset_name or step_name as the artifact label instead of the raw key
     const preferredLabel = metadata.dataset_name || metadata.step_name || null;
 
@@ -142,6 +149,13 @@ function classifyMetadata(metadata) {
         if (SKIP_KEYS.has(key)) return;
         if (key === 'artifacts') return; // already handled above
 
+        // 'reasoning' and 'error' strings are narrative explanations — surface them
+        // as the step's primary text, not as collapsed kv pairs
+        if ((key === 'reasoning' || key === 'error') && typeof value === 'string' && value.length > 0) {
+            narrative = value;
+            return;
+        }
+
         if (isLargeData(value)) {
             const fallbackLabel = key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim();
             const label = preferredLabel || (fallbackLabel.charAt(0).toUpperCase() + fallbackLabel.slice(1));
@@ -164,7 +178,7 @@ function classifyMetadata(metadata) {
         }
     });
 
-    return { reasoning, dataArtifacts };
+    return { reasoning, dataArtifacts, narrative };
 }
 
 /* Normalize a key to snake_case for matching against CASE_DETAIL_KEYS */
@@ -544,6 +558,7 @@ const DatasetViewer = ({ artifact, onClose }) => {
 
     const parsedData = useMemo(() => {
         if (!artifact) return {};
+        if (artifact._loading) return {};
         let raw = artifact.content || artifact.data;
         if (typeof raw === 'string') {
             try { raw = JSON.parse(raw); } catch { return { raw_content: raw }; }
@@ -618,7 +633,12 @@ const DatasetViewer = ({ artifact, onClose }) => {
 
             {/* Content */}
             <div className="flex-1 overflow-auto bg-white custom-scrollbar">
-                {viewMode === 'table' || isTableData ? (
+                {artifact?._loading ? (
+                    <div className="flex items-center justify-center h-full gap-2 text-gray-400">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span className="text-[12px]">Loading data…</span>
+                    </div>
+                ) : viewMode === 'table' || isTableData ? (
                     <div className="w-full h-full overflow-auto">
                         <table className="min-w-full text-left border-collapse table-auto">
                             <thead className="bg-[#f9fafb] border-b border-gray-200 sticky top-0 z-20">
@@ -732,7 +752,10 @@ const ProcessDetails = () => {
 
     const logMetaClassified = useMemo(() => {
         const map = {};
-        logs.forEach(log => { map[log.id] = classifyMetadata(log.metadata); });
+        logs.forEach(log => {
+            const result = classifyMetadata(log.metadata);
+            map[log.id] = result;
+        });
         return map;
     }, [logs]);
 
@@ -786,23 +809,65 @@ const ProcessDetails = () => {
             }
         });
 
+        // Pre-compute which artifacts are already claimed by some log (via artifact_id / artifact_name)
+        const claimedArtifactIds = new Set();
+        groups.forEach(group => {
+            group.logs.forEach(l => {
+                if (l.log_type === 'artifact') {
+                    if (l.metadata?.artifact_id) claimedArtifactIds.add(l.metadata.artifact_id);
+                    if (l.metadata?.artifact_name) {
+                        const matched = artifacts.find(a => a.filename === l.metadata.artifact_name);
+                        if (matched) claimedArtifactIds.add(matched.id);
+                    }
+                    artifacts.forEach(a => {
+                        if (l.message?.includes(a.filename)) claimedArtifactIds.add(a.id);
+                    });
+                }
+            });
+        });
+
+        // Orphaned PDFs — artifacts in the DB that are not claimed by any artifact log
+        const orphanedPdfs = artifacts.filter(
+            a => (a.file_type === 'pdf' || a.filename?.toLowerCase().endsWith('.pdf')) && !claimedArtifactIds.has(a.id)
+        );
+
+        // Find the index of the group that handles document retrieval (step_name match)
+        const DOC_RETRIEVAL_NAMES = new Set([
+            'invoice pdf retrieval', 'po enrichment', 'document retrieval',
+            'invoice retrieval', 'po retrieval', 'source document fetch',
+        ]);
+        const docGroupIdx = groups.findIndex(group =>
+            group.logs.some(l => {
+                const sn = (l.metadata?.step_name || '').toLowerCase();
+                return DOC_RETRIEVAL_NAMES.has(sn);
+            })
+        );
+        // Fallback: attach orphaned PDFs to first group if no retrieval step found
+        const orphanTargetIdx = docGroupIdx >= 0 ? docGroupIdx : 0;
+
         // Enrich each group with combined artifacts, reasoning, recordings
-        return groups.map((group) => {
+        return groups.map((group, groupIdx) => {
             const firstLog = group.logs[0];
             const lastLog = group.logs[group.logs.length - 1];
             const stepNumbers = new Set(group.logs.map(l => l.step_number));
 
-            // Collect all DB artifacts whose step_number matches any log in group
+            // Collect all DB artifacts claimed by logs in this group (via artifact_id / name / message)
             const dbArts = artifacts.filter(a =>
-                stepNumbers.has(a.step_number) ||
                 group.logs.some(l =>
                     l.log_type === 'artifact' && (
                         l.message?.includes(a.filename) ||
                         (l.metadata?.artifact_id && l.metadata.artifact_id === a.id) ||
-                            (l.metadata?.artifact_name && l.metadata.artifact_name === a.filename)
+                        (l.metadata?.artifact_name && l.metadata.artifact_name === a.filename)
                     )
                 )
             );
+
+            // Attach orphaned PDFs to the designated group
+            if (groupIdx === orphanTargetIdx) {
+                orphanedPdfs.forEach(a => {
+                    if (!dbArts.some(x => x.id === a.id)) dbArts.push(a);
+                });
+            }
 
             // Collect all meta artifacts from classified metadata
             const metaArts = [];
@@ -814,12 +879,14 @@ const ProcessDetails = () => {
             // Collect recordings for any step_number in the group
             const recs = recordings.filter(r => stepNumbers.has(r.step_number));
 
-            // Merge reasoning from all logs
+            // Merge reasoning + narratives from all logs
             const mergedReasoning = {};
             const allReasoningSteps = [];
+            const allNarratives = [];
             group.logs.forEach(l => {
                 const classified = logMetaClassified[l.id];
                 if (classified?.reasoning) Object.assign(mergedReasoning, classified.reasoning);
+                if (classified?.narrative) allNarratives.push(classified.narrative);
                 const rs = l.metadata?.reasoning_steps;
                 if (Array.isArray(rs)) allReasoningSteps.push(...rs);
             });
@@ -844,6 +911,7 @@ const ProcessDetails = () => {
                 recordings: recs,
                 mergedReasoning,
                 allReasoningSteps,
+                allNarratives,
                 messages,
                 msgSplit,
             };
@@ -904,11 +972,27 @@ const ProcessDetails = () => {
         } else if (isDocumentFile(art)) {
             setSelectedArtifact({ ...art, _isDocument: true });
         } else if (isViewableArtifact(art) && (art.content || art.data)) {
-            // Only open inline viewer when there's actual content to display
+            // Inline content already available — open DatasetViewer directly
             setSelectedArtifact(art);
         } else if (art.url) {
-            // URL-only artifacts (e.g. Gen-2 artifact_url references) → open in new tab
-            window.open(art.url, '_blank');
+            // URL-only artifact (e.g. OPEX artifact_url pattern)
+            // Fetch JSON content and open inline in DatasetViewer, same as dataset rows
+            const isJson = art.file_type === 'application/json' || art.file_type === 'json' || art.filename?.endsWith('.json');
+            if (isJson) {
+                setSelectedArtifact({ ...art, _loading: true });
+                fetch(art.url)
+                    .then(r => r.json())
+                    .then(data => setSelectedArtifact(prev =>
+                        prev?.id === art.id ? { ...art, data } : prev
+                    ))
+                    .catch(() => setSelectedArtifact(prev =>
+                        prev?.id === art.id ? { ...art, data: { error: 'Failed to load content' } } : prev
+                    ));
+            } else if (isDocumentFile(art)) {
+                setSelectedArtifact({ ...art, _isDocument: true });
+            } else {
+                window.open(art.url, '_blank');
+            }
         }
     };
 
@@ -992,7 +1076,7 @@ const ProcessDetails = () => {
                     ) : (
                         <div className="relative">
                             {groupedLogs.map((group, groupIndex) => {
-                                const { firstLog, lastLog, mergedReasoning, allReasoningSteps, msgSplit, dbArtifacts, metaArtifacts, recordings: groupRecordings } = group;
+                                const { firstLog, lastLog, mergedReasoning, allReasoningSteps, allNarratives, msgSplit, dbArtifacts, metaArtifacts, recordings: groupRecordings } = group;
                                 const isLastGroup = groupIndex === groupedLogs.length - 1;
                                 const status = getIconStatus(lastLog, isLastGroup ? logs.length - 1 : logs.indexOf(lastLog));
                                 // Use the first non-artifact message as a descriptive label, fall back to step_name
@@ -1003,6 +1087,8 @@ const ProcessDetails = () => {
                                     !!msgSplit.detail ||
                                     allReasoningSteps.length > 0
                                 );
+                                // Narratives (reasoning/error strings) shown as visible text below step label
+                                const visibleNarrative = allNarratives.length > 0 ? allNarratives.join(' ') : null;
                                 // Deduplicate DB artifacts by id
                                 const seenArtIds = new Set();
                                 const uniqueDbArts = dbArtifacts.filter(a => {
@@ -1042,19 +1128,27 @@ const ProcessDetails = () => {
                                                     </span>
                                                 )}
                                             </div>
-                                            {/* Summary text — hidden when reasoning box shows it */}
-                                            {!hasReasoning && msgSplit.summary && (
+                                            {/* Narrative text (from reasoning/error fields) — always visible */}
+                                            {visibleNarrative && (
+                                                <p className="text-[12px] text-[#666] mt-0.5 leading-relaxed">
+                                                    {visibleNarrative}
+                                                </p>
+                                            )}
+                                            {/* Summary text — shown when no reasoning box and no narrative */}
+                                            {!hasReasoning && !visibleNarrative && msgSplit.summary && (
                                                 <p className="text-[12px] text-[#666] mt-0.5 leading-relaxed">
                                                     {msgSplit.summary.replace(/^[\u2022\u00b7\-*]\s*/, '')}
                                                 </p>
                                             )}
-                                            {/* Reasoning box with merged data */}
-                                            <CollapsibleReasoning
-                                                reasoning={mergedReasoning}
-                                                messageDetail={msgSplit.detail}
-                                                reasoningSteps={allReasoningSteps}
-                                                summaryText={msgSplit.summary}
-                                            />
+                                            {/* Reasoning box — only when there are actual kv pairs or steps */}
+                                            {hasReasoning && (
+                                                <CollapsibleReasoning
+                                                    reasoning={mergedReasoning}
+                                                    messageDetail={msgSplit.detail}
+                                                    reasoningSteps={allReasoningSteps}
+                                                    summaryText={!visibleNarrative ? msgSplit.summary : null}
+                                                />
+                                            )}
                                             {/* All attachments: DB artifacts + data artifacts + recordings */}
                                             {hasAttachments && (
                                                 <div className="flex flex-wrap gap-2 mt-2.5">
@@ -1086,6 +1180,7 @@ const ProcessDetails = () => {
                                                         );
                                                     })}
                                                     {metaArtifacts.map(da => {
+                                                        // SharePoint links — blue pill with SP icon
                                                         if (da.file_type === 'sharepoint') {
                                                             return (
                                                                 <a key={da.id} href={da.url || '#'} target="_blank" rel="noreferrer"
@@ -1104,11 +1199,28 @@ const ProcessDetails = () => {
                                                                 </a>
                                                             );
                                                         }
+                                                        // All URL-based artifacts — open inline via handleArtifactClick (fetches JSON, opens DatasetViewer)
+                                                        const isDataArt = !da.url && (da.content || da.data); // inline data — open DatasetViewer
+                                                        if (da.url && !isDataArt) {
+                                                            return (
+                                                                <button key={da.id} onClick={() => handleArtifactClick(da)}
+                                                                    className="bg-[#f2f2f2] hover:bg-gray-200 border border-gray-200 rounded-lg px-2.5 py-1.5 flex items-center gap-2 transition-colors group/chip">
+                                                                    <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 bg-gray-300">
+                                                                        <Database className="h-3 w-3 text-[#555]" strokeWidth={2} />
+                                                                    </div>
+                                                                    <span className="text-[11px] font-medium text-[#374151]">{da.filename}</span>
+                                                                    <Eye className="h-3 w-3 text-[#D1D5DB] group-hover/chip:text-[#9CA3AF] flex-shrink-0 ml-0.5" strokeWidth={1.5} />
+                                                                </button>
+                                                            );
+                                                        }
+                                                        // Inline data artifacts (NatWest data{} pattern) — open DatasetViewer
                                                         return (
-                                                            <button key={da.id} onClick={() => setSelectedArtifact(da)}
-                                                                className="bg-[#f2f2f2] hover:bg-gray-200 rounded-[6px] px-2 py-1 flex items-center gap-1.5 transition-colors group/chip">
-                                                                <Database className="h-3.5 w-3.5 text-[#666]" strokeWidth={1.5} />
-                                                                <span className="text-xs font-normal text-black">{da.filename}</span>
+                                                            <button key={da.id} onClick={() => handleArtifactClick(da)}
+                                                                className="bg-[#f2f2f2] hover:bg-gray-200 border border-gray-200 rounded-lg px-2.5 py-1.5 flex items-center gap-2 transition-colors group/chip">
+                                                                <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 bg-gray-300">
+                                                                    <Database className="h-3 w-3 text-[#555]" strokeWidth={2} />
+                                                                </div>
+                                                                <span className="text-[11px] font-medium text-[#374151]">{da.filename}</span>
                                                                 <Eye className="h-3 w-3 text-[#D1D5DB] group-hover/chip:text-[#9CA3AF] flex-shrink-0 ml-0.5" strokeWidth={1.5} />
                                                             </button>
                                                         );
