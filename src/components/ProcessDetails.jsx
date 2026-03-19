@@ -17,6 +17,7 @@ const DXC_PROCESS_IDS = new Set([
 import { supabase } from '../services/supabase';
 import VideoPlayer from './VideoPlayer';
 import HitlDecisionPanel from './HitlDecisionPanel';
+import ArtifactDetailCard, { shouldUseDetailCard, BLOCK_OPEX_PROCESS_ID } from './ArtifactDetailCard';
 
 /* ─── Helpers: classify metadata fields ─── */
 const REASONING_KEYS = new Set([
@@ -1441,12 +1442,20 @@ const ProcessDetails = () => {
                     <div className="w-1 cursor-col-resize hover:bg-blue-200 active:bg-blue-300 transition-colors flex-shrink-0"
                         onMouseDown={() => setIsResizing(true)} />
                     <div className="flex-1 min-w-[340px] border-l border-[#f0f0f0]">
-                        <DatasetViewer
-                            artifact={selectedArtifact}
-                            onClose={() => { setSelectedArtifact(null); setSelectedDocument(null); setDataArtifactTabs([]); }}
-                            allDataArtifacts={dataArtifactTabs}
-                            onSelectTab={(da) => handleArtifactClick(da)}
-                        />
+                        {shouldUseDetailCard(selectedArtifact, run?.process_id) ? (
+                            <ArtifactDetailCard
+                                artifact={selectedArtifact}
+                                onClose={() => { setSelectedArtifact(null); setSelectedDocument(null); setDataArtifactTabs([]); }}
+                                processId={run?.process_id}
+                            />
+                        ) : (
+                            <DatasetViewer
+                                artifact={selectedArtifact}
+                                onClose={() => { setSelectedArtifact(null); setSelectedDocument(null); setDataArtifactTabs([]); }}
+                                allDataArtifacts={dataArtifactTabs}
+                                onSelectTab={(da) => handleArtifactClick(da)}
+                            />
+                        )}
                     </div>
                     {/* Right panel: PDF DocumentPreview */}
                     <div className="w-[480px] flex-shrink-0 border-l border-[#f0f0f0]">
@@ -1465,6 +1474,12 @@ const ProcessDetails = () => {
                             <VideoPlayer recording={selectedArtifact} onClose={() => setSelectedArtifact(null)} />
                         ) : selectedArtifact._isDocument ? (
                             <DocumentPreview artifact={selectedArtifact} onClose={() => setSelectedArtifact(null)} />
+                        ) : shouldUseDetailCard(selectedArtifact, run?.process_id) ? (
+                            <ArtifactDetailCard
+                                artifact={selectedArtifact}
+                                onClose={() => { setSelectedArtifact(null); setDataArtifactTabs([]); }}
+                                processId={run?.process_id}
+                            />
                         ) : (
                             <DatasetViewer
                                 artifact={selectedArtifact}
