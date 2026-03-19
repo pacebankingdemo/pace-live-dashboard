@@ -100,94 +100,96 @@ export const PROCESS_COLUMNS = {
 
     /* ── Block: OPEX Review ──────────────────────────────────────── */
     '84ff0fec-7dfd-48ef-a411-854c708b5e0a': [
-        /* Run name → vendor + txn, e.g. "Point One Electrical Systems Inc — 32660 (EXP_TO_FA)" */
+        /* Run name → vendor + txn, e.g. "Point One — 32660 (EXP_TO_FA)" */
         { id: 'name',       header: 'Invoice / Run',        align: 'left',
           render: (r) => <span className="font-[500] text-[#171717] max-w-[260px] truncate block">{r.name}</span> },
 
-        /* Vendor — from step-1 metadata reasoning or artMeta Invoice Intake */
+        /* Vendor — Classification Result is the most consistent source across all run variants.
+           Phase 1 — Data Fetch Summary and Invoice Details are additional fallbacks. */
         { id: 'vendor',     header: 'Vendor',               align: 'left',
           render: (r, m) => {
-              const v = m.artMeta?.['Phase 1 \u2014 Data Fetch Summary']?.Vendor
-                     || m.artMeta?.['Classification Result']?.Vendor
-                     || (() => {
-                           const steps = m.reasoning_steps || [];
-                           const hit = steps.find(s => s.startsWith('Vendor:'));
-                           return hit ? hit.replace('Vendor:', '').trim() : null;
-                       })();
+              const v = m.artMeta?.['Classification Result']?.Vendor
+                     || m.artMeta?.['Phase 1 — Data Fetch Summary']?.Vendor
+                     || m.artMeta?.['Invoice Details']?.Vendor
+                     || m.artMeta?.['Phase 3 — Data Retrieval']?.Vendor
+                     || m.artMeta?.['Phase 3 — PDF Extraction']?.Vendor;
               return v ? <span className="text-[#555] text-[11px] max-w-[180px] truncate block">{v}</span>
                        : <span className="text-[#d1d5db]">—</span>;
           }},
 
-        /* Amount — from artMeta or document_name */
+        /* Amount — prefer Classification Result (already dollar-formatted), then data retrieval */
         { id: 'amount',     header: 'Amount',               align: 'right',
           render: (r, m) => {
-              const raw = m.artMeta?.['Phase 1 \u2014 Data Fetch Summary']?.['Invoice Amount']
-                       || m.artMeta?.['Classification Result']?.Amount
-                       || (() => {
-                             // try to extract from document_name: "Vendor | Jan-26 | $34,779.24"
-                             const match = (r.document_name || '').match(/\$[\d,]+\.?\d*/);
-                             return match ? match[0] : null;
-                         })();
+              const raw = m.artMeta?.['Classification Result']?.Amount
+                       || m.artMeta?.['Phase 1 — Data Fetch Summary']?.['Invoice Amount']
+                       || m.artMeta?.['Invoice Details']?.Amount
+                       || m.artMeta?.['Invoice Details']?.['Invoice Amount']
+                       || m.artMeta?.['Phase 3 — Data Retrieval']?.Amount;
               return raw ? <span className="font-[500] text-[#171717]">{raw}</span>
                          : <span className="text-[#d1d5db]">—</span>;
           }},
 
-        /* Entity */
+        /* Entity — Journal Entry has entity with full name; Classification Result may have it too */
         { id: 'entity',     header: 'Entity',               align: 'center',
           render: (r, m) => {
-              const e = m.artMeta?.['Phase 1 \u2014 Data Fetch Summary']?.Entity
-                     || m.artMeta?.['Classification Result']?.Entity
-                     || (() => {
-                           const steps = m.reasoning_steps || [];
-                           const hit = steps.find(s => s.includes('Entity:'));
-                           if (!hit) return null;
-                           const match = hit.match(/Entity:\s*(\d+)/);
-                           return match ? match[1] : null;
-                       })();
-              return e ? <span className="text-[#555] text-[13px] font-[450]">{String(e).split(' ')[0]}</span>
-                       : <span className="text-[#d1d5db]">—</span>;
+              const raw = m.artMeta?.['Journal Entry']?.Entity
+                       || m.artMeta?.['Classification Result']?.Entity
+                       || m.artMeta?.['Phase 1 — Data Fetch Summary']?.Entity
+                       || m.artMeta?.['Invoice Details']?.Entity;
+              if (!raw) return <span className="text-[#d1d5db]">—</span>;
+              // "101 — Block, Inc." → show just "101"
+              const num = String(raw).match(/^(\d+)/);
+              return <span className="text-[#555] text-[13px] font-[450]">{num ? num[1] : raw}</span>;
           }},
 
-        /* Workflow type: EXP_TO_FA or EXP_TO_PPD */
+        /* Workflow type: EXP_TO_FA or EXP_TO_PPD — check Classification Result first, then run name */
         { id: 'workflow',   header: 'Workflow',             align: 'center',
           render: (r, m) => {
-              const wf = m.artMeta?.['Classification Result']?.Workflow
+              const cr = m.artMeta?.['Classification Result'];
+              const wf = cr?.Workflow
+                      || cr?.['JE Type']
+                      || m.artMeta?.['Payment Detection Result']?.['JE Type']
+                      || m.artMeta?.['Payment Detection Result']?.['JE Family']
                       || (() => {
-                            if ((r.name || '').includes('EXP_TO_FA'))  return 'EXP_TO_FA';
-                            if ((r.name || '').includes('EXP_TO_PPD')) return 'EXP_TO_PPD';
+                            const n = r.name || '';
+                            if (n.includes('EXP_TO_FA'))  return 'EXP_TO_FA';
+                            if (n.includes('EXP_TO_PPD')) return 'EXP_TO_PPD';
                             return null;
                         })();
-              if (!wf) return <span className="text-[#d1d5db]">—</span>;
               return wf ? <span className="text-[#555] text-[13px] font-[450]">{wf}</span>
                         : <span className="text-[#d1d5db]">—</span>;
           }},
 
-        /* Classification decision */
+        /* Classification decision — newer runs use 'Decision', older use 'Route'/'Capitalize'/'Routing' */
         { id: 'decision',   header: 'Decision',             align: 'center',
           render: (r, m) => {
-              const cap = m.artMeta?.['Classification Result']?.Capitalize
-                       || m.artMeta?.['Classification Result']?.Route;
-              if (!cap) return <span className="text-[#d1d5db]">—</span>;
-              const s = String(cap).toUpperCase();
+              const cr = m.artMeta?.['Classification Result'] || {};
+              const raw = cr.Decision || cr.Capitalize || cr.Route || cr.Routing
+                       || m.artMeta?.['Screening Result']?.['Final Decision'];
+              if (!raw) return <span className="text-[#d1d5db]">—</span>;
+              const s = String(raw).toUpperCase();
               const label = (s === 'YES' || s === 'CAPITALIZE') ? 'Capitalize'
-                           : (s === 'NO'  || s === 'NO_ACTION')  ? 'No Action'
-                           : cap;
+                          : (s === 'NO'  || s === 'NO_ACTION')  ? 'No Action'
+                          : raw;
               return <span className="text-[#555] text-[13px] font-[450]">{label}</span>;
           }},
 
-        /* Confidence */
+        /* Confidence — only lives in Classification Result */
         { id: 'confidence', header: 'Confidence',           align: 'center',
           render: (r, m) => {
               const c = m.artMeta?.['Classification Result']?.Confidence;
               if (!c) return <span className="text-[#d1d5db]">—</span>;
+              // "95% (HIGH)" → show as-is
               return <span className="text-[#555] text-[13px] font-[450]">{c}</span>;
           }},
 
-        /* JE type */
+        /* JE type — Journal Entry > Classification Result > Payment Detection Result */
         { id: 'je',         header: 'JE Type',              align: 'center',
           render: (r, m) => {
               const je = m.artMeta?.['Journal Entry']?.['JE Type']
-                      || m.artMeta?.['Classification Result']?.['JE Type'];
+                      || m.artMeta?.['Classification Result']?.['JE Type']
+                      || m.artMeta?.['Payment Detection Result']?.['JE Type']
+                      || m.artMeta?.['Journal Entry Lines']?.['JE Name']?.split('_')[1];
               if (!je) return <span className="text-[#d1d5db]">—</span>;
               return <span className="text-[#555] text-[13px] font-[450]">{je}</span>;
           }},
