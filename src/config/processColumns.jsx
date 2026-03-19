@@ -165,11 +165,21 @@ export const PROCESS_COLUMNS = {
           render: (r, m) => {
               const cr = m.artMeta?.['Classification Result'] || {};
               const raw = cr.Decision || cr.Capitalize || cr.Route || cr.Routing
-                       || m.artMeta?.['Screening Result']?.['Final Decision'];
+                       || m.artMeta?.['Screening Result']?.['Final Decision']
+                       || (() => {
+                              // Step-2 terminated runs: Screening Result 'Overall' key
+                              // e.g. "NO ACTION" or "PROCEED to classification"
+                              const overall = m.artMeta?.['Screening Result']?.Overall;
+                              if (!overall) return null;
+                              const u = String(overall).toUpperCase();
+                              if (u.includes('NO ACTION') || u.includes('PROCEED')) return overall;
+                              return null;
+                          })();
               if (!raw) return <span className="text-[#d1d5db]">—</span>;
               const s = String(raw).toUpperCase();
               const label = (s === 'YES' || s === 'CAPITALIZE') ? 'Capitalize'
-                          : (s === 'NO'  || s === 'NO_ACTION')  ? 'No Action'
+                          : (s === 'NO'  || s === 'NO_ACTION' || s.startsWith('NO ACTION')) ? 'No Action'
+                          : s.startsWith('PROCEED') ? 'Proceed'
                           : raw;
               return <span className="text-[#555] text-[13px] font-[450]">{label}</span>;
           }},

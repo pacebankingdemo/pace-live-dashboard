@@ -20,7 +20,7 @@ import { PROCESS_COLUMNS, DEFAULT_COLUMNS } from '../config/processColumns';
 const ProcessList = () => {
     const navigate = useNavigate();
     const { currentProcess } = useOutletContext();
-    const [activeTab, setActiveTab] = useState('done');
+    const [activeTab, setActiveTab] = useState('in_progress');
     const [runs, setRuns] = useState([]);
 
     useEffect(() => {
