@@ -144,7 +144,7 @@ export const PROCESS_COLUMNS = {
                            const match = hit.match(/Entity:\s*(\d+)/);
                            return match ? match[1] : null;
                        })();
-              return e ? pill(String(e).split(' ')[0], 'indigo')
+              return e ? <span className="text-[#555] text-[13px] font-[450]">{String(e).split(' ')[0]}</span>
                        : <span className="text-[#d1d5db]">—</span>;
           }},
 
@@ -158,7 +158,8 @@ export const PROCESS_COLUMNS = {
                             return null;
                         })();
               if (!wf) return <span className="text-[#d1d5db]">—</span>;
-              return wf === 'EXP_TO_FA' ? pill('EXP_TO_FA', 'purple') : pill('EXP_TO_PPD', 'teal');
+              return wf ? <span className="text-[#555] text-[13px] font-[450]">{wf}</span>
+                        : <span className="text-[#d1d5db]">—</span>;
           }},
 
         /* Classification decision */
@@ -168,9 +169,10 @@ export const PROCESS_COLUMNS = {
                        || m.artMeta?.['Classification Result']?.Route;
               if (!cap) return <span className="text-[#d1d5db]">—</span>;
               const s = String(cap).toUpperCase();
-              if (s === 'YES' || s === 'CAPITALIZE') return pill('Capitalize', 'green');
-              if (s === 'NO'  || s === 'NO_ACTION')  return pill('No Action',  'gray');
-              return pill(cap, 'gray');
+              const label = (s === 'YES' || s === 'CAPITALIZE') ? 'Capitalize'
+                           : (s === 'NO'  || s === 'NO_ACTION')  ? 'No Action'
+                           : cap;
+              return <span className="text-[#555] text-[13px] font-[450]">{label}</span>;
           }},
 
         /* Confidence */
@@ -178,9 +180,7 @@ export const PROCESS_COLUMNS = {
           render: (r, m) => {
               const c = m.artMeta?.['Classification Result']?.Confidence;
               if (!c) return <span className="text-[#d1d5db]">—</span>;
-              const pct = parseInt(String(c));
-              const color = pct >= 90 ? 'green' : pct >= 70 ? 'amber' : 'red';
-              return pill(c, color);
+              return <span className="text-[#555] text-[13px] font-[450]">{c}</span>;
           }},
 
         /* JE type */
@@ -189,7 +189,7 @@ export const PROCESS_COLUMNS = {
               const je = m.artMeta?.['Journal Entry']?.['JE Type']
                       || m.artMeta?.['Classification Result']?.['JE Type'];
               if (!je) return <span className="text-[#d1d5db]">—</span>;
-              return pill(je, 'blue');
+              return <span className="text-[#555] text-[13px] font-[450]">{je}</span>;
           }},
 
         /* Last status text */
