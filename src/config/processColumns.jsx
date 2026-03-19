@@ -98,6 +98,119 @@ export const DEFAULT_COLUMNS = [
 ───────────────────────────────────────────────────────────────── */
 export const PROCESS_COLUMNS = {
 
+    /* ── Block: OPEX Review ──────────────────────────────────────── */
+    '84ff0fec-7dfd-48ef-a411-854c708b5e0a': [
+        /* Run name → vendor + txn, e.g. "Point One Electrical Systems Inc — 32660 (EXP_TO_FA)" */
+        { id: 'name',       header: 'Invoice / Run',        align: 'left',
+          render: (r) => <span className="font-[500] text-[#171717] max-w-[260px] truncate block">{r.name}</span> },
+
+        /* Vendor — from step-1 metadata reasoning or artMeta Invoice Intake */
+        { id: 'vendor',     header: 'Vendor',               align: 'left',
+          render: (r, m) => {
+              const v = m.artMeta?.['Phase 1 \u2014 Data Fetch Summary']?.Vendor
+                     || m.artMeta?.['Classification Result']?.Vendor
+                     || (() => {
+                           const steps = m.reasoning_steps || [];
+                           const hit = steps.find(s => s.startsWith('Vendor:'));
+                           return hit ? hit.replace('Vendor:', '').trim() : null;
+                       })();
+              return v ? <span className="text-[#555] text-[11px] max-w-[180px] truncate block">{v}</span>
+                       : <span className="text-[#d1d5db]">—</span>;
+          }},
+
+        /* Amount — from artMeta or document_name */
+        { id: 'amount',     header: 'Amount',               align: 'right',
+          render: (r, m) => {
+              const raw = m.artMeta?.['Phase 1 \u2014 Data Fetch Summary']?.['Invoice Amount']
+                       || m.artMeta?.['Classification Result']?.Amount
+                       || (() => {
+                             // try to extract from document_name: "Vendor | Jan-26 | $34,779.24"
+                             const match = (r.document_name || '').match(/\$[\d,]+\.?\d*/);
+                             return match ? match[0] : null;
+                         })();
+              return raw ? <span className="font-[500] text-[#171717]">{raw}</span>
+                         : <span className="text-[#d1d5db]">—</span>;
+          }},
+
+        /* Entity */
+        { id: 'entity',     header: 'Entity',               align: 'center',
+          render: (r, m) => {
+              const e = m.artMeta?.['Phase 1 \u2014 Data Fetch Summary']?.Entity
+                     || m.artMeta?.['Classification Result']?.Entity
+                     || (() => {
+                           const steps = m.reasoning_steps || [];
+                           const hit = steps.find(s => s.includes('Entity:'));
+                           if (!hit) return null;
+                           const match = hit.match(/Entity:\s*(\d+)/);
+                           return match ? match[1] : null;
+                       })();
+              return e ? pill(String(e).split(' ')[0], 'indigo')
+                       : <span className="text-[#d1d5db]">—</span>;
+          }},
+
+        /* Workflow type: EXP_TO_FA or EXP_TO_PPD */
+        { id: 'workflow',   header: 'Workflow',             align: 'center',
+          render: (r, m) => {
+              const wf = m.artMeta?.['Classification Result']?.Workflow
+                      || (() => {
+                            if ((r.name || '').includes('EXP_TO_FA'))  return 'EXP_TO_FA';
+                            if ((r.name || '').includes('EXP_TO_PPD')) return 'EXP_TO_PPD';
+                            return null;
+                        })();
+              if (!wf) return <span className="text-[#d1d5db]">—</span>;
+              return wf === 'EXP_TO_FA' ? pill('EXP_TO_FA', 'purple') : pill('EXP_TO_PPD', 'teal');
+          }},
+
+        /* Classification decision */
+        { id: 'decision',   header: 'Decision',             align: 'center',
+          render: (r, m) => {
+              const cap = m.artMeta?.['Classification Result']?.Capitalize
+                       || m.artMeta?.['Classification Result']?.Route;
+              if (!cap) return <span className="text-[#d1d5db]">—</span>;
+              const s = String(cap).toUpperCase();
+              if (s === 'YES' || s === 'CAPITALIZE') return pill('Capitalize', 'green');
+              if (s === 'NO'  || s === 'NO_ACTION')  return pill('No Action',  'gray');
+              return pill(cap, 'gray');
+          }},
+
+        /* Confidence */
+        { id: 'confidence', header: 'Confidence',           align: 'center',
+          render: (r, m) => {
+              const c = m.artMeta?.['Classification Result']?.Confidence;
+              if (!c) return <span className="text-[#d1d5db]">—</span>;
+              const pct = parseInt(String(c));
+              const color = pct >= 90 ? 'green' : pct >= 70 ? 'amber' : 'red';
+              return pill(c, color);
+          }},
+
+        /* JE type */
+        { id: 'je',         header: 'JE Type',              align: 'center',
+          render: (r, m) => {
+              const je = m.artMeta?.['Journal Entry']?.['JE Type']
+                      || m.artMeta?.['Classification Result']?.['JE Type'];
+              if (!je) return <span className="text-[#d1d5db]">—</span>;
+              return pill(je, 'blue');
+          }},
+
+        /* Run status */
+        { id: 'status',     header: 'Status',               align: 'center',
+          render: (r) => {
+              const map = {
+                  done:            ['Complete',      'green'],
+                  needs_review:    ['Needs Review',  'amber'],
+                  needs_attention: ['Needs Attention','red'],
+                  in_progress:     ['In Progress',   'blue'],
+                  void:            ['Void',          'gray'],
+              };
+              const [label, color] = map[r.status] || [r.status, 'gray'];
+              return pill(label, color);
+          }},
+
+        /* Last status text */
+        { id: 'txt',        header: 'Notes',                align: 'left',
+          render: (r) => trunc(r.current_status_text, 60) },
+    ],
+
     /* ── DXC: Prepaid — Data Ingestion & Invoice Extraction (P1) ─── */
     'c4e944f7-1133-4961-a8c3-2378ca591857': [
         { id: 'name',     header: 'Run Name',               align: 'left',
@@ -169,28 +282,6 @@ export const PROCESS_COLUMNS = {
           )},
         { id: 'txt',      header: 'Last Action', align: 'left',
           render: (r) => trunc(r.current_status_text, 60) },
-    ],
-
-    /* ── Block: OPEX Review ────────────────────────────────────────── */
-    '84ff0fec-7dfd-48ef-a411-854c708b5e0a': [
-        { id: 'period',   header: 'Period',         align: 'left',
-          render: (r, m) => bold(m.period) },
-        { id: 'type',     header: 'Type',           align: 'center',
-          render: (r, m) => m.period_type
-              ? pill(m.period_type.charAt(0).toUpperCase() + m.period_type.slice(1), 'blue')
-              : <span className="text-[#d1d5db]">—</span> },
-        { id: 'entities', header: 'Entities',       align: 'center',
-          render: (r, m) => m.entities
-              ? <span className="font-mono text-[11px] text-[#555]">{Array.isArray(m.entities) ? m.entities.join(', ') : m.entities}</span>
-              : <span className="text-[#d1d5db]">—</span> },
-        { id: 'close',    header: 'Close Date',     align: 'left',
-          render: (r, m) => <span className="text-[#555]">{m.close_date || '—'}</span> },
-        { id: 'oracle',   header: 'Oracle Instance', align: 'left',
-          render: (r, m) => <span className="font-mono text-[10px] text-[#777]">
-              {m.oracle_instance?.replace('ehsg.fa.','').replace('.oraclecloud.com','') || '—'}
-          </span> },
-        { id: 'status',   header: 'Status',         align: 'center',
-          render: (r) => autoPill(r.status === 'done' ? 'Complete' : r.current_status_text?.split('—')[0]?.trim() || r.status) },
     ],
 
     /* ── Instacart: AP Invoicing ───────────────────────────────────── */
