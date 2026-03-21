@@ -263,23 +263,34 @@ export const PROCESS_COLUMNS = {
           render: (r, m) => m.service_type ? pill(m.service_type, 'indigo') : <span className="text-[#d1d5db]">—</span> },
     ],
 
-    /* ── DXC: Billing Operations — Contract Setup ─────────────────── */
+    /* ── DXC: Billing Operations — Contract Setup ——————————— */
     '8b340d78-c83a-4e9c-adef-b867514e45ec': [
-        { id: 'contract', header: 'Contract',    align: 'left',
-          render: (r) => bold(r.name) },
-        { id: 'client',   header: 'Client',      align: 'left',
-          render: (r, m) => dim(m.artMeta?.['Contract Parties']?.client_name || m.client_name) },
-        { id: 'sows',     header: 'SOWs',        align: 'center',
-          render: (r, m) => num(m.artMeta?.['SOW Summary']?.sow_count || m.sow_count) },
-        { id: 'stage',    header: 'Stage',       align: 'center',
-          render: (r) => autoPill(
-              r.status === 'done' ? 'Complete'
-            : r.status === 'needs_review' ? 'Needs Review'
-            : r.status === 'void' ? 'Rolled Back'
-            : 'In Progress'
-          )},
-        { id: 'txt',      header: 'Last Action', align: 'left',
-          render: (r) => trunc(r.current_status_text, 60) },
+        { id: 'cname',   header: 'Contract Name',     align: 'left',
+          render: (r, m) => bold(m.artMeta?.['contracts']?.contract_name || m.contract_name || r.name) },
+        { id: 'cid',     header: 'Contract ID',       align: 'left',
+          render: (r, m) => mono(m.artMeta?.['contracts']?.contract_id || m.contract_id) },
+        { id: 'clid',    header: 'Client ID',         align: 'left',
+          render: (r, m) => mono(m.artMeta?.['contracts']?.client_id || m.client_id) },
+        { id: 'clname',  header: 'Client Legal Name', align: 'left',
+          render: (r, m) => dim(m.artMeta?.['contracts']?.client_legal_name || m.client_legal_name) },
+        { id: 'region',  header: 'Region',            align: 'center',
+          render: (r, m) => {
+              const v = m.artMeta?.['contracts']?.region || m.region;
+              return v ? pill(v.toUpperCase(), 'blue') : <span className="text-[#d1d5db]">—</span>;
+          }},
+        { id: 'eff',     header: 'Effective Date',    align: 'center',
+          render: (r, m) => dim(m.artMeta?.['contracts']?.effective_date || m.effective_date) },
+        { id: 'end',     header: 'End Date',          align: 'center',
+          render: (r, m) => dim(m.artMeta?.['contracts']?.end_date || m.end_date) },
+        { id: 'cstat',   header: 'Contract Status',   align: 'center',
+          render: (r, m) => autoPill(m.artMeta?.['contracts']?.contract_status || m.contract_status) },
+        { id: 'law',     header: 'Governing Law',     align: 'left',
+          render: (r, m) => dim(m.artMeta?.['contracts']?.governing_law || m.governing_law) },
+        { id: 'curr',    header: 'Currency',          align: 'center',
+          render: (r, m) => {
+              const v = m.artMeta?.['contracts']?.contract_currency || m.contract_currency;
+              return v ? pill(v, 'green') : <span className="text-[#d1d5db]">—</span>;
+          }},
     ],
 
     /* ── Instacart: AP Invoicing ───────────────────────────────────── */
