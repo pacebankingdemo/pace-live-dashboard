@@ -69,7 +69,9 @@ const CASE_DETAIL_KEYS = new Set([
     // DXC Delta Sync keys
     'current_status', 'date', 'start_date', 'end_date',
     'erp_records_found', 'erp_records_processed', 'erp_invoices_extracted',
-
+    // DXC Contract Setup keys
+    'contract_id', 'client_id', 'client_legal_name',
+    'region', 'contract_status',
 ]);
 
 function isLargeData(value) {
@@ -1529,24 +1531,41 @@ const ProcessDetails = () => {
                         );
                     })()}
 
-                    {/* DXC Delta Sync — structured 12-field panel */}
+                    {/* DXC Run Details — process-aware field panel */}
                     {(() => {
-                        const dxcKeys = ['current_status','date','start_date','end_date','erp_records_found','erp_records_processed','erp_invoices_extracted'];
-                        const hasDxc = dxcKeys.some(k => caseDetails[k]);
-                        if (!hasDxc) return null;
+                        const CONTRACT_SETUP_ID = '8b340d78-c83a-4e9c-adef-b867514e45ec';
+                        const isContractSetup = run?.process_id === CONTRACT_SETUP_ID;
+
+                        // Pick field set based on process
+                        const fieldKeys = isContractSetup
+                            ? ['contract_id','client_id','client_legal_name','region','contract_status']
+                            : ['current_status','date','start_date','end_date','erp_records_found','erp_records_processed','erp_invoices_extracted'];
+
+                        const hasData = fieldKeys.some(k => caseDetails[k]);
+                        if (!hasData) return null;
 
                         const statusPill = (val) => {
                             if (!val) return <span className="text-[13px] text-[#9CA3AF]">—</span>;
                             const v = String(val);
-                            const color = v === 'Complete' ? 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]'
-                                        : v === 'In Progress' ? 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]'
-                                        : v === 'Awaiting' ? 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
+                            const vl = v.toLowerCase();
+                            const color = (vl === 'complete' || vl === 'active') ? 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]'
+                                        : (vl === 'in progress' || vl.includes('draft')) ? 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
+                                        : vl === 'awaiting' ? 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]'
                                         : 'bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]';
                             return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${color}`}>{v}</span>;
                         };
 
-                        const statusKeys = new Set(['current_status','erp_lh','erp_gsap','erp_compass','ariba_lh_compass','ariba_gsap']);
-                        const sectionLabels = {
+                        const statusKeys = isContractSetup
+                            ? new Set(['contract_status'])
+                            : new Set(['current_status','erp_lh','erp_gsap','erp_compass','ariba_lh_compass','ariba_gsap']);
+
+                        const sectionLabels = isContractSetup ? {
+                            contract_id: 'Contract ID',
+                            client_id: 'Client ID',
+                            client_legal_name: 'Client Legal Name',
+                            region: 'Region',
+                            contract_status: 'Contract Status',
+                        } : {
                             current_status: 'Current Status',
                             date: 'Date',
                             start_date: 'Start Date',
@@ -1554,19 +1573,23 @@ const ProcessDetails = () => {
                             erp_records_found: 'ERP Records Found',
                             erp_records_processed: 'ERP Records Processed',
                             erp_invoices_extracted: 'ERP Invoices Extracted',
-
                         };
 
-                        const dividerAfter = new Set(['end_date', 'erp_invoices_extracted']);
+                        const dividerAfter = isContractSetup
+                            ? new Set(['region'])
+                            : new Set(['end_date', 'erp_invoices_extracted']);
 
                         return (
                             <div className="mx-4 mb-3 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
                                 <div className="flex items-center gap-2 px-4 pt-3.5 pb-2">
                                     <Briefcase className="w-3.5 h-3.5 text-[#6B7280]" />
-                                    <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Run Details</span>
+                                    {isContractSetup
+                                        ? <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Contract Details</span>
+                                        : <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Run Details</span>
+                                    }
                                 </div>
                                 <div className="px-4 pb-3.5 space-y-0">
-                                    {dxcKeys.map((key, idx) => {
+                                    {fieldKeys.map((key, idx) => {
                                         const val = caseDetails[key];
                                         return (
                                             <React.Fragment key={key}>
@@ -1596,6 +1619,9 @@ const ProcessDetails = () => {
                             'erp_lh','erp_gsap','erp_compass','ariba_lh_compass','ariba_gsap',
                             'final_status','invoice_amount','invoice_number','vendor',
                             'step_name','reasoning_steps','data','artifacts',
+                            // Contract Setup keys (shown in Run Details panel, not here)
+                            'contract_id','client_id','client_legal_name',
+                            'region','contract_status',
                         ]);
                         const nonDxc = Object.fromEntries(Object.entries(caseDetails).filter(([k]) => !dxcKeys.has(k)));
                         if (Object.keys(nonDxc).length === 0) return null;
