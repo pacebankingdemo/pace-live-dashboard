@@ -1593,11 +1593,11 @@ const ProcessDetails = () => {
                                         const val = caseDetails[key];
                                         return (
                                             <React.Fragment key={key}>
-                                                <div className="flex items-center justify-between py-2.5">
-                                                    <p className="text-[12px] text-[#6B7280]">{sectionLabels[key]}</p>
+                                                <div className="flex items-start justify-between py-2.5 gap-4">
+                                                    <p className="text-[12px] text-[#6B7280] flex-shrink-0 whitespace-nowrap">{sectionLabels[key]}</p>
                                                     {statusKeys.has(key)
                                                         ? statusPill(val)
-                                                        : <p className="text-[13px] font-semibold text-[#171717]">{val || '—'}</p>
+                                                        : <p className="text-[13px] font-semibold text-[#171717] text-right">{key === 'region' && val ? String(val).toUpperCase() : (val || '—')}</p>
                                                     }
                                                 </div>
                                                 {dividerAfter.has(key) && <div className="border-t border-[#F3F4F6]" />}
