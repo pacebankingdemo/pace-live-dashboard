@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
     ChevronDown, Database, Users, BookOpen, LogOut,
     ArrowLeft, ChevronRight, MessageSquare, Activity,
-    Search, Lightbulb, Settings, CheckCircle, Share2, Command
+    Search, Lightbulb, Settings, CheckCircle, Share2, Command, BarChart2
 } from 'lucide-react';
 import { supabase, fetchOrgs, fetchProcesses, subscribeToTable } from '../services/supabase';
 
@@ -130,7 +130,10 @@ const DashboardLayout = () => {
                     <div className="pb-4 border-b border-[#f0f0f0]">
                         <SidebarItem to="/done/data"     icon={<Database />}  label="Data"     isActive={location.pathname === '/done/data'} />
                         <SidebarItem to="/done/people"   icon={<Users />}     label="People"   isActive={location.pathname === '/done/people'} />
-                        <SidebarItem to="/done/insights" icon={<Lightbulb />} label="Insights" isActive={location.pathname === '/done/insights'} />
+                        {currentProcess?.id === '6f037763-bd41-410e-ba46-a74dc65dde61'
+                            ? <SidebarItem to="/done/accuracy" icon={<BarChart2 />} label="Accuracy" isActive={location.pathname === '/done/accuracy'} />
+                            : <SidebarItem to="/done/insights" icon={<Lightbulb />} label="Insights" isActive={location.pathname === '/done/insights'} />
+                        }
                     </div>
                     <div className="pt-4">
                         <div className="flex items-center justify-between px-3 mb-2">
