@@ -52,6 +52,7 @@ export async function fetchRuns(processId) {
         .from('activity_runs')
         .select('*')
         .eq('process_id', processId)
+        .not('name', 'like', '[GOLDEN]%')
         .order('updated_at', { ascending: false });
     if (error) throw error;
     return data || [];
