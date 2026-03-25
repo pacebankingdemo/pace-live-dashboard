@@ -552,9 +552,12 @@ export const PROCESS_COLUMNS = {
           render: (r, m) => mono(m.lot_number || m.artMeta?.['Batch Record']?.lot_number) },
         { id: 'outcome',  header: 'Outcome',     align: 'center',
           render: (r) => { const t = r.current_status_text || ''; return autoPill(
-              t.includes('HOLD') ? 'On Hold'
+              t.includes('HOLD') ? 'Needs Review'
             : t.includes('Superseded') ? 'Superseded'
             : r.status === 'done' ? 'Approved'
+            : r.status === 'needs_review' ? 'Needs Review'
+            : r.status === 'needs_attention' ? 'Needs Attention'
+            : r.status === 'in_progress' ? 'In Progress'
             : r.status
           );}},
         { id: 'notes',    header: 'Notes',       align: 'left',

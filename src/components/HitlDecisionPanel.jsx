@@ -30,6 +30,12 @@ const PROCESS_DECISIONS = {
         { id: 'edit', label: 'Edit', desc: 'Amend GL mapping or invoice details before posting', style: 'secondary' },
         { id: 'void', label: 'Void', desc: 'Reject invoice — mark as void, no GL entry created', style: 'warning' },
     ],
+    /* Lilly — Batch Record Review */
+    '6f037763-bd41-410e-ba46-a74dc65dde61': [
+        { id: 'proceed', label: 'Approve', desc: 'Accept Pace recommendation — release or hold confirmed', style: 'primary' },
+        { id: 'override', label: 'Override', desc: 'Reject Pace recommendation — manual disposition required', style: 'secondary' },
+        { id: 'escalate', label: 'Escalate', desc: 'Send to QA Lead for senior review', style: 'warning' },
+    ],
 };
 
 /* Fallback for any process not in the map */
@@ -299,7 +305,8 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                 });
 
                 const newStatus = decision.id === 'void' ? 'void'
-                    : decision.id === 'proceed' ? 'done' : 'in_progress';
+                    : (decision.id === 'proceed' || decision.id === 'approve' || decision.id === 'approve_reverse') ? 'done'
+                    : 'in_progress';
                 await updateRun(newStatus, `Decision: ${decLabel} (by ${name.trim()})`);
             }
 
