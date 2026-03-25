@@ -46,11 +46,11 @@ function Chip({ ok, label }) {
 
 function KpiCard({ icon, label, value, sub, color }) {
   return (
-    <div className="bg-[#111] border border-[#222] rounded-xl p-4 flex flex-col gap-1 min-w-[160px]">
+    <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 flex flex-col gap-1 min-w-[160px]">
       <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-1 ${color}`}>{icon}</div>
-      <div className="text-2xl font-bold text-white tabular-nums">{value}</div>
-      <div className="text-[12px] font-semibold text-[#ccc]">{label}</div>
-      {sub && <div className="text-[11px] text-[#666]">{sub}</div>}
+      <div className="text-2xl font-bold text-[#111] tabular-nums">{value}</div>
+      <div className="text-[12px] font-semibold text-[#374151]">{label}</div>
+      {sub && <div className="text-[11px] text-[#9CA3AF]">{sub}</div>}
     </div>
   );
 }
