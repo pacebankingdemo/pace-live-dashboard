@@ -734,5 +734,85 @@ export const PROCESS_COLUMNS = {
           render: (r) => autoPill(r.status === 'done' ? 'Approved' : r.status === 'needs_review' ? 'Flagged' : 'In Progress') },
     ],
 
+
+    /* ── Ferring Pharma: PR-to-PO Procurement ────────────── */
+    '299fead3-7d7c-460f-af50-3546c8f9f6be': [
+        { id: 'status_text', header: 'Current Status', align: 'left',
+          render: (r, m) => {
+              /* Spark icon + status square + status text — matches reference layout */
+              const statusMap = {
+                  needs_attention: { bg: '#FFDADA', border: '#A40000' },
+                  needs_review:    { bg: '#FCEDB9', border: '#ED6704' },
+                  void:            { bg: '#EBEBEB', border: '#8F8F8F' },
+                  in_progress:     { bg: '#EAF3FF', border: '#2546F5' },
+                  ready:           { bg: '#EAF3FF', border: '#2546F5' },
+                  done:            { bg: '#E2F1EB', border: '#038408' },
+              };
+              const sc = statusMap[r.status] || statusMap.in_progress;
+              const label = r.status === 'done'
+                  ? r.current_status_text || r.name
+                  : r.status === 'needs_attention'
+                  ? `Needs Attention — ${r.current_status_text || r.name}`
+                  : r.status === 'needs_review'
+                  ? `Needs Review — ${r.current_status_text || r.name}`
+                  : r.current_status_text || r.name;
+              return (
+                  <span className="flex items-center gap-2 max-w-[550px]">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C4841D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                          <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/>
+                      </svg>
+                      <span style={{ width: 8, height: 8, borderRadius: 2, border: `1px solid ${sc.border}`, background: sc.bg, flexShrink: 0 }} />
+                      <span className="text-[#171717] font-[450] text-[12px] truncate">{label}</span>
+                  </span>
+              );
+          }},
+        { id: 'pr_number', header: 'PR Number', align: 'left',
+          render: (r, m, art) => {
+              const pr = art?.['Purchase Requisition']?.['PR Number']
+                      || art?.['Emergency Requisition']?.['PR Number']
+                      || m.data?.pr_number;
+              return pr ? <span className="font-mono text-[11px] text-[#555]">{pr}</span>
+                        : <span className="text-[#d1d5db]">—</span>;
+          }},
+        { id: 'doc_type', header: 'Document Type', align: 'left',
+          render: (r, m, art) => {
+              const gxp = art?.['Purchase Requisition']?.['GxP Classification']
+                       || art?.['Purchase Requisition']?.['GxP']
+                       || art?.['Emergency Requisition']?.['Urgency'];
+              if (!gxp) {
+                  /* Derive from run name */
+                  const n = (r.name || '').toLowerCase();
+                  if (n.includes('emergency')) return pill('Emergency', 'red');
+                  if (n.includes('indirect') || n.includes('lims') || n.includes('software')) return pill('Indirect', 'blue');
+                  if (n.includes('mismatch') || n.includes('invoice')) return pill('Invoice', 'amber');
+                  if (n.includes('duplicate')) return pill('Duplicate PR', 'purple');
+                  return pill('Direct', 'gray');
+              }
+              const s = String(gxp).toLowerCase();
+              if (s.includes('critical') || s.includes('gxp')) return pill('GxP-Critical', 'red');
+              if (s.includes('emergency') || s.includes('critical')) return pill('Emergency', 'red');
+              return pill(gxp, 'gray');
+          }},
+        { id: 'data_points', header: 'Data Points', align: 'center',
+          render: (r, m, art) => {
+              if (!art || Object.keys(art).length === 0) return <span className="text-[#d1d5db]">—</span>;
+              let count = 0;
+              Object.values(art).forEach(ds => { if (ds && typeof ds === 'object') count += Object.keys(ds).length; });
+              return count > 0
+                  ? <span className="text-[#555] text-[11px] font-[450]">{count}</span>
+                  : <span className="text-[#d1d5db]">—</span>;
+          }},
+        { id: 'risk_level', header: 'Risk Level', align: 'center',
+          render: (r, m, art) => {
+              const n = (r.name || '').toLowerCase();
+              if (n.includes('emergency')) return pill('High', 'red');
+              if (n.includes('mismatch') || n.includes('non-avl') || n.includes('block')) return pill('Medium', 'amber');
+              if (n.includes('duplicate')) return pill('Medium', 'amber');
+              if (n.includes('indirect') || n.includes('lims')) return pill('Low', 'green');
+              if (n.includes('happy') || n.includes('gxp happy')) return pill('Low', 'green');
+              return <span className="text-[#d1d5db]">—</span>;
+          }},
+    ],
+
 };
 
