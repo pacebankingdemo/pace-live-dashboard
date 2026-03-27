@@ -17,6 +17,7 @@ const DXC_PROCESS_IDS = new Set([
 import { supabase } from '../services/supabase';
 import VideoPlayer from './VideoPlayer';
 import HitlDecisionPanel from './HitlDecisionPanel';
+import EmailDraftViewer from './EmailDraftViewer';
 
 /* ─── Helpers: classify metadata fields ─── */
 const REASONING_KEYS = new Set([
@@ -31,7 +32,7 @@ const REASONING_KEYS = new Set([
 
 const SKIP_KEYS = new Set([
     'step_name', 'reasoning_steps', 'dataset_name',
-    'artifact_url', 'artifact_name', 'artifact_id',
+    'artifact_url', 'artifact_name', 'artifact_id', 'email_draft',
     // OPEX noise keys — routing/control fields, not display-worthy
     'routing', 'capitalize', 'enriched', 'pdf_available', 'file_count',
     'g17_valid', 'je_line_count', 'clearing_account',
@@ -203,9 +204,29 @@ function classifyMetadata(metadata) {
         });
     }
 
+    // Handle email_draft metadata → produces a clickable pill that opens EmailDraftViewer
+    if (metadata.email_draft && typeof metadata.email_draft === 'object') {
+        const ed = metadata.email_draft;
+        dataArtifacts.push({
+            id: `email-draft-${Math.random().toString(36).slice(2, 8)}`,
+            filename: ed.pill_label || 'Email Draft',
+            file_type: 'email',
+            _isMetaArtifact: true,
+            _isEmailDraft: true,
+            _emailDraft: {
+                to: ed.to || '',
+                cc: ed.cc || '',
+                subject: ed.subject || '',
+                body: ed.body || '',
+                from: ed.from || 'pace@ferring.com',
+                display_name: ed.pill_label || 'Email Draft',
+            },
+        });
+    }
+
     Object.entries(metadata).forEach(([key, value]) => {
         if (SKIP_KEYS.has(key)) return;
-        if (key === 'artifacts') return; // already handled above
+        if (key === 'artifacts' || key === 'email_draft') return; // already handled above
 
         // 'reasoning' and 'error' strings are narrative explanations — surface them
         // as the step's primary text, not as collapsed kv pairs
@@ -1112,6 +1133,12 @@ const ProcessDetails = () => {
     };
 
     const handleArtifactClick = (art) => {
+        // Email draft artifacts → open EmailDraftViewer in right panel
+        if (art._isEmailDraft) {
+            setSelectedDocument(null);
+            setSelectedArtifact(art);
+            return;
+        }
         // Excel files with base64 content → trigger browser download
         const isExcelArt = /\.(xlsx|xls|csv)$/i.test(art.filename || '') || art.file_type?.includes('spreadsheet') || art.file_type?.includes('excel');
         if (isExcelArt && art.content) {
@@ -1381,6 +1408,19 @@ const ProcessDetails = () => {
                                                                 </a>
                                                             );
                                                         }
+                                                        // Email draft pills — distinctive blue pill with mail icon
+                                                        if (da._isEmailDraft) {
+                                                            return (
+                                                                <button key={da.id} onClick={() => handleArtifactClick(da)}
+                                                                    className="bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md px-2.5 py-1 flex items-center gap-2 transition-colors group/chip">
+                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                                                                        <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                                                                    </svg>
+                                                                    <span className="text-[11px] font-medium text-blue-700">{da.filename}</span>
+                                                                    <Eye className="h-3 w-3 text-blue-300 group-hover/chip:text-blue-500 flex-shrink-0 ml-0.5" strokeWidth={1.5} />
+                                                                </button>
+                                                            );
+                                                        }
                                                         // All URL-based artifacts — open inline via handleArtifactClick (fetches JSON, opens DatasetViewer)
                                                         const isDataArt = !da.url && (da.content || da.data); // inline data — open DatasetViewer
                                                         if (da.url && !isDataArt) {
@@ -1461,7 +1501,15 @@ const ProcessDetails = () => {
                     <div className="w-1 cursor-col-resize hover:bg-blue-200 active:bg-blue-300 transition-colors flex-shrink-0"
                         onMouseDown={() => setIsResizing(true)} />
                     <div style={{ width: artifactWidth }} className="flex-shrink-0 border-l border-[#f0f0f0]">
-                        {selectedArtifact._isVideo ? (
+                        {selectedArtifact._isEmailDraft ? (
+                            <EmailDraftViewer
+                                artifact={selectedArtifact}
+                                run={run}
+                                logs={logs}
+                                onClose={() => setSelectedArtifact(null)}
+                                onSent={() => setSelectedArtifact(null)}
+                            />
+                        ) : selectedArtifact._isVideo ? (
                             <VideoPlayer recording={selectedArtifact} onClose={() => setSelectedArtifact(null)} />
                         ) : selectedArtifact._isDocument ? (
                             <DocumentPreview artifact={selectedArtifact} onClose={() => setSelectedArtifact(null)} />
