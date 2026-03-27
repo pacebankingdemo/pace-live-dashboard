@@ -450,7 +450,7 @@ const EmailArtifactPill = ({ artifact, onClick }) => {
     return (
         <button
             onClick={() => onClick && onClick(artifact)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1a1a1a] hover:bg-[#2a2a2a] transition-colors text-white text-[12px] font-medium"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] transition-colors text-[#374151] text-[12px] font-medium"
             style={{maxWidth: '360px'}}
         >
             <GmailIcon />
@@ -1346,16 +1346,14 @@ const ProcessDetails = () => {
                                                         const isImg = /\.(png|jpg|jpeg|gif|webp)$/i.test(art.filename || '');
                                                         return (
                                                             <button key={art.id} onClick={() => handleArtifactClick(art)}
-                                                                className={`${isPdf ? 'bg-red-50 hover:bg-red-100 border border-red-100' : isImg ? 'bg-blue-50 hover:bg-blue-100 border border-blue-100' : 'bg-[#f2f2f2] hover:bg-gray-200 border border-gray-200'} rounded-lg px-2.5 py-1.5 flex items-center gap-2 transition-colors group/chip`}>
-                                                                <div className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 ${
-                                                                    isPdf ? 'bg-red-100' : isImg ? 'bg-blue-100' : 'bg-gray-200'
-                                                                }`}>
+                                                                className={"bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] rounded-full px-3 py-1.5 flex items-center gap-2 transition-colors group/chip"}>
+                                                                <div className={"w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]"}>
                                                                     {isPdf ? (
-                                                                        <FileText className="h-3 w-3 text-red-500" strokeWidth={2} />
+                                                                        <FileText className="h-3 w-3 text-[#6B7280]" strokeWidth={2} />
                                                                     ) : isImg ? (
-                                                                        <Image className="h-3 w-3 text-blue-500" strokeWidth={2} />
+                                                                        <Image className="h-3 w-3 text-[#6B7280]" strokeWidth={2} />
                                                                     ) : (
-                                                                        <FileText className="h-3 w-3 text-[#666]" strokeWidth={2} />
+                                                                        <FileText className="h-3 w-3 text-[#6B7280]" strokeWidth={2} />
                                                                     )}
                                                                 </div>
                                                                 <span className="text-[11px] font-medium text-[#374151]">{art.filename}</span>
@@ -1388,9 +1386,9 @@ const ProcessDetails = () => {
                                                         if (da.url && !isDataArt) {
                                                             return (
                                                                 <button key={da.id} onClick={() => handleArtifactClick(da)}
-                                                                    className="bg-[#f2f2f2] hover:bg-gray-200 border border-gray-200 rounded-lg px-2.5 py-1.5 flex items-center gap-2 transition-colors group/chip">
-                                                                    <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 bg-gray-300">
-                                                                        <Database className="h-3 w-3 text-[#555]" strokeWidth={2} />
+                                                                    className="bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] rounded-full px-3 py-1.5 flex items-center gap-2 transition-colors group/chip">
+                                                                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]">
+                                                                        <Database className="h-3 w-3 text-[#6B7280]" strokeWidth={2} />
                                                                     </div>
                                                                     <span className="text-[11px] font-medium text-[#374151]">{da.filename}</span>
                                                                     <Eye className="h-3 w-3 text-[#D1D5DB] group-hover/chip:text-[#9CA3AF] flex-shrink-0 ml-0.5" strokeWidth={1.5} />
@@ -1400,9 +1398,9 @@ const ProcessDetails = () => {
                                                         // Inline data artifacts (NatWest data{} pattern) — open DatasetViewer
                                                         return (
                                                             <button key={da.id} onClick={() => handleArtifactClick(da)}
-                                                                className="bg-[#f2f2f2] hover:bg-gray-200 border border-gray-200 rounded-lg px-2.5 py-1.5 flex items-center gap-2 transition-colors group/chip">
-                                                                <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 bg-gray-300">
-                                                                    <Database className="h-3 w-3 text-[#555]" strokeWidth={2} />
+                                                                className="bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] rounded-full px-3 py-1.5 flex items-center gap-2 transition-colors group/chip">
+                                                                <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]">
+                                                                    <Database className="h-3 w-3 text-[#6B7280]" strokeWidth={2} />
                                                                 </div>
                                                                 <span className="text-[11px] font-medium text-[#374151]">{da.filename}</span>
                                                                 <Eye className="h-3 w-3 text-[#D1D5DB] group-hover/chip:text-[#9CA3AF] flex-shrink-0 ml-0.5" strokeWidth={1.5} />
@@ -1696,8 +1694,8 @@ const ProcessDetails = () => {
                                         if (isExcel) {
                                             return (
                                                 <button key={art.id} onClick={() => handleArtifactClick(art)}
-                                                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[#f0fff4] transition-colors text-left group">
-                                                    <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 bg-[#e6f4ea] border border-[#c6e8ce]">
+                                                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-[#E5E7EB] bg-[#F3F4F6] transition-colors text-left group">
+                                                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]">
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                                                             <rect x="2" y="3" width="20" height="18" rx="2" fill="#217346"/>
                                                             <path d="M8 8l3 4-3 4M12 8l4 8" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1714,18 +1712,16 @@ const ProcessDetails = () => {
 
                                         return (
                                             <button key={art.id} onClick={() => handleArtifactClick(art)}
-                                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[#f5f5f5] transition-colors text-left group">
-                                                <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${
-                                                    isPdf ? 'bg-red-50' : isImg ? 'bg-blue-50' : art._isMetaArtifact ? 'bg-purple-50' : 'bg-gray-100'
-                                                }`}>
+                                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-[#E5E7EB] bg-[#F3F4F6] transition-colors text-left group">
+                                                <div className={"w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]"}>
                                                     {art._isMetaArtifact ? (
-                                                        <Database className="w-3.5 h-3.5 text-purple-500" />
+                                                        <Database className="w-3.5 h-3.5 text-[#6B7280]" />
                                                     ) : isPdf ? (
-                                                        <FileText className="w-3.5 h-3.5 text-red-500" />
+                                                        <FileText className="w-3.5 h-3.5 text-[#6B7280]" />
                                                     ) : isImg ? (
-                                                        <Image className="w-3.5 h-3.5 text-blue-500" />
+                                                        <Image className="w-3.5 h-3.5 text-[#6B7280]" />
                                                     ) : (
-                                                        <FileText className="w-3.5 h-3.5 text-[#666]" />
+                                                        <FileText className="w-3.5 h-3.5 text-[#6B7280]" />
                                                     )}
                                                 </div>
                                                 <div className="min-w-0 flex-1">
