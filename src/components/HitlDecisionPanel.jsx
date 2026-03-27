@@ -147,11 +147,15 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
     const submitDecision = async (decision) => {
         setError(null);
         setSubmitting(decision.id);
+        setDecided(true);
+
+        /* Yield to let React flush the re-render (hides panel immediately) */
+        await new Promise(r => setTimeout(r, 0));
+
         const decLabel = `${decision.label} (${decision.desc})`;
         const baseStep = logs?.length || 0;
 
         try {
-            setDecided(true);
             const isP2 = run.process_id === P2_PROCESS_ID;
 
             if (isP2) {
