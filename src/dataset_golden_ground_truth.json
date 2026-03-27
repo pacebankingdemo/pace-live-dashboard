@@ -1,0 +1,22 @@
+{
+  "id": "golden-ground-truth",
+  "name": "Golden Dataset — Ground Truth",
+  "records": [
+    {
+      "id": "GT-001",
+      "batchNumber": "BCH-2024-001",
+      "product": "Paclitaxel Injection 6mg/mL",
+      "expectedYield": "98.5-101.0%",
+      "expectedStatus": "Approved",
+      "site": "Site A — Boston"
+    },
+    {
+      "id": "GT-002",
+      "batchNumber": "BCH-2024-002",
+      "product": "Carboplatin Solution 10mg/mL",
+      "expectedYield": "97.0-102.0%",
+      "expectedStatus": "Approved",
+      "site": "Site B — Chicago"
+    }
+  ]
+}

@@ -19,13 +19,20 @@ const DashboardLayout = () => {
     const [currentProcess, setCurrentProcess] = useState(null);
 
     useEffect(() => {
+        const CLUTCH_ID = '2c68e4b7-58cd-481c-b2c5-da8fac0d7415';
         const loadOrgs = async () => {
             try {
                 const data = await fetchOrgs();
                 setOrgs(data);
                 const savedOrgId = sessionStorage.getItem('currentOrgId');
                 const org = savedOrgId ? data.find(o => o.id === savedOrgId) : data[0];
-                if (org) setCurrentOrg(org);
+                if (org) {
+                    setCurrentOrg(org);
+                    // If Clutch is the saved/current org and we're on /done, redirect to /clutch
+                    if (org.id === CLUTCH_ID && window.location.pathname.startsWith('/done')) {
+                        navigate('/clutch');
+                    }
+                }
             } catch (err) { console.error('Error loading orgs:', err); }
         };
         loadOrgs();
@@ -59,12 +66,18 @@ const DashboardLayout = () => {
         }
     }, [currentProcess]);
 
+    const CLUTCH_ORG_ID = '2c68e4b7-58cd-481c-b2c5-da8fac0d7415';
+
     const handleOrgSwitch = (org) => {
         setCurrentOrg(org);
         setIsOrgDropdownOpen(false);
         setOrgSearch('');
         setCurrentProcess(null);
-        navigate('/done/processes');
+        if (org.id === CLUTCH_ORG_ID) {
+            navigate('/clutch');
+        } else {
+            navigate('/done/processes');
+        }
     };
 
     const handleLogout = () => {

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "DIR_001",
+    "category": "Data Integrity Review",
+    "status": "Needs Attention",
+    "currentStatus": "Yield deviation detected — awaiting L2 review",
+    "stockId": "BCH-2024-001",
+    "name": "Paclitaxel Injection 6mg/mL",
+    "site": "Site A — Boston"
+  },
+  {
+    "id": "DIR_002",
+    "category": "Data Integrity Review",
+    "status": "Needs Review",
+    "currentStatus": "Documentation discrepancy flagged for secondary review",
+    "stockId": "BCH-2024-002",
+    "name": "Carboplatin Solution 10mg/mL",
+    "site": "Site B — Chicago"
+  },
+  {
+    "id": "DIR_003",
+    "category": "Data Integrity Review",
+    "status": "In Progress",
+    "currentStatus": "Automated checks running — step 3 of 7",
+    "stockId": "BCH-2024-003",
+    "name": "Doxorubicin HCl 2mg/mL",
+    "site": "Site A — Boston"
+  },
+  {
+    "id": "DIR_004",
+    "category": "Data Integrity Review",
+    "status": "Done",
+    "currentStatus": "All checks passed — batch approved",
+    "stockId": "BCH-2024-004",
+    "name": "Gemcitabine 38mg/mL",
+    "site": "Site C — San Diego"
+  },
+  {
+    "id": "DIR_005",
+    "category": "Data Integrity Review",
+    "status": "Done",
+    "currentStatus": "Review complete — no deviations found",
+    "stockId": "BCH-2024-005",
+    "name": "Cyclophosphamide 20mg/mL",
+    "site": "Site B — Chicago"
+  }
+]

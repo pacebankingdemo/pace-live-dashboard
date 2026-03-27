@@ -1,0 +1,26 @@
+{
+  "id": "batch-review-results",
+  "name": "Batch Review Results",
+  "records": [
+    {
+      "id": "RES-001",
+      "batchNumber": "BCH-2024-001",
+      "product": "Paclitaxel Injection 6mg/mL",
+      "actualYield": "97.2%",
+      "status": "Needs Attention",
+      "deviationFlag": true,
+      "reviewedBy": "Pace AI",
+      "site": "Site A — Boston"
+    },
+    {
+      "id": "RES-002",
+      "batchNumber": "BCH-2024-002",
+      "product": "Carboplatin Solution 10mg/mL",
+      "actualYield": "99.1%",
+      "status": "Needs Review",
+      "deviationFlag": false,
+      "reviewedBy": "Pace AI",
+      "site": "Site B — Chicago"
+    }
+  ]
+}

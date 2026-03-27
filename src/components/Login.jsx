@@ -7,13 +7,20 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    const CLUTCH_ORG_ID = '2c68e4b7-58cd-481c-b2c5-da8fac0d7415';
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (email.trim()) {
             sessionStorage.setItem('userEmail', email.trim());
             sessionStorage.setItem('userName', email.split('@')[0]);
         }
-        navigate('/done/processes');
+        const savedOrgId = sessionStorage.getItem('currentOrgId');
+        if (savedOrgId === CLUTCH_ORG_ID) {
+            navigate('/clutch');
+        } else {
+            navigate('/done/processes');
+        }
     };
 
     const gridLines = useMemo(() => {
