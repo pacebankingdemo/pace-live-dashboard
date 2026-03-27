@@ -150,6 +150,7 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
         const baseStep = logs?.length || 0;
 
         try {
+            setDecided(true);
             const isP2 = run.process_id === P2_PROCESS_ID;
 
             if (isP2) {
@@ -587,9 +588,9 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                 await updateRun(newStatus, `Decision: ${decLabel} (by ${name.trim()})`);
             }
 
-            setDecided(true);
         } catch (e) {
             console.error('HITL submit failed:', e);
+            setDecided(false);
             setError(e.message || 'Submit failed');
         } finally {
             setSubmitting(null);
