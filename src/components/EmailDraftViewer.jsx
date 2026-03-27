@@ -64,26 +64,33 @@ export default function EmailDraftViewer({ artifact, run, logs, onClose, onSent 
         setError(null);
         try {
             const runId = run?.id || artifact?.run_id;
-            const baseStep = logs?.length || 0;
+            if (!runId) throw new Error('No run ID available');
 
-            await supabase.from('activity_logs').insert({
+            // Compute next step_number from the max existing step
+            const maxStep = Array.isArray(logs) && logs.length > 0
+                ? Math.max(...logs.map(l => l.step_number || 0))
+                : 0;
+
+            const { error: insertErr } = await supabase.from('activity_logs').insert({
                 run_id: runId,
-                step_number: baseStep + 1,
-                log_type: 'system',
-                message: `Email sent to ${to} — "${subject}"`,
+                step_number: maxStep + 1,
+                log_type: 'decision',
+                message: `Escalation email sent to ${to} — "${subject}"`,
                 metadata: {
                     step_name: 'Email Sent',
                     email_sent: true,
                     to, cc, subject,
                     sent_by: 'Pace',
                     reasoning_steps: [
-                        `Approval request email sent to ${to}`,
+                        `Escalation email dispatched to ${to}`,
                         `Subject: ${subject}`,
                         cc ? `CC: ${cc}` : null,
-                        'Email dispatched — awaiting response',
+                        'Email sent successfully — awaiting stakeholder response',
                     ].filter(Boolean),
                 },
             });
+
+            if (insertErr) throw insertErr;
 
             setSent(true);
             if (onSent) onSent();
