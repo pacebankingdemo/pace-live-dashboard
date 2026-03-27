@@ -780,18 +780,17 @@ export const PROCESS_COLUMNS = {
                        || art?.['Purchase Requisition']?.['GxP']
                        || art?.['Emergency Requisition']?.['Urgency'];
               if (!gxp) {
-                  /* Derive from run name */
                   const n = (r.name || '').toLowerCase();
-                  if (n.includes('emergency')) return pill('Emergency', 'red');
-                  if (n.includes('indirect') || n.includes('lims') || n.includes('software')) return pill('Indirect', 'blue');
-                  if (n.includes('mismatch') || n.includes('invoice')) return pill('Invoice', 'amber');
-                  if (n.includes('duplicate')) return pill('Duplicate PR', 'purple');
-                  return pill('Direct', 'gray');
+                  if (n.includes('emergency')) return <span className="text-[#171717] text-[12px] font-[500]">Emergency</span>;
+                  if (n.includes('indirect') || n.includes('lims') || n.includes('software')) return <span className="text-[#171717] text-[12px] font-[500]">Indirect</span>;
+                  if (n.includes('mismatch') || n.includes('invoice')) return <span className="text-[#171717] text-[12px] font-[500]">Invoice</span>;
+                  if (n.includes('duplicate')) return <span className="text-[#171717] text-[12px] font-[500]">Duplicate PR</span>;
+                  return <span className="text-[#171717] text-[12px] font-[500]">Direct</span>;
               }
               const s = String(gxp).toLowerCase();
-              if (s.includes('critical') || s.includes('gxp')) return pill('GxP-Critical', 'red');
-              if (s.includes('emergency') || s.includes('critical')) return pill('Emergency', 'red');
-              return pill(gxp, 'gray');
+              if (s.includes('critical') || s.includes('gxp')) return <span className="text-[#171717] text-[12px] font-[500]">GxP-Critical</span>;
+              if (s.includes('emergency') || s.includes('critical')) return <span className="text-[#171717] text-[12px] font-[500]">Emergency</span>;
+              return <span className="text-[#171717] text-[12px] font-[500]">{gxp}</span>;
           }},
         { id: 'data_points', header: 'Data Points', align: 'center',
           render: (r, m, art) => {
@@ -805,12 +804,15 @@ export const PROCESS_COLUMNS = {
         { id: 'risk_level', header: 'Risk Level', align: 'center',
           render: (r, m, art) => {
               const n = (r.name || '').toLowerCase();
-              if (n.includes('emergency')) return pill('High', 'red');
-              if (n.includes('mismatch') || n.includes('non-avl') || n.includes('block')) return pill('Medium', 'amber');
-              if (n.includes('duplicate')) return pill('Medium', 'amber');
-              if (n.includes('indirect') || n.includes('lims')) return pill('Low', 'green');
-              if (n.includes('happy') || n.includes('gxp happy')) return pill('Low', 'green');
-              return <span className="text-[#d1d5db]">—</span>;
+              let level = null;
+              if (n.includes('emergency')) level = 'High';
+              else if (n.includes('mismatch') || n.includes('non-avl') || n.includes('block')) level = 'Medium';
+              else if (n.includes('duplicate')) level = 'Medium';
+              else if (n.includes('indirect') || n.includes('lims')) level = 'Low';
+              else if (n.includes('happy') || n.includes('gxp happy')) level = 'Low';
+              return level
+                  ? <span className="text-[#171717] text-[12px] font-[500]">{level}</span>
+                  : <span className="text-[#d1d5db]">—</span>;
           }},
     ],
 
