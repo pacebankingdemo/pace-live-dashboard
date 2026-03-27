@@ -603,6 +603,23 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
         }
     };
 
+    /* Once submitting, show ONLY the spinner — no radio buttons, no Confirm */
+    if (submitting) {
+        return (
+            <div className="mt-4 pt-3 border-t border-dashed border-[#E5E7EB]">
+                {processingLabel && (
+                    <div className="flex items-center gap-1.5">
+                        <svg className="animate-spin h-3 w-3 text-[#6B7280]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        <span className="text-[11px] text-[#6B7280]">{processingLabel}</span>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
     return (
         <div className="mt-4 pt-3 border-t border-dashed border-[#E5E7EB]">
             {error && (
@@ -611,22 +628,12 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                 </div>
             )}
 
-            {submitting && processingLabel && (
-                <div className="flex items-center gap-1.5 mb-2">
-                    <svg className="animate-spin h-3 w-3 text-[#6B7280]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                    </svg>
-                    <span className="text-[11px] text-[#6B7280]">{processingLabel}</span>
-                </div>
-            )}
-
             <div className="flex flex-col gap-3">
                 {decisions.map(d => (
                     <label
                         key={d.id}
-                        className={`flex items-center gap-3 cursor-pointer ${submitting ? 'pointer-events-none opacity-40' : ''}`}
-                        onClick={() => !submitting && setSelected(d)}
+                        className="flex items-center gap-3 cursor-pointer"
+                        onClick={() => setSelected(d)}
                     >
                         <span className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center flex-shrink-0
                             ${selected?.id === d.id ? 'border-[#6B7280]' : 'border-[#D1D5DB]'}
@@ -641,15 +648,15 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
             </div>
 
             <button
-                disabled={!selected || !!submitting}
+                disabled={!selected}
                 onClick={() => selected && submitDecision(selected)}
                 className={`mt-4 px-5 py-2 rounded-md text-[13px] font-medium transition-all
-                    ${!selected || submitting
+                    ${!selected
                         ? 'bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed'
                         : 'bg-[#171717] text-white hover:bg-[#333]'}
                 `}
             >
-                {submitting ? 'Processing…' : 'Confirm'}
+                Confirm
             </button>
 
         </div>
