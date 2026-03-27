@@ -101,6 +101,7 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
     const [submitting, setSubmitting] = useState(null);
     const [decided, setDecided] = useState(false);
     const [processingLabel, setProcessingLabel] = useState('');
+    const [selected, setSelected] = useState(null);
     const name = 'Prabhu';
 
     const [error, setError] = useState(null);
@@ -616,27 +617,36 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                 </div>
             )}
 
-            <div className="flex flex-wrap gap-2">
-                {decisions.map(d => {
-                    const style = BUTTON_STYLES[d.style] || BUTTON_STYLES.primary;
-                    const isActive = submitting === d.id;
-                    const isDisabled = !!submitting && !isActive;
-                    return (
-                        <button
-                            key={d.id}
-                            disabled={!!submitting}
-                            onClick={() => submitDecision(d)}
-                            title={d.desc}
-                            className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all
-                                ${isActive ? style.active : style.base}
-                                ${isDisabled ? 'opacity-40' : ''}
-                            `}
-                        >
-                            {isActive ? 'Processing…' : d.label}
-                        </button>
-                    );
-                })}
+            <div className="flex flex-col gap-3">
+                {decisions.map(d => (
+                    <label
+                        key={d.id}
+                        className={`flex items-center gap-3 cursor-pointer ${submitting ? 'pointer-events-none opacity-40' : ''}`}
+                        onClick={() => !submitting && setSelected(d)}
+                    >
+                        <span className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center flex-shrink-0
+                            ${selected?.id === d.id ? 'border-[#6B7280]' : 'border-[#D1D5DB]'}
+                        `}>
+                            {selected?.id === d.id && (
+                                <span className="w-[8px] h-[8px] rounded-full bg-[#6B7280]" />
+                            )}
+                        </span>
+                        <span className="text-[13px] text-[#374151]">{d.label}</span>
+                    </label>
+                ))}
             </div>
+
+            <button
+                disabled={!selected || !!submitting}
+                onClick={() => selected && submitDecision(selected)}
+                className={`mt-4 px-5 py-2 rounded-md text-[13px] font-medium transition-all
+                    ${!selected || submitting
+                        ? 'bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed'
+                        : 'bg-[#6B7280] text-white hover:bg-[#4B5563]'}
+                `}
+            >
+                {submitting ? 'Processing…' : 'Confirm'}
+            </button>
 
         </div>
     );
