@@ -642,7 +642,7 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                 className={`mt-4 px-5 py-2 rounded-md text-[13px] font-medium transition-all
                     ${!selected || submitting
                         ? 'bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed'
-                        : 'bg-[#6B7280] text-white hover:bg-[#4B5563]'}
+                        : 'bg-[#171717] text-white hover:bg-[#333]'}
                 `}
             >
                 {submitting ? 'Processing…' : 'Confirm'}
