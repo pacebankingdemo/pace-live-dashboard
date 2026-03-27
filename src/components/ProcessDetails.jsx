@@ -209,7 +209,7 @@ function classifyMetadata(metadata) {
         const ed = metadata.email_draft;
         dataArtifacts.push({
             id: `email-draft-${Math.random().toString(36).slice(2, 8)}`,
-            filename: ed.pill_label || 'Email Draft',
+            filename: ed.pill_label || (ed.mode === 'draft' ? 'Email Draft' : 'Email Received'),
             file_type: 'email',
             _isMetaArtifact: true,
             _isEmailDraft: true,
@@ -219,7 +219,8 @@ function classifyMetadata(metadata) {
                 subject: ed.subject || '',
                 body: ed.body || '',
                 from: ed.from || 'pace@ferring.com',
-                display_name: ed.pill_label || 'Email Draft',
+                display_name: ed.pill_label || (ed.mode === 'draft' ? 'Email Draft' : 'Email Received'),
+                mode: ed.mode || 'received',
             },
         });
     }
@@ -1408,16 +1409,21 @@ const ProcessDetails = () => {
                                                                 </a>
                                                             );
                                                         }
-                                                        // Email draft pills — distinctive blue pill with mail icon
+                                                        // Email pills — Gmail icon + label, matching reference UI
                                                         if (da._isEmailDraft) {
                                                             return (
                                                                 <button key={da.id} onClick={() => handleArtifactClick(da)}
-                                                                    className="bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md px-2.5 py-1 flex items-center gap-2 transition-colors group/chip">
-                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-                                                                        <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                                                                    className="bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg px-2.5 py-1.5 flex items-center gap-2 transition-colors group/chip">
+                                                                    <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                                                                        <path d="M1 5.5V18.5C1 19.6 1.9 20.5 3 20.5H5V9.5L12 14.5L19 9.5V20.5H21C22.1 20.5 23 19.6 23 18.5V5.5C23 4.1 21.4 3.2 20.2 4L12 9.5L3.8 4C2.6 3.2 1 4.1 1 5.5Z" fill="#EA4335"/>
+                                                                        <path d="M5 20.5V9.5L12 14.5" fill="#4285F4"/>
+                                                                        <path d="M19 20.5V9.5L12 14.5" fill="#34A853"/>
+                                                                        <path d="M5 9.5L1 5.5V18.5C1 19.6 1.9 20.5 3 20.5H5V9.5Z" fill="#C5221F"/>
+                                                                        <path d="M19 9.5L23 5.5V18.5C23 19.6 22.1 20.5 21 20.5H19V9.5Z" fill="#0B8043"/>
+                                                                        <path d="M19 5.5V9.5L23 5.5C23 4.1 21.4 3.2 20.2 4L19 5.5Z" fill="#F8BD00"/>
+                                                                        <path d="M5 5.5V9.5L1 5.5C1 4.1 2.6 3.2 3.8 4L5 5.5Z" fill="#1E88E5"/>
                                                                     </svg>
-                                                                    <span className="text-[11px] font-medium text-blue-700">{da.filename}</span>
-                                                                    <Eye className="h-3 w-3 text-blue-300 group-hover/chip:text-blue-500 flex-shrink-0 ml-0.5" strokeWidth={1.5} />
+                                                                    <span className="text-[11px] font-medium text-[#374151]">{da.filename}</span>
                                                                 </button>
                                                             );
                                                         }
