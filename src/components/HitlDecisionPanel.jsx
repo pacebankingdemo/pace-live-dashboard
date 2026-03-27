@@ -439,7 +439,7 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                                 ],
                             },
                         });
-                        await updateRun('in_progress', `Qualification initiated - awaiting SQ-2026-0088 (by ${name.trim()})`);
+                        await updateRun('needs_review', `Qualification initiated - awaiting SQ-2026-0088 (by ${name.trim()})`);
 
                     } else {
                         setProcessingLabel('Cancelling PR…');
