@@ -450,7 +450,7 @@ const EmailArtifactPill = ({ artifact, onClick }) => {
     return (
         <button
             onClick={() => onClick && onClick(artifact)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] transition-colors text-[#374151] text-[12px] font-medium"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] transition-colors text-[#374151] text-[12px] font-medium"
             style={{maxWidth: '360px'}}
         >
             <GmailIcon />
@@ -1346,7 +1346,7 @@ const ProcessDetails = () => {
                                                         const isImg = /\.(png|jpg|jpeg|gif|webp)$/i.test(art.filename || '');
                                                         return (
                                                             <button key={art.id} onClick={() => handleArtifactClick(art)}
-                                                                className={"bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] rounded-full px-3 py-1.5 flex items-center gap-2 transition-colors group/chip"}>
+                                                                className={"bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] rounded-md px-3 py-1.5 flex items-center gap-2 transition-colors group/chip"}>
                                                                 <div className={"w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]"}>
                                                                     {isPdf ? (
                                                                         <FileText className="h-3 w-3 text-[#6B7280]" strokeWidth={2} />
@@ -1386,7 +1386,7 @@ const ProcessDetails = () => {
                                                         if (da.url && !isDataArt) {
                                                             return (
                                                                 <button key={da.id} onClick={() => handleArtifactClick(da)}
-                                                                    className="bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] rounded-full px-3 py-1.5 flex items-center gap-2 transition-colors group/chip">
+                                                                    className="bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] rounded-md px-3 py-1.5 flex items-center gap-2 transition-colors group/chip">
                                                                     <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]">
                                                                         <Database className="h-3 w-3 text-[#6B7280]" strokeWidth={2} />
                                                                     </div>
@@ -1398,7 +1398,7 @@ const ProcessDetails = () => {
                                                         // Inline data artifacts (NatWest data{} pattern) — open DatasetViewer
                                                         return (
                                                             <button key={da.id} onClick={() => handleArtifactClick(da)}
-                                                                className="bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] rounded-full px-3 py-1.5 flex items-center gap-2 transition-colors group/chip">
+                                                                className="bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] rounded-md px-3 py-1.5 flex items-center gap-2 transition-colors group/chip">
                                                                 <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]">
                                                                     <Database className="h-3 w-3 text-[#6B7280]" strokeWidth={2} />
                                                                 </div>
@@ -1694,7 +1694,7 @@ const ProcessDetails = () => {
                                         if (isExcel) {
                                             return (
                                                 <button key={art.id} onClick={() => handleArtifactClick(art)}
-                                                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-[#E5E7EB] bg-[#F3F4F6] transition-colors text-left group">
+                                                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-[#E5E7EB] bg-[#F3F4F6] transition-colors text-left group">
                                                     <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]">
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                                                             <rect x="2" y="3" width="20" height="18" rx="2" fill="#217346"/>
@@ -1712,7 +1712,7 @@ const ProcessDetails = () => {
 
                                         return (
                                             <button key={art.id} onClick={() => handleArtifactClick(art)}
-                                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-[#E5E7EB] bg-[#F3F4F6] transition-colors text-left group">
+                                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-[#E5E7EB] bg-[#F3F4F6] transition-colors text-left group">
                                                 <div className={"w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]"}>
                                                     {art._isMetaArtifact ? (
                                                         <Database className="w-3.5 h-3.5 text-[#6B7280]" />
