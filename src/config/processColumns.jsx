@@ -106,40 +106,6 @@ export const DEFAULT_COLUMNS = [
           );
       }},
 
-    /* ── Key Info: first artifact dataset name as a label ── */
-    { id: 'key_info', header: 'Key Info', align: 'left',
-      render: (r, m, art) => {
-          if (!art || Object.keys(art).length === 0) return <span className="text-[#d1d5db]">—</span>;
-          const dsName = Object.keys(art)[0];
-          const firstDs = art[dsName];
-          if (!firstDs || typeof firstDs !== 'object') return <span className="text-[#d1d5db]">—</span>;
-          const firstVal = Object.values(firstDs).find(v => v != null && String(v).length > 0);
-          return (
-              <span className="text-[11px] max-w-[260px] truncate block">
-                  <span className="text-[#333] font-[450]">{firstVal != null ? String(firstVal) : dsName}</span>
-              </span>
-          );
-      }},
-
-    /* ── Data Points: total field count across all artifact datasets ── */
-    { id: 'data_points', header: 'Data Points', align: 'center',
-      render: (r, m, art) => {
-          if (!art || Object.keys(art).length === 0) return <span className="text-[#d1d5db]">—</span>;
-          let count = 0;
-          Object.values(art).forEach(ds => { if (ds && typeof ds === 'object') count += Object.keys(ds).length; });
-          return count > 0
-              ? <span className="text-[#555] text-[11px] font-[450]">{count}</span>
-              : <span className="text-[#d1d5db]">—</span>;
-      }},
-
-    /* ── Datasets: number of artifact datasets surfaced ── */
-    { id: 'datasets', header: 'Datasets', align: 'center',
-      render: (r, m, art) => {
-          if (!art || Object.keys(art).length === 0) return <span className="text-[#d1d5db]">—</span>;
-          const n = Object.keys(art).length;
-          return <span className="text-[#555] text-[11px] font-[450]">{n}</span>;
-      }},
-
     /* ── Status: plain text, no pill — matches Ferring style ── */
     { id: 'status', header: 'Status', align: 'center',
       render: (r) => {

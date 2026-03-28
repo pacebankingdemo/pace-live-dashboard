@@ -4,6 +4,7 @@ import { Filter } from 'lucide-react';
 import { fetchRuns, subscribeToTable } from '../services/supabase';
 import { supabase } from '../services/supabase';
 import { PROCESS_COLUMNS, DEFAULT_COLUMNS } from '../config/processColumns';
+import { buildColumnsFromSchema } from '../config/dynamicColumns';
 
 /* ─────────────────────────────────────────────────────────────────
    ProcessList
@@ -101,7 +102,10 @@ const ProcessList = () => {
     const currentRuns = getRunsByTab(activeTab);
 
     /* ── Column resolution: process-specific or default ── */
-    const columns = PROCESS_COLUMNS[currentProcess?.id] ?? DEFAULT_COLUMNS;
+    /* Column resolution: hardcoded → DB metadata → fallback */
+    const columns = PROCESS_COLUMNS[currentProcess?.id]
+        ?? buildColumnsFromSchema(currentProcess?.metadata?.columns)
+        ?? DEFAULT_COLUMNS;
 
     /* ── Guard: no process selected ── */
     if (!currentProcess) return (
