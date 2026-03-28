@@ -72,20 +72,86 @@ export const trunc = (val, max = 65) => val
 
 /* ─────────────────────────────────────────────────────────────────
    DEFAULT columns — shown for any process not explicitly mapped.
-   Gracefully surfaces run name, status, and last status text.
+   Metadata-aware: dynamically surfaces artifact data, status, and
+   key info from whatever the relay skill pushes — no hardcoding.
 ───────────────────────────────────────────────────────────────── */
 export const DEFAULT_COLUMNS = [
-    { id: 'name',   header: 'Run',     align: 'left',
-      render: (r) => bold(r.name) },
-    { id: 'status', header: 'Status',  align: 'center',
+    /* ── Current Status: spark icon + colored square + status text ── */
+    { id: 'status_text', header: 'Current Status', align: 'left',
+      render: (r) => {
+          const statusMap = {
+              needs_attention: { bg: '#FFDADA', border: '#A40000' },
+              needs_review:    { bg: '#FCEDB9', border: '#ED6704' },
+              void:            { bg: '#EBEBEB', border: '#8F8F8F' },
+              in_progress:     { bg: '#EAF3FF', border: '#2546F5' },
+              ready:           { bg: '#EAF3FF', border: '#2546F5' },
+              done:            { bg: '#E2F1EB', border: '#038408' },
+          };
+          const sc = statusMap[r.status] || statusMap.in_progress;
+          const label = r.status === 'done'
+              ? r.current_status_text || r.name
+              : r.status === 'needs_attention'
+              ? `Needs Attention — ${r.current_status_text || r.name}`
+              : r.status === 'needs_review'
+              ? `Needs Review — ${r.current_status_text || r.name}`
+              : r.current_status_text || r.name;
+          return (
+              <span className="flex items-center gap-2 max-w-[550px]">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C4841D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                      <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/>
+                  </svg>
+                  <span style={{ width: 8, height: 8, borderRadius: 2, border: `1px solid ${sc.border}`, background: sc.bg, flexShrink: 0 }} />
+                  <span className="text-[#171717] font-[450] text-[12px] truncate">{label}</span>
+              </span>
+          );
+      }},
+
+    /* ── Key Info: first 3 key-value pairs from the first artifact dataset ── */
+    { id: 'key_info', header: 'Key Info', align: 'left',
+      render: (r, m, art) => {
+          if (!art || Object.keys(art).length === 0) return <span className="text-[#d1d5db]">—</span>;
+          const firstDs = Object.values(art).find(ds => ds && typeof ds === 'object' && Object.keys(ds).length > 0);
+          if (!firstDs) return <span className="text-[#d1d5db]">—</span>;
+          const entries = Object.entries(firstDs).slice(0, 3);
+          return (
+              <span className="flex flex-col gap-0.5 max-w-[280px]">
+                  {entries.map(([k, v]) => (
+                      <span key={k} className="text-[11px] truncate">
+                          <span className="text-[#999]">{k}: </span>
+                          <span className="text-[#333] font-[450]">{v != null ? String(v) : '—'}</span>
+                      </span>
+                  ))}
+              </span>
+          );
+      }},
+
+    /* ── Data Points: total field count across all artifact datasets ── */
+    { id: 'data_points', header: 'Data Points', align: 'center',
+      render: (r, m, art) => {
+          if (!art || Object.keys(art).length === 0) return <span className="text-[#d1d5db]">—</span>;
+          let count = 0;
+          Object.values(art).forEach(ds => { if (ds && typeof ds === 'object') count += Object.keys(ds).length; });
+          return count > 0
+              ? <span className="text-[#555] text-[11px] font-[450]">{count}</span>
+              : <span className="text-[#d1d5db]">—</span>;
+      }},
+
+    /* ── Datasets: number of artifact datasets surfaced ── */
+    { id: 'datasets', header: 'Datasets', align: 'center',
+      render: (r, m, art) => {
+          if (!art || Object.keys(art).length === 0) return <span className="text-[#d1d5db]">—</span>;
+          const n = Object.keys(art).length;
+          return <span className="text-[#555] text-[11px] font-[450]">{n}</span>;
+      }},
+
+    /* ── Status: auto-colored pill badge ── */
+    { id: 'status', header: 'Status', align: 'center',
       render: (r) => autoPill(
           r.status === 'done' ? 'Complete'
         : r.status === 'needs_review' ? 'Needs Review'
         : r.status === 'void' ? 'Void'
         : r.status
       )},
-    { id: 'txt',    header: 'Summary', align: 'left',
-      render: (r) => trunc(r.current_status_text, 80) },
 ];
 
 /* ─────────────────────────────────────────────────────────────────
