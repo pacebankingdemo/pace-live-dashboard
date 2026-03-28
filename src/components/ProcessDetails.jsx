@@ -1467,8 +1467,8 @@ const ProcessDetails = () => {
                                                 </div>
                                             )}
                                             {/* HITL decision buttons - inline at end of last log entry */}
-                                            {isLastGroup && (run?.status === 'needs_attention' || run?.status === 'needs_review') && (
-                                                <HitlDecisionPanel run={run} logs={logs} artifacts={artifacts} />
+                                            {isLastGroup && (run?.status === 'needs_attention' || run?.status === 'needs_review') && !logs?.some(l => l.metadata?.hitl_decision === true) && (
+                                                <HitlDecisionPanel key={`hitl-${run.id}`} run={run} logs={logs} artifacts={artifacts} />
                                             )}
                                         </div>
                                     </div>
