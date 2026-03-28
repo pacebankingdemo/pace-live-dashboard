@@ -109,7 +109,7 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
     if (!run || (run.status !== 'needs_attention' && run.status !== 'needs_review')) return null;
 
     const alreadyDecided = logs?.some(l =>
-        l.log_type === 'system' && l.metadata?.hitl_decision === true
+        l.metadata?.hitl_decision === true
     );
     if (alreadyDecided || decided) return null;
 
