@@ -88,11 +88,17 @@ const FERRING_SCENARIO_DECISIONS = {
         { id: 'proceed_separate', label: 'Proceed Separately', desc: 'Keep as separate order — different lab budgets', style: 'secondary' },
         { id: 'cancel_duplicate', label: 'Cancel Duplicate', desc: 'Cancel the new PR, existing order is sufficient', style: 'warning' },
     ],
+    'duplicate_calibration': [
+        { id: 'consolidate', label: 'Consolidate Orders', desc: 'Merge into single order of 27 vials (saves EUR 340)', style: 'primary' },
+        { id: 'proceed_separate', label: 'Proceed Separately', desc: 'Independent order with business justification', style: 'secondary' },
+        { id: 'cancel_duplicate', label: 'Cancel Duplicate', desc: 'Withdraw PR-2026-06142, existing order continues', style: 'warning' },
+    ],
 };
 
 function resolveFerringScenario(run) {
     const name = (run?.name || '').toLowerCase();
     if (name.includes('non-avl') || name.includes('avl')) return 'non_avl';
+    if (name.includes('calibration') && name.includes('duplicate')) return 'duplicate_calibration';
     if (name.includes('duplicate')) return 'duplicate';
     return null;
 }
@@ -458,7 +464,317 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                         await updateRun('done', `PR cancelled by ${name.trim()}`);
                     }
 
-                } else if (scenario === 'duplicate') {
+                } else if (scenario === 'duplicate_calibration') {
+                    if (decision.id === 'consolidate') {
+                        /* --- S7 Calibration Standard: Consolidate (13-step lifecycle) --- */
+                        setProcessingLabel('Recording consolidation decision…');
+                        await insertLog({
+                            run_id: run.id, step_number: 7, log_type: 'decision',
+                            message: 'HITL - Consolidation confirmed. Desktop Agent merging PR-2026-06142 into PR-2026-06078 in SAP Ariba',
+                            metadata: {
+                                step_name: 'Desktop Agent - PR Merge (SAP Ariba)', hitl_decision: true,
+                                decision: 'consolidate', decided_by: name.trim(),
+                                decision_by: `Dr. Elena Kowalski (confirmed by ${name.trim()})`,
+                                reasoning_steps: [
+                                    `Dr. Kowalski confirmed: CONSOLIDATE - merge into single order of 27 vials`,
+                                    'Launching Desktop Agent to execute PR merge in SAP Ariba',
+                                    'Action 1: Open PR-2026-06078 -> Edit line item -> Update quantity from 15 to 27 vials',
+                                    'Action 2: Update unit price to EUR 272/vial (volume discount applied - was EUR 285)',
+                                    'Action 3: Recalculate line total: 27 x EUR 272 = EUR 7,344',
+                                    "Action 4: Add comment: 'Consolidated with PR-2026-06142 per Dr. Kowalski (Bioassay Lab)'",
+                                    "Action 5: Move PR-2026-06078 status from 'Open' to 'Approved'",
+                                    "Action 6: Open PR-2026-06142 -> Change status to 'Cancelled'",
+                                    'All SAP Ariba changes committed successfully',
+                                    'PR-2026-06078: Approved | PR-2026-06142: Cancelled | Savings: EUR 340 (net)',
+                                ],
+                            },
+                        });
+                        await insertLog({
+                            run_id: run.id, step_number: 7, log_type: 'artifact',
+                            message: 'PR Merge Complete - Approved for PO Conversion',
+                            metadata: {
+                                step_name: 'PR Merge Summary', data: {
+                                    'Merged PR': 'PR-2026-06078', 'PR Status': 'Approved',
+                                    'Updated Quantity': '27 vials (was 15)',
+                                    'Unit Price': 'EUR 272/vial (volume discount applied)',
+                                    'New Total': 'EUR 7,344',
+                                    'Cancelled PR': 'PR-2026-06142 - Status: Cancelled',
+                                    'Volume Discount Saved': 'EUR 351', 'Shipping Saved': 'EUR 55',
+                                    'Total Savings': 'EUR 340 (net)',
+                                    'Next Step': 'PR Conversion to Purchase Order',
+                                },
+                            },
+                        });
+                        await sleep(2000);
+
+                        /* Step 8: PO Generation */
+                        setProcessingLabel('Generating Purchase Order in SAP Ariba…');
+                        await insertLog({
+                            run_id: run.id, step_number: 8, log_type: 'decision',
+                            message: 'Desktop Agent converting approved PR-2026-06078 to Purchase Order PO-2026-11780 in SAP Ariba',
+                            metadata: {
+                                step_name: 'Desktop Agent - PO Generation (SAP Ariba)', reasoning_steps: [
+                                    'Launching Desktop Agent to convert PR to PO in SAP Ariba',
+                                    "Action 1: Open approved PR-2026-06078 -> Click 'Convert to Purchase Order'",
+                                    'Action 2: Gate 2 Validation V11 - All required approvals obtained - PASS',
+                                    'Action 3: Gate 2 Validation V12 - Supplier MilliporeSigma (V-10023) still active - PASS',
+                                    'Action 4: Gate 2 Validation V13 - Contract FA-2025-0142 found, pricing EUR 272/vial - PASS',
+                                    'Action 5: Gate 2 Validation V14 - Payment terms Net 30 match - PASS',
+                                    'Action 6: Gate 2 Validation V15 - Tax code DK-VAT-25 assigned - PASS',
+                                    'Action 7: All 5 Gate 2 validations passed - system generates PO-2026-11780',
+                                    'Action 8: Verify PO line item: 27 vials x EUR 272 = EUR 7,344',
+                                    'Action 9: Set delivery date 2026-04-28, ship-to Kastrup Warehouse',
+                                    "Action 10: Submit PO -> PO-2026-11780 status set to 'Ordered'",
+                                    "Action 11: Update PR-2026-06078 status to 'Converted to Purchase Order'",
+                                    'PO-2026-11780 created successfully in SAP Ariba',
+                                ],
+                            },
+                        });
+                        await insertLog({
+                            run_id: run.id, step_number: 8, log_type: 'artifact',
+                            message: 'Purchase Order PO-2026-11780',
+                            metadata: {
+                                step_name: 'Purchase Order', data: {
+                                    'PO Number': 'PO-2026-11780',
+                                    'PR Reference': 'PR-2026-06078 (consolidated with PR-2026-06142)',
+                                    'PR Status': 'Converted to Purchase Order',
+                                    'Supplier': 'MilliporeSigma (V-10023)',
+                                    'Material': 'EP Follitropin Alpha CRS (Calibration Standard)',
+                                    'Quantity': '27 vials', 'Unit Price': 'EUR 272/vial (contract price)',
+                                    'Total': 'EUR 7,344', 'Payment Terms': 'Net 30',
+                                    'Delivery': '2026-04-28 to Kastrup, Denmark',
+                                    'PO Status': 'Ordered',
+                                },
+                            },
+                        });
+                        await sleep(2000);
+
+                        /* Step 9: PO Dispatch */
+                        setProcessingLabel('Dispatching PO to supplier via SAP Ariba Network…');
+                        await insertLog({
+                            run_id: run.id, step_number: 9, log_type: 'decision',
+                            message: 'Desktop Agent dispatching PO-2026-11780 to MilliporeSigma via SAP Ariba Network',
+                            metadata: {
+                                step_name: 'Desktop Agent - PO Dispatch (SAP Ariba)', reasoning_steps: [
+                                    'Launching Desktop Agent to dispatch PO via Ariba Network',
+                                    "Action 1: Open PO-2026-11780 -> Click 'Dispatch to Supplier'",
+                                    'Action 2: Select delivery channel: SAP Ariba Network (MilliporeSigma is Ariba-enabled)',
+                                    'Action 3: Attach PO document package: PO PDF, GxP transport requirements, CoA requirement notice',
+                                    'Action 4: Confirm dispatch -> PO transmitted to MilliporeSigma',
+                                    "Action 5: Update PO status to 'Dispatched - Awaiting Supplier Acknowledgment'",
+                                    'PO dispatched successfully via Ariba Network',
+                                    'Supplier acknowledgment expected within 2 business days',
+                                ],
+                            },
+                        });
+                        await sleep(2000);
+
+                        /* Step 10: Goods Receipt + CoA Email */
+                        setProcessingLabel('Processing goods receipt & CoA review…');
+                        await insertLog({
+                            run_id: run.id, step_number: 10, log_type: 'decision',
+                            message: 'Goods received at Kastrup warehouse - 27 vials EP Follitropin Alpha CRS. CoA from MilliporeSigma forwarded to QA for review',
+                            metadata: {
+                                step_name: 'Goods Receipt & CoA QA Review Request', reasoning_steps: [
+                                    'Delivery DN-MS-2026-6142 received at Kastrup Warehouse by Lars Henriksen',
+                                    'Quantity check: 27 vials received vs 27 vials ordered - MATCH',
+                                    'Visual inspection: Packaging intact, temperature indicator within range (2-8\u00b0C) - PASS',
+                                    'Batch/Lot: LOT-FACRS-2026-0422 recorded',
+                                    'Certificate of Analysis received from MilliporeSigma with shipment',
+                                    'Per V20: GxP-Critical material - CoA must be QA-approved before GR can be posted',
+                                    'Material placed in Quarantine status pending QA review',
+                                    'Forwarding CoA to Dr. Henrik Madsen (QA Manager, Kastrup) for review',
+                                ],
+                            },
+                        });
+                        await insertLog({
+                            run_id: run.id, step_number: 10, log_type: 'artifact',
+                            message: 'Goods Receipt GR-2026-09210',
+                            metadata: {
+                                step_name: 'Goods Receipt', data: {
+                                    'GR Number': 'GR-2026-09210', 'PO Reference': 'PO-2026-11780',
+                                    'Supplier': 'MilliporeSigma', 'Batch/Lot': 'LOT-FACRS-2026-0422',
+                                    'Ordered': '27 vials', 'Received': '27 vials',
+                                    'Visual Inspection': 'PASS', 'Quantity Check': 'PASS',
+                                    'CoA Received': 'Yes', 'Material Status': 'Quarantine - Pending QA Review',
+                                },
+                            },
+                        });
+                        await sleep(2000);
+
+                        /* Step 11: CoA QA Approval */
+                        setProcessingLabel('QA Manager reviewing Certificate of Analysis…');
+                        await insertLog({
+                            run_id: run.id, step_number: 11, log_type: 'decision',
+                            message: 'QA Manager CoA approval received - Dr. Henrik Madsen has approved LOT-FACRS-2026-0422 for release. GR posted.',
+                            metadata: {
+                                step_name: 'CoA QA Approval Received', reasoning_steps: [
+                                    'Incoming email detected from henrik.madsen@ferring.com (QA Manager, Kastrup)',
+                                    'Subject: RE: COA REVIEW REQUIRED: PO-2026-11780 - EP Follitropin Alpha CRS',
+                                    'Parsing email content for approval decision',
+                                    "Email body: 'CoA reviewed and approved. All test results within specification. Batch LOT-FACRS-2026-0422 cleared for release.'",
+                                    'Decision extracted: APPROVED',
+                                    'CoA approval logged against PO-2026-11780 in SAP Ariba quality record',
+                                    'Material status updated: Quarantine -> Released',
+                                    'GR-2026-09210 posted in SAP Ariba - goods formally received',
+                                ],
+                            },
+                        });
+                        await sleep(2000);
+
+                        /* Step 12: Invoice 3-Way Match */
+                        setProcessingLabel('Executing 3-way match (PO \u2194 GR \u2194 Invoice)…');
+                        await insertLog({
+                            run_id: run.id, step_number: 12, log_type: 'decision',
+                            message: 'Supplier invoice INV-MS-2026-3384 received - executing 3-way match (PO \u2194 GR \u2194 Invoice)',
+                            metadata: {
+                                step_name: 'Invoice 3-Way Match', reasoning_steps: [
+                                    'Invoice INV-MS-2026-3384 received from MilliporeSigma via Ariba Network',
+                                    'Invoice amount: EUR 7,344 for 27 vials at EUR 272/vial',
+                                    'Executing 3-way match:',
+                                    'Match 1 - Invoice \u2194 PO: Unit price EUR 272 matches PO - PASS (0% variance)',
+                                    'Match 2 - Invoice \u2194 GR: Invoice qty 27 = GR qty 27 - PASS (0% variance)',
+                                    'Match 3 - Invoice total \u2194 PO total: EUR 7,344 = EUR 7,344 - PASS (0% variance)',
+                                    'All tolerances met - invoice auto-cleared for payment',
+                                    'Payment due: 2026-05-29 (Net 30)',
+                                ],
+                            },
+                        });
+                        await insertLog({
+                            run_id: run.id, step_number: 12, log_type: 'artifact',
+                            message: '3-Way Match Result - Auto-Cleared',
+                            metadata: {
+                                step_name: 'Invoice Match Report', data: {
+                                    'Invoice': 'INV-MS-2026-3384', 'PO Reference': 'PO-2026-11780',
+                                    'GR Reference': 'GR-2026-09210', 'Supplier': 'MilliporeSigma',
+                                    'Invoice Amount': 'EUR 7,344', 'PO Amount': 'EUR 7,344',
+                                    'GR Quantity': '27 vials', 'Price Variance': '0%',
+                                    'Quantity Variance': '0%', 'Match Result': 'PASS - All within tolerance',
+                                    'Payment Status': 'Auto-cleared for payment',
+                                    'Payment Due': '2026-05-29 (Net 30)',
+                                },
+                            },
+                        });
+                        await sleep(2000);
+
+                        /* Step 13: PO Closure */
+                        setProcessingLabel('Closing Purchase Order in SAP Ariba…');
+                        await insertLog({
+                            run_id: run.id, step_number: 13, log_type: 'decision',
+                            message: 'Desktop Agent closing PO-2026-11780 in SAP Ariba - all line items received, invoiced, and matched',
+                            metadata: {
+                                step_name: 'Desktop Agent - PO Closure (SAP Ariba)', reasoning_steps: [
+                                    'Launching Desktop Agent to close PO in SAP Ariba',
+                                    'Action 1: Open PO-2026-11780 in SAP Ariba',
+                                    'Action 2: Verify all line items: 27/27 vials received (GR-2026-09210)',
+                                    'Action 3: Verify invoice match: INV-MS-2026-3384 matched and cleared',
+                                    'Action 4: Verify CoA approved: LOT-FACRS-2026-0422 released by QA',
+                                    "Action 5: Update PO status from 'Ordered' to 'Closed'",
+                                    'Action 6: Close PO-2026-11780',
+                                    'PO lifecycle complete',
+                                ],
+                            },
+                        });
+                        await insertLog({
+                            run_id: run.id, step_number: 13, log_type: 'complete',
+                            message: 'PR-to-PO lifecycle complete. Consolidated order of 27 vials delivered, QA-approved, invoiced, and cleared for payment. EUR 340 saved via consolidation.',
+                            metadata: {
+                                step_name: 'PO Closed - Lifecycle Complete', vendor_name: 'MilliporeSigma',
+                                total: 'EUR 7,344', resolution: 'CONSOLIDATE',
+                                reasoning_steps: [
+                                    "PO-2026-11780 closed in SAP Ariba with status 'Closed'",
+                                    'Full lifecycle summary:',
+                                    '1. PR-2026-06142 (duplicate) detected and consolidated into PR-2026-06078',
+                                    '2. QA Manager approved GxP-Critical procurement',
+                                    '3. Desktop Agent merged PRs in SAP Ariba',
+                                    '4. Desktop Agent converted approved PR to PO-2026-11780',
+                                    '5. PO dispatched to MilliporeSigma via Ariba Network',
+                                    '6. 27 vials received at Kastrup, CoA approved by QA, GR posted',
+                                    '7. Invoice 3-way matched - auto-cleared',
+                                    '8. Desktop Agent closed PO-2026-11780',
+                                    'Payment due 2026-05-29 (Net 30)',
+                                    'Total value: EUR 7,344 | Savings: EUR 340 from consolidation',
+                                ],
+                            },
+                        });
+                        await sleep(800);
+                        await updateRun('done', 'PR-to-PO lifecycle complete - consolidated with EUR 340 savings');
+
+                    } else if (decision.id === 'proceed_separate') {
+                        /* --- S7 Calibration: Proceed separately --- */
+                        setProcessingLabel('Processing as separate order…');
+                        await insertLog({
+                            run_id: run.id, step_number: 7, log_type: 'decision',
+                            message: 'Dr. Kowalski selected PROCEED SEPARATELY - processing PR-2026-06142 as independent order',
+                            metadata: {
+                                step_name: 'Resolution - Proceed Separately', hitl_decision: true,
+                                decision: 'proceed_separate', decided_by: name.trim(),
+                                reasoning_steps: [
+                                    `Dr. Kowalski confirmed: Bioassay Lab requires dedicated stock`,
+                                    'Decision: PROCEED SEPARATELY - PR-2026-06142 continues as independent order',
+                                    'Business justification: Bioassay Lab requires dedicated calibration standard vials for potency assay validation',
+                                    'PR will be routed through standard approval chain',
+                                ],
+                            },
+                        });
+                        await insertLog({
+                            run_id: run.id, step_number: 8, log_type: 'decision',
+                            message: 'Desktop Agent updating SAP Ariba - approving PR-2026-06142 with justification',
+                            metadata: {
+                                step_name: 'Desktop Agent - SAP Ariba Update', reasoning_steps: [
+                                    'Launching Desktop Agent to execute SAP Ariba changes',
+                                    'Action 1: Open PR-2026-06142 -> Add business justification',
+                                    'Action 2: Update duplicate flag -> Acknowledged (Justified)',
+                                    'Action 3: Route PR-2026-06142 to approval workflow',
+                                    'All SAP Ariba changes committed successfully',
+                                ],
+                            },
+                        });
+                        await insertLog({
+                            run_id: run.id, step_number: 8, log_type: 'complete',
+                            message: 'PR-2026-06142 approved as separate order with justification. Routed for PO creation in SAP Ariba.',
+                            metadata: { step_name: 'Complete', vendor_name: 'MilliporeSigma', total: 'EUR 3,420', resolution: 'PROCEED SEPARATELY' },
+                        });
+                        await updateRun('done', `Separate order approved by ${name.trim()}`);
+
+                    } else {
+                        /* --- S7 Calibration: Cancel duplicate --- */
+                        setProcessingLabel('Cancelling duplicate PR…');
+                        await insertLog({
+                            run_id: run.id, step_number: 7, log_type: 'decision',
+                            message: 'Dr. Kowalski selected CANCEL - withdrawing PR-2026-06142 entirely',
+                            metadata: {
+                                step_name: 'Resolution - Cancel Duplicate', hitl_decision: true,
+                                decision: 'cancel_duplicate', decided_by: name.trim(),
+                                reasoning_steps: [
+                                    'Dr. Kowalski confirmed: the existing order PR-2026-06078 covers the requirement',
+                                    'Decision: CANCEL PR-2026-06142',
+                                    'Dr. Reiner\'s order of 15 vials is sufficient for both labs',
+                                ],
+                            },
+                        });
+                        await insertLog({
+                            run_id: run.id, step_number: 8, log_type: 'decision',
+                            message: 'Desktop Agent updating SAP Ariba - cancelling PR-2026-06142',
+                            metadata: {
+                                step_name: 'Desktop Agent - SAP Ariba Update', reasoning_steps: [
+                                    'Launching Desktop Agent to execute SAP Ariba changes',
+                                    "Action 1: Open PR-2026-06142 -> Change status to Cancelled",
+                                    "Action 2: Add comment: 'Cancelled by requestor - duplicate of PR-2026-06078'",
+                                    'Action 3: Update duplicate flag -> Resolved (Cancelled)',
+                                    'All SAP Ariba changes committed successfully',
+                                ],
+                            },
+                        });
+                        await insertLog({
+                            run_id: run.id, step_number: 8, log_type: 'complete',
+                            message: 'PR-2026-06142 cancelled in SAP Ariba. Duplicate order of EUR 3,420 prevented. Existing PR-2026-06078 continues as planned.',
+                            metadata: { step_name: 'Complete', vendor_name: 'MilliporeSigma', total: 'EUR 0 (cancelled)', resolution: 'CANCEL' },
+                        });
+                        await updateRun('done', `Duplicate cancelled by ${name.trim()}`);
+                    }
+
+                                } else if (scenario === 'duplicate') {
                     if (decision.id === 'consolidate') {
                         /* --- Duplicate: Consolidate orders --- */
                         setProcessingLabel('Recording consolidation decision…');
