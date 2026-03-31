@@ -955,7 +955,7 @@ const ProcessDetails = () => {
 
     // Collect all data artifacts (non-document, viewable) for tabs
     const allViewableDataArtifacts = useMemo(() => {
-        return allArtifacts.filter(a => !isDocumentFile(a) && (a.content || a.data || a._isMetaArtifact || (a.url && (a.file_type === 'application/json' || a.file_type === 'json' || a.filename?.endsWith('.json')))));
+        return allArtifacts.filter(a => !isDocumentFile(a) && !a._isEmailDraft && (a.content || a.data || a._isMetaArtifact || (a.url && (a.file_type === 'application/json' || a.file_type === 'json' || a.filename?.endsWith('.json')))));
     }, [allArtifacts]);
 
     // Three-panel mode is active when we have both a data artifact AND a document
