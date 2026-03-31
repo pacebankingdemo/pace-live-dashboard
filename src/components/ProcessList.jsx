@@ -13,7 +13,7 @@ import { buildColumnsFromSchema } from '../config/dynamicColumns';
      logic lives in this file.  To add or change columns for any process,
      edit src/config/processColumns.jsx only.
    ─ Data strategy per run:
-       • metaMap    step-1 system logs  → flat metadata object
+       • metaMap    step-0 system logs (primary) + step-1 fallback → flat metadata object
        • artMetaMap artifact-type logs  → { [dataset_name]: data } map
        Both are merged into run._meta so column renderers can reach either.
 ───────────────────────────────────────────────────────────────── */
@@ -35,7 +35,20 @@ const ProcessList = () => {
                 const artMetaMap = {};
 
                 if (runIds.length > 0) {
-                    /* ── Step-1 system/complete logs → flat metadata ── */
+                    /* ── Step-0 system logs → flat metadata (primary for dynamic columns) ── */
+                    const { data: logs0 } = await supabase
+                        .from('activity_logs')
+                        .select('run_id, metadata')
+                        .in('run_id', runIds)
+                        .eq('step_number', 0)
+                        .eq('log_type', 'system');
+                    (logs0 || []).forEach(l => {
+                        if (l.metadata && Object.keys(l.metadata).length > 0) {
+                            metaMap[l.run_id] = l.metadata;
+                        }
+                    });
+
+                    /* ── Step-1 system/complete logs → flat metadata (legacy fallback) ── */
                     const { data: logs } = await supabase
                         .from('activity_logs')
                         .select('run_id, metadata')
@@ -43,7 +56,10 @@ const ProcessList = () => {
                         .eq('step_number', 1)
                         .neq('log_type', 'artifact');
                     (logs || []).forEach(l => {
-                        metaMap[l.run_id] = l.metadata || {};
+                        // Only use step-1 if step-0 didn\'t already populate this run
+                        if (!metaMap[l.run_id]) {
+                            metaMap[l.run_id] = l.metadata || {};
+                        }
                     });
 
                     /* ── Artifact logs (all steps) → artMeta keyed by dataset_name ── */
