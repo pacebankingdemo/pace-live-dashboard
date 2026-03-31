@@ -872,6 +872,7 @@ const ProcessDetails = () => {
     const [isResizing, setIsResizing] = useState(false);
     const logsEndRef = useRef(null);
     const [visibleCount, setVisibleCount] = useState(0);
+    const [isAnimating, setIsAnimating] = useState(false);
     const hasAnimated = useRef(false);
 
     // Three-panel mode state
@@ -1110,11 +1111,15 @@ const ProcessDetails = () => {
         if (groupedLogsLength === 0) return;
         hasAnimated.current = true;
         setVisibleCount(0);
+        setIsAnimating(true);
         let current = 0;
         const interval = setInterval(() => {
             current += 1;
             setVisibleCount(current);
-            if (current >= groupedLogsLength) clearInterval(interval);
+            if (current >= groupedLogsLength) {
+                clearInterval(interval);
+                setIsAnimating(false);
+            }
         }, 600);
         return () => clearInterval(interval);
     }, [groupedLogsLength]);
@@ -1308,7 +1313,9 @@ const ProcessDetails = () => {
                             {groupedLogs.slice(0, visibleCount).map((group, groupIndex) => {
                                 const { firstLog, lastLog, mergedReasoning, allReasoningSteps, allNarratives, msgSplit, dbArtifacts, metaArtifacts, recordings: groupRecordings } = group;
                                 const isLastGroup = groupIndex === groupedLogs.length - 1;
-                                const status = getIconStatus(lastLog, isLastGroup ? logs.length - 1 : logs.indexOf(lastLog));
+                                const isLastVisible = groupIndex === visibleCount - 1;
+                                const rawStatus = getIconStatus(lastLog, isLastGroup ? logs.length - 1 : logs.indexOf(lastLog));
+                                const status = (isAnimating && isLastVisible) ? 'in-progress' : rawStatus;
                                 // Use the first non-artifact message as a descriptive label, fall back to step_name
                                 const summaryPhrase = group.messages?.[0] || '';
                                 const stepLabel = summaryPhrase || group.stepName || getStepName(firstLog);
@@ -1332,9 +1339,10 @@ const ProcessDetails = () => {
                                 return (
                                     <div
                                         key={firstLog.id}
-                                        className="flex gap-4 pb-6 relative log-entry-float"
+                                        className="flex gap-4 pb-6 relative"
                                         style={{
-                                            '--entry-delay': `${groupIndex * 0.05}s`,
+                                            animation: 'logFadeIn 0.45s ease both',
+                                            animationDelay: `${groupIndex * 0.05}s`,
                                         }}
                                     >
                                         {/* Timestamp gutter */}

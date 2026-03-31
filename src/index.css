@@ -214,16 +214,4 @@ body {
 .kb-content td {
   @apply px-8 py-5 border-t border-[#ebebeb] text-[17px] text-[#666666];
 }
-@keyframes logFloat {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
 
-.log-entry-float {
-  animation: logFadeIn 0.45s ease both, logFloat 3s ease-in-out infinite;
-  animation-delay: var(--entry-delay, 0s), calc(var(--entry-delay, 0s) + 0.45s);
-}
