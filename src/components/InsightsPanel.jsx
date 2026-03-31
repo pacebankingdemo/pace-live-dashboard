@@ -31,6 +31,36 @@ export default function InsightsPanel() {
 
     const INSIGHTS_PROCESS_ID = currentOrg?.id ? INSIGHTS_PROCESS_MAP[currentOrg.id] : null;
 
+    // Org-aware copy
+    const isPwC = currentOrg?.id === 'd488c0b3-46ed-46ca-b516-83bdb20466de';
+    const COPY = isPwC ? {
+        approveLog: 'Insight approved by AP team. Pace knowledge base updated — pattern will be applied to future invoice processing with full audit trail.',
+        rejectLog: 'Insight rejected by AP team. Current manual review process will be maintained for affected invoices.',
+        approveStep1: (date) => `AP reviewer approved insight on ${date}`,
+        approveStep2: 'Pace will apply this pattern to future invoice processing automatically',
+        approveStep3: 'Every automated action will reference this insight in the audit trail',
+        rejectStep1: (date) => `AP reviewer rejected insight on ${date}`,
+        rejectStep2: 'Manual processing unchanged — all affected invoices require analyst review',
+        rejectStep3: 'Pattern remains logged for future reconsideration',
+        ctaLabel: 'Approve to let Pace apply this pattern to future invoice processing',
+        approvedFooter: 'Knowledge base updated — Pace will apply this pattern automatically',
+        rejectedFooter: 'Insight rejected — manual review maintained',
+        subtitle: 'Patterns Pace discovered from historical invoice processing data. Review and approve to update the knowledge base.',
+    } : {
+        approveLog: 'Insight approved by compliance team. Pace knowledge base updated — matching alerts will be auto-cleared at L1 with documented reasoning.',
+        rejectLog: 'Insight rejected by compliance team. Current manual review process will be maintained for all matching alerts.',
+        approveStep1: (date) => `Compliance reviewer approved insight on ${date}`,
+        approveStep2: 'Pace will now auto-clear alerts matching this pattern profile at L1',
+        approveStep3: 'Every auto-clearance will reference this insight for audit purposes',
+        rejectStep1: (date) => `Compliance reviewer rejected insight on ${date}`,
+        rejectStep2: 'Manual review process unchanged — all alerts require analyst triage',
+        rejectStep3: 'Pattern remains logged for future reconsideration',
+        ctaLabel: 'Approve to let Pace auto-clear matching alerts at L1',
+        approvedFooter: 'Knowledge base updated — Pace will auto-clear matching alerts',
+        rejectedFooter: 'Insight rejected — manual review maintained',
+        subtitle: 'Patterns Pace discovered from historical screening data. Review and approve to update the knowledge base.',
+    };
+
     useEffect(() => {
         if (INSIGHTS_PROCESS_ID) loadInsights();
     }, [INSIGHTS_PROCESS_ID]);
@@ -85,24 +115,23 @@ export default function InsightsPanel() {
         setActionInProgress(insightId);
         try {
             const statusText = action === 'approve' ? 'Approved — KB Updated' : 'Rejected — No Action';
-            const logMessage = action === 'approve'
-                ? 'Insight approved by compliance team. Pace knowledge base updated — matching alerts will be auto-cleared at L1 with documented reasoning.'
-                : 'Insight rejected by compliance team. Current manual review process will be maintained for all matching alerts.';
+            const logMessage = action === 'approve' ? COPY.approveLog : COPY.rejectLog;
+            const dateStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
             await supabase.from('activity_logs').insert({
                 run_id: insightId,
-                step_number: 5,
+                step_number: 7,
                 log_type: 'decision',
                 message: logMessage,
                 metadata: {
                     step_name: action === 'approve' ? 'Approved' : 'Rejected',
                     reasoning_steps: [
-                        `Compliance reviewer ${action === 'approve' ? 'approved' : 'rejected'} insight on ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`,
-                        action === 'approve' ? 'Pace will now auto-clear alerts matching this pattern profile at L1' : 'Manual review process unchanged — all alerts require analyst triage',
-                        action === 'approve' ? 'Every auto-clearance will reference this insight for audit purposes' : 'Pattern remains logged for future reconsideration'
+                        action === 'approve' ? COPY.approveStep1(dateStr) : COPY.rejectStep1(dateStr),
+                        action === 'approve' ? COPY.approveStep2 : COPY.rejectStep2,
+                        action === 'approve' ? COPY.approveStep3 : COPY.rejectStep3,
                     ]
                 }
             });
-            await supabase.from('activity_runs').update({ current_status_text: statusText }).eq('id', insightId);
+            await supabase.from('activity_runs').update({ current_status_text: statusText, status: 'done' }).eq('id', insightId);
             await loadInsights();
         } catch (err) {
             console.error(`Failed to ${action} insight:`, err);
@@ -156,7 +185,7 @@ export default function InsightsPanel() {
                         <Sparkles className="w-4 h-4 text-amber-500" />
                         <h1 className="text-[18px] font-[600] text-[#171717]">Insights</h1>
                     </div>
-                    <p className="text-[13px] text-[#8f8f8f] ml-[26px]">Patterns Pace discovered from historical screening data. Review and approve to update the knowledge base.</p>
+                    <p className="text-[13px] text-[#8f8f8f] ml-[26px]">{COPY.subtitle}</p>
                 </div>
 
                 <div className="space-y-4">
@@ -270,7 +299,7 @@ export default function InsightsPanel() {
                                         {/* Action Buttons */}
                                         {isPending && (
                                             <div className="px-5 py-4 bg-[#fafafa] flex items-center justify-between">
-                                                <p className="text-[12px] text-[#8f8f8f]">Approve to let Pace auto-clear matching alerts at L1</p>
+                                                <p className="text-[12px] text-[#8f8f8f]">{COPY.ctaLabel}</p>
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); handleAction(insight.id, 'reject'); }}
@@ -294,7 +323,7 @@ export default function InsightsPanel() {
                                             <div className="px-5 py-3 bg-[#fafafa]">
                                                 <span className={`inline-flex items-center gap-1.5 text-[12px] font-[500] ${status.label === 'Approved' ? 'text-emerald-600' : 'text-red-600'}`}>
                                                     {status.icon}
-                                                    {status.label === 'Approved' ? 'Knowledge base updated — Pace will auto-clear matching alerts' : 'Insight rejected — manual review maintained'}
+                                                    {status.label === 'Approved' ? COPY.approvedFooter : COPY.rejectedFooter}
                                                 </span>
                                             </div>
                                         )}
