@@ -909,19 +909,20 @@ const ProcessDetails = () => {
     }, [logs]);
 
     // Staggered log animation — plays once when groups first load
+    const groupedLogsLength = groupedLogs.length;
     useEffect(() => {
         if (hasAnimated.current) return;
-        if (groupedLogs.length === 0) return;
+        if (groupedLogsLength === 0) return;
         hasAnimated.current = true;
         setVisibleCount(0);
         let current = 0;
         const interval = setInterval(() => {
             current += 1;
             setVisibleCount(current);
-            if (current >= groupedLogs.length) clearInterval(interval);
+            if (current >= groupedLogsLength) clearInterval(interval);
         }, 600);
         return () => clearInterval(interval);
-    }, [groupedLogs.length > 0]);
+    }, [groupedLogsLength]);
 
     useEffect(() => {
         if (!isResizing) return;
