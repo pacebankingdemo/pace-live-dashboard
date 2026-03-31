@@ -1429,7 +1429,7 @@ const ProcessDetails = () => {
                                                             </button>
                                                         );
                                                     })}
-                                                    {metaArtifacts.map(da => {
+                                                    {metaArtifacts.filter(da => !uniqueDbArts.some(db => db.filename === da.filename || db.id === da.id)).map(da => {
                                                         // SharePoint links — blue pill with SP icon
                                                         if (da.file_type === 'sharepoint') {
                                                             return (
