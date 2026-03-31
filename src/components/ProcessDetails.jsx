@@ -908,7 +908,7 @@ const ProcessDetails = () => {
         logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [logs]);
 
-    // Staggered log animation — plays once when groups first load
+    // Staggered log animation — plays once when groups first load (v2)
     const groupedLogsLength = groupedLogs.length;
     useEffect(() => {
         if (hasAnimated.current) return;
