@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
     ChevronDown, Database, Users, BookOpen, LogOut,
     ArrowLeft, ChevronRight, MessageSquare, Activity,
-    Lightbulb, BarChart2
+    Search, Lightbulb, BarChart2
 } from 'lucide-react';
 import { supabase, fetchOrgs, fetchProcesses, subscribeToTable } from '../services/supabase';
 
@@ -242,8 +242,8 @@ const DashboardLayout = () => {
                         {currentProcess && (
                             <button onClick={() => navigate('/done/knowledge-base')}
                                 title="Knowledge Base"
-                                className="flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-[#e8e8e8] shadow-[0_1px_3px_rgba(0,0,0,0.08)] text-[#5f5f5f] hover:text-[#333] hover:shadow-[0_2px_6px_rgba(0,0,0,0.12)] transition-all">
-                                <BookOpen size={18} strokeWidth={1.6} />
+                                className="flex items-center justify-center w-[28px] h-[28px] rounded-lg bg-white border border-[#e8e8e8] shadow-[0_1px_2px_rgba(0,0,0,0.06)] text-[#5f5f5f] hover:text-[#333] hover:shadow-[0_2px_5px_rgba(0,0,0,0.1)] transition-all">
+                                <BookOpen size={15} strokeWidth={1.6} />
                             </button>
                         )}
 
