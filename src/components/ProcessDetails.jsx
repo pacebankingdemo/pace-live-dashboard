@@ -908,22 +908,6 @@ const ProcessDetails = () => {
         logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [logs]);
 
-    // Staggered log animation — plays once when groups first load (v2)
-    const groupedLogsLength = groupedLogs.length;
-    useEffect(() => {
-        if (hasAnimated.current) return;
-        if (groupedLogsLength === 0) return;
-        hasAnimated.current = true;
-        setVisibleCount(0);
-        let current = 0;
-        const interval = setInterval(() => {
-            current += 1;
-            setVisibleCount(current);
-            if (current >= groupedLogsLength) clearInterval(interval);
-        }, 600);
-        return () => clearInterval(interval);
-    }, [groupedLogsLength]);
-
     useEffect(() => {
         if (!isResizing) return;
         const handleMouseMove = (e) => {
@@ -1118,6 +1102,22 @@ const ProcessDetails = () => {
             };
         });
     }, [logs, artifacts, recordings, logMetaClassified]);
+
+    // Staggered log animation — plays once when groups first load
+    const groupedLogsLength = groupedLogs.length;
+    useEffect(() => {
+        if (hasAnimated.current) return;
+        if (groupedLogsLength === 0) return;
+        hasAnimated.current = true;
+        setVisibleCount(0);
+        let current = 0;
+        const interval = setInterval(() => {
+            current += 1;
+            setVisibleCount(current);
+            if (current >= groupedLogsLength) clearInterval(interval);
+        }, 600);
+        return () => clearInterval(interval);
+    }, [groupedLogsLength]);
 
     const formatTime = (ts) => {
         if (!ts) return '';
