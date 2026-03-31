@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
     ChevronDown, Database, Users, BookOpen, LogOut,
     ArrowLeft, ChevronRight, MessageSquare, Activity,
-    Search, Lightbulb, Settings, CheckCircle, Share2, Command, BarChart2
+    Lightbulb, BarChart2
 } from 'lucide-react';
 import { supabase, fetchOrgs, fetchProcesses, subscribeToTable } from '../services/supabase';
 
@@ -234,19 +234,7 @@ const DashboardLayout = () => {
                         </div>
                     </div>
 
-                    {/* CENTER — Work with Pace search pill */}
-                    <div className="absolute left-1/2 -translate-x-1/2">
-                        <button className="flex items-center gap-2 h-[28px] px-3 rounded-lg bg-white border border-[#e8e8e8] shadow-[0_1px_2px_rgba(0,0,0,0.05)] hover:shadow-[0_1px_4px_rgba(0,0,0,0.08)] hover:border-[#d8d8d8] transition-all">
-                            <Search size={11} className="text-[#c0c0c0]" strokeWidth={2} />
-                            <span className="text-[12px] text-[#b0b0b0] font-[440] whitespace-nowrap">Work with Pace</span>
-                            <div className="flex items-center gap-0.5 ml-1 pl-2 border-l border-[#efefef]">
-                                <kbd className="flex items-center justify-center w-[16px] h-[16px] rounded-[4px] bg-[#f5f5f5] border border-[#e8e8e8]">
-                                    <Command size={8} className="text-[#b0b0b0]" strokeWidth={1.8} />
-                                </kbd>
-                                <kbd className="flex items-center justify-center px-1 h-[16px] rounded-[4px] bg-[#f5f5f5] border border-[#e8e8e8] text-[9px] text-[#b0b0b0] font-[600]">K</kbd>
-                            </div>
-                        </button>
-                    </div>
+
 
                     {/* RIGHT — KB · comments · settings · checks · share */}
                     <div className="flex items-center gap-0.5">
@@ -254,31 +242,12 @@ const DashboardLayout = () => {
                         {currentProcess && (
                             <button onClick={() => navigate('/done/knowledge-base')}
                                 title="Knowledge Base"
-                                className="flex items-center justify-center w-7 h-7 rounded-md text-[#b8b8b8] hover:text-[#555] hover:bg-[#f0f0f0] transition-colors">
-                                <BookOpen size={14} strokeWidth={1.6} />
+                                className="flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-[#e8e8e8] shadow-[0_1px_3px_rgba(0,0,0,0.08)] text-[#5f5f5f] hover:text-[#333] hover:shadow-[0_2px_6px_rgba(0,0,0,0.12)] transition-all">
+                                <BookOpen size={18} strokeWidth={1.6} />
                             </button>
                         )}
 
-                        <button className="flex items-center justify-center w-7 h-7 rounded-md text-[#b8b8b8] hover:text-[#555] hover:bg-[#f0f0f0] transition-colors">
-                            <MessageSquare size={14} strokeWidth={1.6} />
-                        </button>
-
-                        {/* Settings with badge */}
-                        <button className="relative flex items-center justify-center w-7 h-7 rounded-md text-[#b8b8b8] hover:text-[#555] hover:bg-[#f0f0f0] transition-colors">
-                            <Settings size={14} strokeWidth={1.6} />
-                            <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[14px] h-[14px] px-[3px] rounded-full bg-[#1a1a1a] text-white text-[8px] font-[700] leading-none">2</span>
-                        </button>
-
-                        {/* Check with badge */}
-                        <button className="relative flex items-center justify-center w-7 h-7 rounded-md text-[#b8b8b8] hover:text-[#555] hover:bg-[#f0f0f0] transition-colors">
-                            <CheckCircle size={14} strokeWidth={1.6} />
-                            <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[14px] h-[14px] px-[3px] rounded-full bg-[#1a1a1a] text-white text-[8px] font-[700] leading-none">5</span>
-                        </button>
-
-                        <div className="w-px h-4 bg-[#e8e8e8] mx-1.5" />
-
-                        <button className="flex items-center gap-1.5 h-[28px] px-2.5 rounded-md bg-[#171717] hover:bg-[#2d2d2d] text-white text-[12px] font-[500] transition-colors">
-                            <Share2 size={11} strokeWidth={2} />
+                        <button className="flex items-center gap-1.5 h-[28px] px-3 rounded-md bg-white border border-[#e8e8e8] hover:bg-[#f5f5f5] text-[#171717] text-[12px] font-[500] shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-colors">
                             <span>Share</span>
                         </button>
                     </div>
