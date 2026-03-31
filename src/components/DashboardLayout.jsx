@@ -7,6 +7,12 @@ import {
 } from 'lucide-react';
 import { supabase, fetchOrgs, fetchProcesses, subscribeToTable } from '../services/supabase';
 
+// Process IDs used by the Insights panel — hide from the sidebar process list
+const INSIGHTS_PROCESS_IDS = new Set([
+    '795b85bb-ef67-4e56-aaec-2a07d5ed8c90', // NatWest Insights
+    'fa91e289-044b-4fc9-a626-ebdb6c0ee64b', // PwC Insights
+]);
+
 const DashboardLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -139,10 +145,12 @@ const DashboardLayout = () => {
                         <div className="flex items-center justify-between px-3 mb-2">
                             <span className="text-[12px] font-[550] text-[#8f8f8f]">Processes</span>
                         </div>
-                        {processes.length === 0 ? (
+                        {(() => {
+                            const visibleProcesses = processes.filter(proc => !INSIGHTS_PROCESS_IDS.has(proc.id));
+                            return visibleProcesses.length === 0 ? (
                             <div className="px-3 py-2 text-[12px] text-[#cacaca]">No processes yet</div>
                         ) : (
-                            processes.map(proc => (
+                            visibleProcesses.map(proc => (
                                 <SidebarItem
                                     key={proc.id}
                                     icon={<Activity />}
@@ -151,7 +159,7 @@ const DashboardLayout = () => {
                                     onClick={() => { setCurrentProcess(proc); navigate('/done/processes'); }}
                                 />
                             ))
-                        )}
+                        ); })()}
                     </div>
                 </nav>
                 <div className="mt-auto border-t border-[#f0f0f0] relative p-1 bg-[#FAFAFA]">
