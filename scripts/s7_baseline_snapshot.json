@@ -1,0 +1,394 @@
+{
+  "_meta": {
+    "tag": "v1.0-s7-baseline",
+    "description": "Full DB snapshot for S7 baseline rollback",
+    "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+    "process_id": "299fead3-7d7c-460f-af50-3546c8f9f6be"
+  },
+  "process": {
+    "id": "299fead3-7d7c-460f-af50-3546c8f9f6be",
+    "org_id": "05b05671-7723-402d-9e93-618d1030e36c",
+    "name": "PR-PO",
+    "slug": "pr-po",
+    "knowledge_base": "{\"version\": 1774632888, \"storage_path\": \"knowledge-base/299fead3-7d7c-460f-af50-3546c8f9f6be/kb.md\", \"triggers\": [\"chat\", \"email\"], \"integrations\": [\"SAP Ariba\", \"SAP S/4HANA\", \"Google Sheets\", \"Slack\"], \"updated_at\": \"2026-03-27T17:34:48.382442+00:00\"}",
+    "status": "active",
+    "created_at": "2026-03-27T17:22:39.82934+00:00",
+    "metadata": {}
+  },
+  "run": {
+    "id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+    "process_id": "299fead3-7d7c-460f-af50-3546c8f9f6be",
+    "name": "Duplicate PR Detection - Calibration Standard Double-Order",
+    "document_name": null,
+    "status": "needs_attention",
+    "current_status_text": "Human-in-the-loop decision required \u2014 select how to proceed with duplicate PR",
+    "created_at": "2026-03-29T10:23:10.187115+00:00",
+    "updated_at": "2026-03-29T10:23:10.187115+00:00"
+  },
+  "logs": [
+    {
+      "id": "8bc435a8-9d5a-4b22-8ddc-b69c00c3f6c7",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 1,
+      "log_type": "decision",
+      "message": "New purchase requisition PR-2026-06142 received - extracting and validating details from SAP Ariba",
+      "metadata": {
+        "step_name": "PR Data Extraction & Validation",
+        "reasoning_steps": [
+          "New PR-2026-06142 submitted by Dr. Elena Kowalski (Bioassay Laboratory, Kastrup)",
+          "Connecting to SAP Ariba to extract full requisition details",
+          "Material: EP Follitropin Alpha CRS - 12 vials at EUR 285/vial",
+          "Total value: EUR 3,420 | Supplier: MilliporeSigma | GxP-Critical",
+          "Running PR submission validations (V1-V6):",
+          "V1: All required fields populated - PASS",
+          "V2: Total estimated value EUR 3,420 > 0 - PASS",
+          "V3: Cost center BIO-DK-4200 has sufficient uncommitted budget (EUR 28,400 available) - PASS",
+          "V4: GL account 6200-3100 matches spend category GXP-REF mapping - PASS",
+          "V5: Requested delivery date April 21 >= PR date + 5 business days (April 16) - PASS",
+          "V6: Supplier MilliporeSigma (V-10023) on AVL with status Approved for GXP-LAB, GXP-REF - PASS",
+          "All 6 submission validations passed - PR cleared for processing"
+        ]
+      },
+      "created_at": "2026-03-29T10:23:38.435534+00:00"
+    },
+    {
+      "id": "211b5685-628e-4cb8-a7f9-8238e6e89398",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 1,
+      "log_type": "artifact",
+      "message": "Purchase Requisition",
+      "metadata": {
+        "total": "EUR 3,420",
+        "doc_type": "source_document",
+        "file_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/PR-2026-06142.pdf",
+        "file_name": "PR-2026-06142.pdf",
+        "file_type": "application/pdf",
+        "pr_number": "PR-2026-06142",
+        "requester": "Dr. Elena Kowalski",
+        "step_name": "Purchase Requisition",
+        "artifact_id": "b56e18eb-2726-4733-85fc-f4af464ee16b",
+        "vendor_name": "MilliporeSigma",
+        "file_size_bytes": 1968
+      },
+      "created_at": "2026-03-29T10:23:39.40837+00:00"
+    },
+    {
+      "id": "956fe23f-c697-426c-83ba-1e6bc3c5f185",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 2,
+      "log_type": "error",
+      "message": "Duplicate detected - PR-2026-06142 matches existing requisition PR-2026-06078 with 91% similarity",
+      "metadata": {
+        "result": "DUPLICATE DETECTED",
+        "step_name": "Duplicate Detection",
+        "reasoning_steps": [
+          "Running duplicate detection against all open requisitions in SAP Ariba",
+          "Rule DUP-1: Same material check - EP Follitropin Alpha CRS - MATCH",
+          "Rule DUP-2: Same supplier check - MilliporeSigma (V-10023) - MATCH",
+          "Rule DUP-3: Time window check - 7 days apart (within 30-day threshold) - MATCH",
+          "Rule DUP-4: Description similarity - 91% (above 85% threshold) - MATCH",
+          "Existing PR-2026-06078 identified (Dr. Tom\u00e1s Reiner, Formulation Development)",
+          "Retrieving existing requisition from SAP Ariba for side-by-side comparison"
+        ]
+      },
+      "created_at": "2026-03-29T10:23:39.873235+00:00"
+    },
+    {
+      "id": "292a4252-7e25-4390-a210-09d14cbdca18",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 2,
+      "log_type": "artifact",
+      "message": "Existing Purchase Requisition",
+      "metadata": {
+        "total": "EUR 4,275",
+        "doc_type": "source_document",
+        "file_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/PR-2026-06078-EXISTING.pdf",
+        "file_name": "PR-2026-06078-EXISTING.pdf",
+        "file_type": "application/pdf",
+        "pr_number": "PR-2026-06078",
+        "requester": "Dr. Tom\u00e1s Reiner",
+        "step_name": "Existing PR (from SAP Ariba)",
+        "artifact_id": "a739b78c-a5a2-4862-9a41-02304e14cce3",
+        "vendor_name": "MilliporeSigma",
+        "file_size_bytes": 1974
+      },
+      "created_at": "2026-03-29T10:23:40.344964+00:00"
+    },
+    {
+      "id": "857f71fb-3996-47d7-bd15-00da947bb7fa",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 2,
+      "log_type": "artifact",
+      "message": "Duplicate Validation Results",
+      "metadata": {
+        "data": {
+          "Matched PR": "PR-2026-06078 (Dr. Tom\u00e1s Reiner)",
+          "Overall Result": "DUPLICATE DETECTED",
+          "Rule DUP-4 (Similarity)": "91% (> 85% threshold)",
+          "Rule DUP-3 (Time Window)": "7 days (< 30 day threshold)",
+          "Rule DUP-1 (Same Material)": "MATCH",
+          "Rule DUP-2 (Same Supplier)": "MATCH"
+        },
+        "step_name": "Validation Results"
+      },
+      "created_at": "2026-03-29T10:23:40.802467+00:00"
+    },
+    {
+      "id": "3b97e29c-fd58-48b0-b102-232f62d43737",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 3,
+      "log_type": "decision",
+      "message": "GxP-Critical material detected - sending QA Manager approval request via email",
+      "metadata": {
+        "step_name": "QA Manager Approval Request",
+        "reasoning_steps": [
+          "PR-2026-06142 classified as GxP-Critical (Calibration Standard used in potency assays)",
+          "Per approval matrix: GxP-Critical materials require QA Manager sign-off before further processing",
+          "QA Manager for Kastrup site: Dr. Henrik Madsen (Quality Assurance)",
+          "Preparing approval request email with PR details, AVL verification, and GxP classification",
+          "Attaching PR-2026-06142 PDF and supplier qualification summary for review",
+          "Email dispatched to dr.madsen@ferring.com - awaiting approval response"
+        ]
+      },
+      "created_at": "2026-03-29T10:23:41.249328+00:00"
+    },
+    {
+      "id": "b67b181a-0004-4333-a224-70658372fcd8",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 3,
+      "log_type": "artifact",
+      "message": "QA approval request sent to Dr. Henrik Madsen",
+      "metadata": {
+        "step_name": "QA Approval Request Email",
+        "email_draft": {
+          "cc": "elena.kowalski@ferring.com; qa-procurement@ferring.com",
+          "to": "henrik.madsen@ferring.com",
+          "body": "Dear Dr. Madsen,\n\nA new Purchase Requisition requires your QA approval as it involves a GxP-Critical material.\n\nPR Details:\n- PR Number: PR-2026-06142\n- Requester: Dr. Elena Kowalski (Bioassay Laboratory, Kastrup)\n- Material: EP Follitropin Alpha CRS (Calibration Standard)\n- Quantity: 12 vials | Unit Price: EUR 285/vial | Total: EUR 3,420\n- Supplier: MilliporeSigma (V-10023)\n- AVL Status: Approved | GMP Certified: Yes\n- GxP Classification: GxP-Critical (Calibration Standard)\n\nSupplier Qualification Summary:\n- MilliporeSigma (V-10023) is on the Approved Vendor List for categories GXP-LAB and GXP-REF\n- Last supplier quality audit: November 2025 (within annual audit cycle)\n- Risk Rating: Low\n- GMP certification current and valid\n\nPlease review and reply with your approval or any concerns.\n\nRegards,\nPace - Procurement Automation\nFerring Pharmaceuticals",
+          "from": "pace-procurement@ferring.com",
+          "mode": "send",
+          "subject": "QA APPROVAL REQUIRED: PR-2026-06142 - GxP-Critical Calibration Standard",
+          "pill_label": "QA Approval Request",
+          "attachments": [
+            "PR-2026-06142.pdf"
+          ]
+        }
+      },
+      "created_at": "2026-03-29T10:23:42.207743+00:00"
+    },
+    {
+      "id": "112e8c03-01bd-445f-9fbb-1d3e96cbbc20",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 4,
+      "log_type": "decision",
+      "message": "QA Manager approval received - Dr. Henrik Madsen has approved PR-2026-06142 for GxP-Critical procurement",
+      "metadata": {
+        "step_name": "QA Manager Approval Received",
+        "reasoning_steps": [
+          "Incoming email detected from dr.madsen@ferring.com (QA Manager, Kastrup)",
+          "Subject: RE: QA APPROVAL REQUIRED: PR-2026-06142 - GxP-Critical Calibration Standard",
+          "Parsing email content for approval decision",
+          "Email body: 'Approved. MilliporeSigma is a qualified supplier for EP Follitropin Alpha CRS. Supplier audit is current (Nov 2025). No concerns with this requisition. - Dr. H. Madsen, QA Manager'",
+          "Decision extracted: APPROVED",
+          "QA approval logged against PR-2026-06142 in SAP Ariba audit trail",
+          "PR cleared for next processing stage - proceeding to duplicate resolution workflow"
+        ]
+      },
+      "created_at": "2026-03-29T10:23:43.157823+00:00"
+    },
+    {
+      "id": "6d5bbfef-1834-4f27-a8ad-cf69c50c32f5",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 4,
+      "log_type": "artifact",
+      "message": "QA Manager approval email received and processed",
+      "metadata": {
+        "step_name": "QA Approval Confirmation",
+        "email_draft": {
+          "cc": "elena.kowalski@ferring.com; qa-procurement@ferring.com",
+          "to": "pace-procurement@ferring.com",
+          "body": "Approved. MilliporeSigma is a qualified supplier for EP Follitropin Alpha CRS. Supplier audit is current (Nov 2025). No concerns with this requisition.\n\n- Dr. Henrik Madsen\nQA Manager, Kastrup Site\nFerring Pharmaceuticals",
+          "from": "henrik.madsen@ferring.com",
+          "mode": "received",
+          "subject": "RE: QA APPROVAL REQUIRED: PR-2026-06142 - GxP-Critical Calibration Standard",
+          "pill_label": "QA Approval - Received"
+        }
+      },
+      "created_at": "2026-03-29T10:23:43.644136+00:00"
+    },
+    {
+      "id": "3c5e8b74-ed4a-4df6-a1de-ed4369333847",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 5,
+      "log_type": "decision",
+      "message": "Duplicate confirmed - notifying requestor with resolution options",
+      "metadata": {
+        "step_name": "Requestor Notification",
+        "reasoning_steps": [
+          "PR-2026-06142 (Dr. Kowalski, 12 vials, EUR 3,420) is a 91% match to PR-2026-06078 (Dr. Reiner, 15 vials, EUR 4,275)",
+          "Same material, same supplier, submitted 7 days apart",
+          "Three resolution paths identified: Consolidate, Proceed Separately, or Cancel",
+          "Consolidation could save EUR 340 (volume discount + single shipment)",
+          "Generating resolution options document with impact analysis for each path",
+          "Sending notification email to requestor and stakeholders"
+        ]
+      },
+      "created_at": "2026-03-29T10:23:44.585166+00:00"
+    },
+    {
+      "id": "ca2eaa7e-746a-4d8f-9e00-c28eef17bb43",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 5,
+      "log_type": "artifact",
+      "message": "Resolution Options",
+      "metadata": {
+        "doc_type": "source_document",
+        "file_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/Resolution-Options-PR-2026-06142.pdf",
+        "file_name": "Resolution-Options-PR-2026-06142.pdf",
+        "file_type": "application/pdf",
+        "step_name": "Resolution Options",
+        "artifact_id": "718d832c-5cc7-44ad-9653-a8c85e8a3108",
+        "file_size_bytes": 2548
+      },
+      "created_at": "2026-03-29T10:23:45.059527+00:00"
+    },
+    {
+      "id": "91c89b2c-5303-431b-9fd8-4db8a26564ab",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 5,
+      "log_type": "artifact",
+      "message": "Notification sent to requestor with resolution options",
+      "metadata": {
+        "step_name": "Duplicate Notification Email",
+        "email_draft": {
+          "cc": "tomas.reiner@ferring.com; procurement-ops@ferring.com",
+          "to": "elena.kowalski@ferring.com",
+          "body": "Dear Dr. Kowalski,\n\nA potential duplicate has been identified for your Purchase Requisition PR-2026-06142.\n\nYour Request (PR-2026-06142):\n- Material: EP Follitropin Alpha CRS (Calibration Standard)\n- Quantity: 12 vials | Value: EUR 3,420\n- Supplier: MilliporeSigma | Submitted: April 9\n\nExisting Order (PR-2026-06078 - 91% match):\n- Requester: Dr. Tom\u00e1s Reiner (Formulation Development)\n- Quantity: 15 vials | Value: EUR 4,275 | Same supplier\n- Status: PO dispatched, delivery expected April 14\n- Submitted: April 2 (7 days before your request)\n\nPlease review the attached Resolution Options document for a full impact analysis of each path. A separate action request will follow shortly for your decision.\n\nRegards,\nPace - Procurement Automation\nFerring Pharmaceuticals",
+          "from": "pace-procurement@ferring.com",
+          "mode": "send",
+          "subject": "Duplicate Detected: PR-2026-06142 matches existing PR-2026-06078",
+          "pill_label": "Duplicate PR Notification",
+          "attachments": [
+            "Resolution-Options-PR-2026-06142.pdf"
+          ]
+        }
+      },
+      "created_at": "2026-03-29T10:23:46.038918+00:00"
+    },
+    {
+      "id": "fb32526b-8fef-437f-b9db-350a51eb0717",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 6,
+      "log_type": "artifact",
+      "message": "Action required - please select how to proceed with the duplicate PR",
+      "metadata": {
+        "step_name": "Requestor Decision Required",
+        "email_draft": {
+          "cc": "tomas.reiner@ferring.com; procurement-ops@ferring.com",
+          "to": "elena.kowalski@ferring.com",
+          "body": "Dear Dr. Kowalski,\n\nPR-2026-06142 has been placed on HOLD pending your decision. Please review the Resolution Options document sent earlier and select one of the following:\n\n------------------------------------\nOption 1: CONSOLIDATE\n------------------------------------\nMerge into a single order of 27 vials under PR-2026-06078.\nSaves EUR 340 (volume discount + single shipment).\n\n------------------------------------\nOption 2: PROCEED SEPARATELY\n------------------------------------\nProcess PR-2026-06142 as an independent order.\nBusiness justification required.\n\n------------------------------------\nOption 3: CANCEL DUPLICATE\n------------------------------------\nWithdraw PR-2026-06142 entirely.\nExisting order PR-2026-06078 continues unchanged.\n\nPlease respond via the dashboard to proceed.\n\nRegards,\nPace - Procurement Automation\nFerring Pharmaceuticals",
+          "from": "pace-procurement@ferring.com",
+          "mode": "draft",
+          "subject": "ACTION REQUIRED: PR-2026-06142 - Select Resolution for Duplicate",
+          "pill_label": "Duplicate PR - Action Required"
+        }
+      },
+      "created_at": "2026-03-29T10:23:46.498341+00:00"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "b56e18eb-2726-4733-85fc-f4af464ee16b",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "filename": "PR-2026-06142.pdf",
+      "file_type": "pdf",
+      "content": "",
+      "url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/PR-2026-06142.pdf",
+      "created_at": "2026-03-29T13:22:34.561251+00:00"
+    },
+    {
+      "id": "a739b78c-a5a2-4862-9a41-02304e14cce3",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "filename": "PR-2026-06078-EXISTING.pdf",
+      "file_type": "pdf",
+      "content": "",
+      "url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/PR-2026-06078-EXISTING.pdf",
+      "created_at": "2026-03-29T13:22:34.561251+00:00"
+    },
+    {
+      "id": "718d832c-5cc7-44ad-9653-a8c85e8a3108",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "filename": "Resolution-Options-PR-2026-06142.pdf",
+      "file_type": "pdf",
+      "content": "",
+      "url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/Resolution-Options-PR-2026-06142.pdf",
+      "created_at": "2026-03-29T13:22:34.561251+00:00"
+    }
+  ],
+  "recordings": [
+    {
+      "id": "8d35142e-a199-414a-9f14-454f97c8227a",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 2,
+      "session_id": "s7-new-001",
+      "s3_key": null,
+      "s3_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/View_Duplicate.mp4",
+      "status": "available",
+      "metadata": {
+        "label": "SAP Ariba - Duplicate PR Detection"
+      },
+      "created_at": "2026-03-29T10:33:29.938543+00:00"
+    },
+    {
+      "id": "f91346de-84f3-4aa1-ac3e-c580f6530606",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 7,
+      "session_id": "s7-fix-002",
+      "s3_key": null,
+      "s3_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/Merge_PRs.mp4",
+      "status": "available",
+      "metadata": {
+        "label": "Desktop Agent - PR Merge (SAP Ariba)"
+      },
+      "created_at": "2026-03-29T10:37:19.687381+00:00"
+    },
+    {
+      "id": "86baa8b2-eff1-4539-b579-71eda1cc1940",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 8,
+      "session_id": "s7-fix-003",
+      "s3_key": null,
+      "s3_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/PO_Creation.mp4",
+      "status": "available",
+      "metadata": {
+        "label": "Desktop Agent - PO Generation (SAP Ariba)"
+      },
+      "created_at": "2026-03-29T10:37:19.687381+00:00"
+    },
+    {
+      "id": "42661722-7a3f-45cf-bd6a-bffd758a27b0",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 9,
+      "session_id": "s7-fix-004",
+      "s3_key": null,
+      "s3_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/PO_Dispatch.mp4",
+      "status": "available",
+      "metadata": {
+        "label": "Desktop Agent - PO Dispatch (SAP Ariba)"
+      },
+      "created_at": "2026-03-29T10:37:19.687381+00:00"
+    },
+    {
+      "id": "fddd965d-1fbf-431a-a6fc-f6875e42e2f3",
+      "run_id": "f0d33a68-cae8-49b6-bb01-cfd6c81c2f16",
+      "step_number": 13,
+      "session_id": "s7-fix-005",
+      "s3_key": null,
+      "s3_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/PO_Closure.mp4",
+      "status": "available",
+      "metadata": {
+        "label": "Desktop Agent - PO Closure (SAP Ariba)"
+      },
+      "created_at": "2026-03-29T10:37:19.687381+00:00"
+    }
+  ]
+}
