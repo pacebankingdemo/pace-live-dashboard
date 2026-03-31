@@ -38,6 +38,12 @@ const PROCESS_DECISIONS = {
         { id: 'override', label: 'Override', desc: 'Reject Pace recommendation — manual disposition required', style: 'secondary' },
         { id: 'escalate', label: 'Escalate', desc: 'Send to QA Lead for senior review', style: 'warning' },
     ],
+    /* PwC — PO-Invoice Matching */
+    '4f8a3d8d-a79f-40e0-914c-051bff68dd06': [
+        { id: 'approve', label: 'Approve', desc: 'Accept invoice — post to GL at invoice amounts', style: 'primary' },
+        { id: 'reject', label: 'Reject', desc: 'Reject invoice — generate vendor rejection email', style: 'secondary' },
+        { id: 'ask_clarification', label: 'Ask for Clarification', desc: 'Request explanation from vendor — hold invoice', style: 'warning' },
+    ],
 };
 
 /* Fallback for any process not in the map */
@@ -108,7 +114,7 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
     const [decided, setDecided] = useState(false);
     const [processingLabel, setProcessingLabel] = useState('');
     const [selected, setSelected] = useState(null);
-    const name = 'Prabhu';
+    const name = 'Shubham';
 
     const [error, setError] = useState(null);
 
@@ -131,6 +137,7 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
 
     const P2_PROCESS_ID = 'c9846f46-ff57-4cc8-9f71-addf4185aeb5';
     const FERRING_PROCESS_ID = '299fead3-7d7c-460f-af50-3546c8f9f6be';
+    const PWC_PO_INVOICE_PROCESS_ID = '4f8a3d8d-a79f-40e0-914c-051bff68dd06';
 
     /* Helper: insert a log row */
     const insertLog = async (payload) => {
@@ -876,6 +883,242 @@ export default function HitlDecisionPanel({ run, logs, artifacts }) {
                         });
                         await updateRun('done', `Duplicate cancelled by ${name.trim()}`);
                     }
+                }
+
+            } else if (run.process_id === PWC_PO_INVOICE_PROCESS_ID) {
+                /* ── PwC PO-Invoice Matching: full post-HITL flows ── */
+                const step1Meta = logs?.find(l => l.step_number === 1)?.metadata || {};
+                const invoiceNum = step1Meta.invoice_number || '—';
+                const vendorName = step1Meta.vendor_name || 'Vendor';
+                const poNum = step1Meta.po_number || '—';
+                const totalAmt = step1Meta.total_amount || '—';
+
+                /* Helper: patch step 1 metadata with final match_verdict */
+                const patchStep1Verdict = async (verdict) => {
+                    const step1Log = logs?.find(l => l.step_number === 1);
+                    if (!step1Log) return;
+                    const updatedMeta = { ...step1Log.metadata, match_verdict: verdict };
+                    await supabase.from('activity_logs')
+                        .update({ metadata: updatedMeta })
+                        .eq('id', step1Log.id);
+                };
+
+                /* ── Step N+1: Human Decision log ── */
+                await insertLog({
+                    run_id: run.id, step_number: baseStep + 1, log_type: 'system',
+                    message: `Human decision: ${decision.id}`,
+                    metadata: {
+                        step_name: 'Human Decision', hitl_decision: true,
+                        decision: decision.id, decided_by: name.trim(),
+                        decision_label: decLabel,
+                        reasoning_steps: [
+                            `Reviewer ${name.trim()} selected: ${decision.label}`,
+                            `Invoice ${invoiceNum} — ${decision.desc}`,
+                        ],
+                    },
+                });
+
+                await insertLog({
+                    run_id: run.id, step_number: baseStep + 2, log_type: 'decision',
+                    message: `${decLabel} — approved by ${name.trim()}`,
+                    metadata: {
+                        step_name: 'Human Decision', decision: decision.id,
+                        decision_label: decLabel, decided_by: name.trim(),
+                        reasoning_steps: [
+                            `Reviewer ${name.trim()} selected: ${decision.label}`,
+                            `Action: ${decision.desc}`,
+                        ],
+                    },
+                });
+
+                if (decision.id === 'approve') {
+                    /* ── APPROVE: match confirmed + payment initiated ── */
+                    setProcessingLabel('Confirming match…');
+                    await insertLog({
+                        run_id: run.id, step_number: baseStep + 3, log_type: 'system',
+                        message: 'Match confirmed — invoice approved following manual review.',
+                        metadata: {
+                            step_name: 'Match Confirmed',
+                            reasoning_steps: [
+                                `Invoice ${invoiceNum} approved after human review`,
+                                `Reviewer ${name.trim()} accepted all line items at invoice amounts`,
+                                `Total ${totalAmt} confirmed for payment`,
+                            ],
+                        },
+                    });
+                    await new Promise(r => setTimeout(r, 800));
+                    setProcessingLabel('Initiating payment…');
+                    await insertLog({
+                        run_id: run.id, step_number: baseStep + 4, log_type: 'complete',
+                        message: `Payment initiated — invoice ${invoiceNum} approved for processing.`,
+                        metadata: {
+                            step_name: 'Payment Initiated',
+                            reasoning_steps: [
+                                `Invoice ${invoiceNum} from ${vendorName} approved for payment`,
+                                `Payment amount: ${totalAmt}`,
+                                `Approved by ${name.trim()} after manual review`,
+                                'Invoice posted to GL at invoice amounts',
+                                'Run complete — moving to Done',
+                            ],
+                        },
+                    });
+                    await patchStep1Verdict('Approved — Payment Initiated');
+                    await updateRun('done', 'Approved — Payment Initiated');
+
+                } else if (decision.id === 'reject') {
+                    /* ── REJECT: generate rejection email artifact + close run ── */
+                    setProcessingLabel('Generating rejection email…');
+
+                    /* Build discrepancy list from HITL context in logs */
+                    const hitlLog = logs?.find(l => l.metadata?.hitl_decision?.deviations || l.metadata?.hitl_decision?.type);
+                    const hitlCtx = hitlLog?.metadata?.hitl_decision || {};
+                    const deviations = hitlCtx.deviations || [];
+                    const financialImpact = hitlCtx.total_financial_impact || '';
+
+                    let discrepancyLines = '';
+                    if (deviations.length > 0) {
+                        discrepancyLines = deviations.map(d =>
+                            `• Line ${d.line_no} (${d.sku}): ${d.description}\n  PO Price: ${d.po_price} | Invoice Price: ${d.invoice_price} | Deviation: +${d.deviation_pct}%`
+                        ).join('\n');
+                    } else {
+                        /* Structural discrepancy — pull from context_summary */
+                        discrepancyLines = hitlCtx.context_summary || 'Please refer to the discrepancies identified during matching.';
+                    }
+
+                    const emailSubject = `Invoice ${invoiceNum} — Rejected (Discrepancy Notification)`;
+                    const emailBody = `Dear ${vendorName} Billing Team,
+
+We are writing regarding Invoice ${invoiceNum} submitted against Purchase Order ${poNum}.
+
+Following our three-way match review, this invoice has been REJECTED. The reason is as follows:
+
+${discrepancyLines}
+${financialImpact ? `\nTotal discrepancy: ${financialImpact}` : ''}
+
+We are unable to process this invoice at the submitted amounts. Please either:
+1. Resubmit a corrected invoice addressing the discrepancies above, or
+2. Provide supporting documentation (e.g. delivery receipts, updated pricing agreements) justifying the differences.
+
+Please reference PO ${poNum} and Invoice ${invoiceNum} in your response. We require a reply within 5 business days.
+
+Regards,
+Accounts Payable Team`;
+
+                    await insertLog({
+                        run_id: run.id, step_number: baseStep + 3, log_type: 'artifact',
+                        message: `Rejection email prepared — review and send to ${vendorName}.`,
+                        metadata: {
+                            step_name: 'Rejection Email — Ready for Review',
+                            email_draft: {
+                                mode: 'draft',
+                                pill_label: `Invoice ${invoiceNum} — Rejection Notice`,
+                                from: 'ap-team@client.com',
+                                to: `ap@${vendorName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+                                subject: emailSubject,
+                                body: emailBody,
+                            },
+                            reasoning_steps: [
+                                `Rejection email generated for invoice ${invoiceNum} from ${vendorName}`,
+                                `References PO ${poNum} and all identified discrepancies`,
+                                'Requesting vendor resubmit corrected invoice or provide justification',
+                                'Email ready for reviewer to review and send',
+                                'Run closing — moving to Done',
+                            ],
+                        },
+                    });
+                    await new Promise(r => setTimeout(r, 600));
+                    setProcessingLabel('Closing run…');
+                    await insertLog({
+                        run_id: run.id, step_number: baseStep + 4, log_type: 'complete',
+                        message: `Invoice ${invoiceNum} rejected — vendor notified, case closed.`,
+                        metadata: {
+                            step_name: 'Rejection Email Sent',
+                            reasoning_steps: [
+                                `Rejection notification prepared for ${vendorName} regarding invoice ${invoiceNum}`,
+                                'Discrepancy details included in email for vendor reference',
+                                'Invoice will not be posted — awaiting vendor resubmission',
+                                'Run complete — moving to Done',
+                            ],
+                        },
+                    });
+                    await patchStep1Verdict('Rejected — Sent to Vendor');
+                    await updateRun('done', 'Rejected Invoice — Explanation Sent to Vendor');
+
+                } else if (decision.id === 'ask_clarification') {
+                    /* ── CLARIFY: generate clarification email artifact + stay in progress ── */
+                    setProcessingLabel('Generating clarification email…');
+
+                    const hitlLog = logs?.find(l => l.metadata?.hitl_decision?.deviations || l.metadata?.hitl_decision?.type);
+                    const hitlCtx = hitlLog?.metadata?.hitl_decision || {};
+                    const deviations = hitlCtx.deviations || [];
+
+                    let deviationLines = '';
+                    if (deviations.length > 0) {
+                        deviationLines = deviations.map(d =>
+                            `• Line ${d.line_no} (${d.sku}): ${d.description}\n  PO Estimated Price: ${d.po_price} | Invoice Price: ${d.invoice_price} | Difference: +${d.deviation_pct}%`
+                        ).join('\n');
+                    } else {
+                        deviationLines = hitlCtx.context_summary || 'Please refer to the discrepancies identified during matching.';
+                    }
+
+                    const clarSubject = `Invoice ${invoiceNum} — Pricing Clarification Request`;
+                    const clarBody = `Dear ${vendorName} Billing Team,
+
+We are reviewing Invoice ${invoiceNum} submitted against Purchase Order ${poNum}.
+
+We noticed the following discrepancies compared to the Purchase Order:
+
+${deviationLines}
+
+Could you please help us understand the reason for these differences? For example:
+- Were there changes in pricing since the PO was issued?
+- Is there updated documentation we should have on file?
+- Were there any scope or specification changes that affected the amounts?
+
+We would appreciate a response at your earliest convenience so we can proceed with processing.
+
+Please reference PO ${poNum} and Invoice ${invoiceNum} in your response.
+
+Regards,
+Accounts Payable Team`;
+
+                    await insertLog({
+                        run_id: run.id, step_number: baseStep + 3, log_type: 'artifact',
+                        message: `Clarification email prepared — review and send to ${vendorName}.`,
+                        metadata: {
+                            step_name: 'Clarification Email — Ready for Review',
+                            email_draft: {
+                                mode: 'draft',
+                                pill_label: `Invoice ${invoiceNum} — Clarification Request`,
+                                from: 'ap-team@client.com',
+                                to: `ap@${vendorName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+                                subject: clarSubject,
+                                body: clarBody,
+                            },
+                            reasoning_steps: [
+                                `Clarification email generated for invoice ${invoiceNum} from ${vendorName}`,
+                                'Professional, non-confrontational tone — requesting explanation not accusation',
+                                `References PO ${poNum} and all flagged discrepancies`,
+                                'Email ready for reviewer to review and send',
+                                'Run stays In Progress awaiting vendor response',
+                            ],
+                        },
+                    });
+                    await new Promise(r => setTimeout(r, 600));
+                    await insertLog({
+                        run_id: run.id, step_number: baseStep + 4, log_type: 'complete',
+                        message: `Clarification request sent — awaiting ${vendorName} response.`,
+                        metadata: {
+                            step_name: 'Awaiting Vendor Clarification',
+                            reasoning_steps: [
+                                `Clarification request prepared for ${vendorName} regarding invoice ${invoiceNum}`,
+                                'Invoice held — not posted, not rejected',
+                                'Run stays In Progress until vendor responds',
+                            ],
+                        },
+                    });
+                    await patchStep1Verdict('Awaiting Clarification');
+                    await updateRun('in_progress', 'Awaiting Vendor Clarification');
                 }
 
             } else {
