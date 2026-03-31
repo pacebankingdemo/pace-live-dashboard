@@ -1341,8 +1341,7 @@ const ProcessDetails = () => {
                                         key={firstLog.id}
                                         className="flex gap-4 pb-6 relative"
                                         style={{
-                                            animation: 'logFadeIn 0.45s ease both',
-                                            animationDelay: `${groupIndex * 0.05}s`,
+                                            animation: 'logFadeIn 0.4s ease both',
                                         }}
                                     >
                                         {/* Timestamp gutter */}
