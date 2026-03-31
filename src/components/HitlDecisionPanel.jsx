@@ -44,6 +44,12 @@ const PROCESS_DECISIONS = {
         { id: 'reject', label: 'Reject', desc: 'Reject invoice — generate vendor rejection email', style: 'secondary' },
         { id: 'ask_clarification', label: 'Ask for Clarification', desc: 'Request explanation from vendor — hold invoice', style: 'warning' },
     ],
+    /* DoorDash — Merchant Onboarding (Rosario's HITL) */
+    '8009be11-ef9a-474c-bc81-dad8bda57664': [
+        { id: 'confirm_reachable', label: 'Confirm — Merchant Reachable', desc: 'Ops contacted Rosario Medina — resume onboarding', style: 'primary' },
+        { id: 'escalate_account', label: 'Escalate to Account Manager', desc: 'Assign to regional AM for high-touch outreach', style: 'secondary' },
+        { id: 'close_lost', label: 'Close Lost', desc: 'Mark onboarding as failed — notify Salesforce', style: 'warning' },
+    ],
 };
 
 /* Fallback for any process not in the map */
@@ -1119,6 +1125,92 @@ Accounts Payable Team`;
                     });
                     await patchStep1Verdict('Awaiting Clarification');
                     await updateRun('in_progress', 'Awaiting Vendor Clarification');
+                }
+
+            } else if (run.process_id === '8009be11-ef9a-474c-bc81-dad8bda57664') {
+                /* ── DoorDash Merchant Onboarding — Rosario's Taqueria HITL ── */
+                const delay = (ms) => new Promise(r => setTimeout(r, ms));
+
+                if (decision.id === 'confirm_reachable') {
+                    setProcessingLabel('Recording ops confirmation…');
+                    await insertLog({
+                        run_id: run.id, step_number: baseStep + 1, log_type: 'system',
+                        message: `Ops confirmation received — ${name.trim()} confirmed direct contact with Rosario Medina`,
+                        metadata: {
+                            step_name: 'Human Decision', hitl_decision: true, decision: 'confirm_reachable',
+                            decided_by: name.trim(),
+                            reasoning_steps: [
+                                `${name.trim()} confirmed successful phone contact with Rosario Medina`,
+                                'Business Admin activation unblocked — automated sequence can resume',
+                                'ONB-9103 cleared for continuation',
+                            ],
+                        },
+                    });
+                    await delay(900);
+
+                    setProcessingLabel('Rosario Medina activating Business Admin…');
+                    await insertLog({
+                        run_id: run.id, step_number: baseStep + 2, log_type: 'decision',
+                        message: 'Business Admin activated — Rosario Medina completed setup via tablet link',
+                        metadata: {
+                            step_name: 'Business Admin Activated',
+                            reasoning_steps: [
+                                'Rosario Medina clicked activation link within 12 minutes of ops call',
+                                'Business Admin profile verified — tax ID and banking details confirmed',
+                                'Tablet dispatch queue unblocked — ONB-9103 ready for final steps',
+                            ],
+                        },
+                    });
+                    await delay(900);
+
+                    setProcessingLabel('Resuming onboarding sequence…');
+                    await insertLog({
+                        run_id: run.id, step_number: baseStep + 3, log_type: 'complete',
+                        message: "Rosario's Taqueria LIVE on DoorDash — onboarding complete, 1 day ahead of SLA",
+                        metadata: {
+                            step_name: 'Onboarding Complete',
+                            reasoning_steps: [
+                                'Tablet dispatched to Rosario\'s Taqueria — expected delivery 2 business days',
+                                'Menu published — 34 items live, DashPass eligible',
+                                'Olo POS integration active — test order passed',
+                                'Completed Day 5 of 5 SLA window — 1 day ahead of deadline',
+                            ],
+                        },
+                    });
+                    await updateRun('done', 'Rosario\'s Taqueria LIVE — ONB-9103 complete');
+
+                } else if (decision.id === 'escalate_account') {
+                    await insertLog({
+                        run_id: run.id, step_number: baseStep + 1, log_type: 'system',
+                        message: `Escalated to Account Manager — ${name.trim()} assigned regional AM for high-touch outreach`,
+                        metadata: {
+                            step_name: 'Human Decision', hitl_decision: true, decision: 'escalate_account',
+                            decided_by: name.trim(),
+                            reasoning_steps: [
+                                `${name.trim()} escalated ONB-9103 to regional Account Manager`,
+                                'High-touch outreach assigned — AM will attempt in-person visit',
+                                'SLA clock paused pending AM engagement',
+                            ],
+                        },
+                    });
+                    await updateRun('in_progress', `Escalated to Account Manager — assigned by ${name.trim()}`);
+
+                } else {
+                    /* close_lost */
+                    await insertLog({
+                        run_id: run.id, step_number: baseStep + 1, log_type: 'system',
+                        message: `Onboarding closed — ${name.trim()} marked ONB-9103 as lost, Salesforce updated`,
+                        metadata: {
+                            step_name: 'Human Decision', hitl_decision: true, decision: 'close_lost',
+                            decided_by: name.trim(),
+                            reasoning_steps: [
+                                `${name.trim()} closed ONB-9103 as lost after exhausting all outreach options`,
+                                'Salesforce opportunity marked Closed Lost',
+                                'Rosario Medina notified via email — re-engagement possible in 90 days',
+                            ],
+                        },
+                    });
+                    await updateRun('done', `Closed Lost — ONB-9103 marked by ${name.trim()}`);
                 }
 
             } else {
