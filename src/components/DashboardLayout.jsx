@@ -255,7 +255,8 @@ const DashboardLayout = () => {
                             </button>
                         )}
 
-                        <button className="flex items-center gap-1.5 h-[28px] px-3 rounded-md bg-white border border-[#e8e8e8] hover:bg-[#f5f5f5] text-[#171717] text-[12px] font-[500] shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-colors">
+                        <button onClick={() => { setCurrentProcess(null); navigate('/done/processes'); }}
+                            className="flex items-center gap-1.5 h-[28px] px-3 rounded-md bg-white border border-[#e8e8e8] hover:bg-[#f5f5f5] text-[#171717] text-[12px] font-[500] shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-colors">
                             <span>Share</span>
                         </button>
                     </div>
