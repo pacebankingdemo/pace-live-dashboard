@@ -9,6 +9,12 @@ import {
 } from 'lucide-react';
 import { fetchLogs, fetchArtifacts, fetchBrowserRecordings, subscribeToTable } from '../services/supabase';
 
+// Orgs that get the sequential fade-in log animation
+const ANIMATED_ORG_IDS = new Set([
+    '76795ecd-df58-4219-967a-9ce1e745ffb7', // DoorDash
+    'd96485fe-7f25-475a-9aa1-aa27463d041b', // Essar Oil (UK)
+]);
+
 // Processes that use the structured DXC sidebar — suppress generic Case Details block for these
 const DXC_PROCESS_IDS = new Set([
     'c4e944f7-1133-4961-a8c3-2378ca591857', // P1 — Prepaid Data Ingestion
@@ -882,7 +888,7 @@ const ProcessDetails = () => {
     useEffect(() => {
         if (!runId) return;
         const loadRun = async () => {
-            const { data } = await supabase.from('activity_runs').select('*').eq('id', runId).single();
+            const { data } = await supabase.from('activity_runs').select('*, processes(org_id)').eq('id', runId).single();
             if (data) setRun(data);
         };
         loadRun();
@@ -1340,9 +1346,9 @@ const ProcessDetails = () => {
                                     <div
                                         key={firstLog.id}
                                         className="flex gap-4 pb-6 relative"
-                                        style={{
+                                        style={ANIMATED_ORG_IDS.has(run?.processes?.org_id) ? {
                                             animation: 'logFadeIn 0.4s ease both',
-                                        }}
+                                        } : undefined}
                                     >
                                         {/* Timestamp gutter */}
                                         <div className="w-[52px] flex-shrink-0 flex items-start justify-end pt-[2px]">
