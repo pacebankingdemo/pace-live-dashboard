@@ -871,6 +871,8 @@ const ProcessDetails = () => {
     const [artifactWidth, setArtifactWidth] = useState(550);
     const [isResizing, setIsResizing] = useState(false);
     const logsEndRef = useRef(null);
+    const [visibleCount, setVisibleCount] = useState(0);
+    const hasAnimated = useRef(false);
 
     // Three-panel mode state
     const [selectedDocument, setSelectedDocument] = useState(null);   // PDF for right panel
@@ -905,6 +907,21 @@ const ProcessDetails = () => {
     useEffect(() => {
         logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [logs]);
+
+    // Staggered log animation — plays once when groups first load
+    useEffect(() => {
+        if (hasAnimated.current) return;
+        if (groupedLogs.length === 0) return;
+        hasAnimated.current = true;
+        setVisibleCount(0);
+        let current = 0;
+        const interval = setInterval(() => {
+            current += 1;
+            setVisibleCount(current);
+            if (current >= groupedLogs.length) clearInterval(interval);
+        }, 600);
+        return () => clearInterval(interval);
+    }, [groupedLogs.length > 0]);
 
     useEffect(() => {
         if (!isResizing) return;
@@ -1287,7 +1304,7 @@ const ProcessDetails = () => {
                         </div>
                     ) : (
                         <div className="relative">
-                            {groupedLogs.map((group, groupIndex) => {
+                            {groupedLogs.slice(0, visibleCount).map((group, groupIndex) => {
                                 const { firstLog, lastLog, mergedReasoning, allReasoningSteps, allNarratives, msgSplit, dbArtifacts, metaArtifacts, recordings: groupRecordings } = group;
                                 const isLastGroup = groupIndex === groupedLogs.length - 1;
                                 const status = getIconStatus(lastLog, isLastGroup ? logs.length - 1 : logs.indexOf(lastLog));
@@ -1312,7 +1329,14 @@ const ProcessDetails = () => {
                                 const hasAttachments = uniqueDbArts.length > 0 || metaArtifacts.length > 0 || groupRecordings.length > 0;
 
                                 return (
-                                    <div key={firstLog.id} className="flex gap-4 pb-6 relative">
+                                    <div
+                                        key={firstLog.id}
+                                        className="flex gap-4 pb-6 relative"
+                                        style={{
+                                            animation: 'logFadeIn 0.45s ease both',
+                                            animationDelay: `${groupIndex * 0.05}s`,
+                                        }}
+                                    >
                                         {/* Timestamp gutter */}
                                         <div className="w-[52px] flex-shrink-0 flex items-start justify-end pt-[2px]">
                                             <span className="text-[10px] text-[#9CA3AF] whitespace-nowrap">
