@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = "https://csvjcpmxndgaujxlvikw.supabase.co";
+const SUPABASE_URL = "https://lmkydctwfrlqifgacoub.supabase.co";
 const supabase = createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);

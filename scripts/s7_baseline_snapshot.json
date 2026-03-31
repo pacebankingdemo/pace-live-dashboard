@@ -60,7 +60,7 @@
       "metadata": {
         "total": "EUR 3,420",
         "doc_type": "source_document",
-        "file_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/PR-2026-06142.pdf",
+        "file_url": "https://lmkydctwfrlqifgacoub.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/PR-2026-06142.pdf",
         "file_name": "PR-2026-06142.pdf",
         "file_type": "application/pdf",
         "pr_number": "PR-2026-06142",
@@ -102,7 +102,7 @@
       "metadata": {
         "total": "EUR 4,275",
         "doc_type": "source_document",
-        "file_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/PR-2026-06078-EXISTING.pdf",
+        "file_url": "https://lmkydctwfrlqifgacoub.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/PR-2026-06078-EXISTING.pdf",
         "file_name": "PR-2026-06078-EXISTING.pdf",
         "file_type": "application/pdf",
         "pr_number": "PR-2026-06078",
@@ -242,7 +242,7 @@
       "message": "Resolution Options",
       "metadata": {
         "doc_type": "source_document",
-        "file_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/Resolution-Options-PR-2026-06142.pdf",
+        "file_url": "https://lmkydctwfrlqifgacoub.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/Resolution-Options-PR-2026-06142.pdf",
         "file_name": "Resolution-Options-PR-2026-06142.pdf",
         "file_type": "application/pdf",
         "step_name": "Resolution Options",
@@ -302,7 +302,7 @@
       "filename": "PR-2026-06142.pdf",
       "file_type": "pdf",
       "content": "",
-      "url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/PR-2026-06142.pdf",
+      "url": "https://lmkydctwfrlqifgacoub.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/PR-2026-06142.pdf",
       "created_at": "2026-03-29T13:22:34.561251+00:00"
     },
     {
@@ -311,7 +311,7 @@
       "filename": "PR-2026-06078-EXISTING.pdf",
       "file_type": "pdf",
       "content": "",
-      "url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/PR-2026-06078-EXISTING.pdf",
+      "url": "https://lmkydctwfrlqifgacoub.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/PR-2026-06078-EXISTING.pdf",
       "created_at": "2026-03-29T13:22:34.561251+00:00"
     },
     {
@@ -320,7 +320,7 @@
       "filename": "Resolution-Options-PR-2026-06142.pdf",
       "file_type": "pdf",
       "content": "",
-      "url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/Resolution-Options-PR-2026-06142.pdf",
+      "url": "https://lmkydctwfrlqifgacoub.supabase.co/storage/v1/object/public/artifacts/41fe08b3-7f83-418a-b487-91a401493371/source/Resolution-Options-PR-2026-06142.pdf",
       "created_at": "2026-03-29T13:22:34.561251+00:00"
     }
   ],
@@ -331,7 +331,7 @@
       "step_number": 2,
       "session_id": "s7-new-001",
       "s3_key": null,
-      "s3_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/View_Duplicate.mp4",
+      "s3_url": "https://lmkydctwfrlqifgacoub.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/View_Duplicate.mp4",
       "status": "available",
       "metadata": {
         "label": "SAP Ariba - Duplicate PR Detection"
@@ -344,7 +344,7 @@
       "step_number": 7,
       "session_id": "s7-fix-002",
       "s3_key": null,
-      "s3_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/Merge_PRs.mp4",
+      "s3_url": "https://lmkydctwfrlqifgacoub.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/Merge_PRs.mp4",
       "status": "available",
       "metadata": {
         "label": "Desktop Agent - PR Merge (SAP Ariba)"
@@ -357,7 +357,7 @@
       "step_number": 8,
       "session_id": "s7-fix-003",
       "s3_key": null,
-      "s3_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/PO_Creation.mp4",
+      "s3_url": "https://lmkydctwfrlqifgacoub.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/PO_Creation.mp4",
       "status": "available",
       "metadata": {
         "label": "Desktop Agent - PO Generation (SAP Ariba)"
@@ -370,7 +370,7 @@
       "step_number": 9,
       "session_id": "s7-fix-004",
       "s3_key": null,
-      "s3_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/PO_Dispatch.mp4",
+      "s3_url": "https://lmkydctwfrlqifgacoub.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/PO_Dispatch.mp4",
       "status": "available",
       "metadata": {
         "label": "Desktop Agent - PO Dispatch (SAP Ariba)"
@@ -383,7 +383,7 @@
       "step_number": 13,
       "session_id": "s7-fix-005",
       "s3_key": null,
-      "s3_url": "https://csvjcpmxndgaujxlvikw.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/PO_Closure.mp4",
+      "s3_url": "https://lmkydctwfrlqifgacoub.supabase.co/storage/v1/object/public/artifacts/f0d33a68-cae8-49b6-bb01-cfd6c81c2f16/PO_Closure.mp4",
       "status": "available",
       "metadata": {
         "label": "Desktop Agent - PO Closure (SAP Ariba)"
