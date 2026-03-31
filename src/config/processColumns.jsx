@@ -29,17 +29,23 @@ export const pill = (val, color) => {
 export const autoPill = (val) => {
     if (!val) return <span className="text-[#d1d5db]">—</span>;
     const s = String(val).toLowerCase();
+    /* ── Perfect Match / payment initiated → green (must check before generic 'match') ── */
+    if (s.includes('perfect match') || s.includes('payment initiated') || s.includes('auto-approved'))
+        return pill(val, 'green');
     if (s.includes('pass') || s.includes('complete') || s.includes('verified') || s.includes('cleared') ||
         s.includes('done') || s.includes('yes') || s.includes('approved') || s.includes('resolved'))
         return pill(val, 'green');
-    if (s.includes('fail') || s.includes('error') || s.includes('reject') || s.includes('blocked') ||
-        s.includes('void') || s.includes('no') || s.includes('invalid') || s.includes('false'))
+    /* ── Rejected / failed / error → red ── */
+    if (s.includes('reject') || s.includes('fail') || s.includes('error') || s.includes('blocked') ||
+        s.includes('void') || s.includes('invalid') || s.includes('false'))
         return pill(val, 'red');
-    if (s.includes('review') || s.includes('pending') || s.includes('await') ||
-        s.includes('hold') || s.includes('escalat') || s.includes('attention'))
+    /* ── Needs Attention / mismatch / review / awaiting → amber ── */
+    if (s.includes('attention') || s.includes('mismatch') || s.includes('review') || s.includes('pending') ||
+        s.includes('await') || s.includes('hold') || s.includes('escalat'))
         return pill(val, 'amber');
     if (s.includes('progress') || s.includes('process') || s.includes('active') || s.includes('running'))
         return pill(val, 'blue');
+    /* ── Sanctions-specific: raw 'match' or 'positive' without 'perfect' → red ── */
     if (s.includes('match') || s.includes('positive'))
         return pill(val, 'red');
     return pill(val, 'gray');
