@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import {
     Lightbulb,
@@ -16,17 +17,23 @@ import {
     FileSearch
 } from 'lucide-react';
 
-const INSIGHTS_PROCESS_ID = '795b85bb-ef67-4e56-aaec-2a07d5ed8c90';
+const INSIGHTS_PROCESS_MAP = {
+    '215e20a2-ea74-46bd-b520-2eba961b50e8': '795b85bb-ef67-4e56-aaec-2a07d5ed8c90', // NatWest
+    'd488c0b3-46ed-46ca-b516-83bdb20466de': 'fa91e289-044b-4fc9-a626-ebdb6c0ee64b', // PwC
+};
 
 export default function InsightsPanel() {
+    const { currentOrg } = useOutletContext();
     const [insights, setInsights] = useState([]);
     const [loading, setLoading] = useState(true);
     const [expandedInsight, setExpandedInsight] = useState(null);
     const [actionInProgress, setActionInProgress] = useState(null);
 
+    const INSIGHTS_PROCESS_ID = currentOrg?.id ? INSIGHTS_PROCESS_MAP[currentOrg.id] : null;
+
     useEffect(() => {
-        loadInsights();
-    }, []);
+        if (INSIGHTS_PROCESS_ID) loadInsights();
+    }, [INSIGHTS_PROCESS_ID]);
 
     async function loadInsights() {
         setLoading(true);
