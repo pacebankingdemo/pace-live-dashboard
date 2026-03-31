@@ -1006,11 +1006,11 @@ Accounts Payable Team`;
 
                     await insertLog({
                         run_id: run.id, step_number: baseStep + 3, log_type: 'artifact',
-                        message: `Rejection email prepared — review and send to ${vendorName}.`,
+                        message: `Rejection email sent to ${vendorName}.`,
                         metadata: {
-                            step_name: 'Rejection Email — Ready for Review',
+                            step_name: 'Rejection Email — Sent',
                             email_draft: {
-                                mode: 'draft',
+                                mode: 'sent',
                                 pill_label: `Invoice ${invoiceNum} — Rejection Notice`,
                                 from: 'ap-team@client.com',
                                 to: `ap@${vendorName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
@@ -1084,11 +1084,11 @@ Accounts Payable Team`;
 
                     await insertLog({
                         run_id: run.id, step_number: baseStep + 3, log_type: 'artifact',
-                        message: `Clarification email prepared — review and send to ${vendorName}.`,
+                        message: `Clarification email sent to ${vendorName}.`,
                         metadata: {
-                            step_name: 'Clarification Email — Ready for Review',
+                            step_name: 'Clarification Email — Sent',
                             email_draft: {
-                                mode: 'draft',
+                                mode: 'sent',
                                 pill_label: `Invoice ${invoiceNum} — Clarification Request`,
                                 from: 'ap-team@client.com',
                                 to: `ap@${vendorName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,

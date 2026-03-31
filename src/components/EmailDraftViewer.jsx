@@ -45,6 +45,7 @@ const ListIcon = () => (
 export default function EmailDraftViewer({ artifact, run, logs, onClose, onSent }) {
     const email = artifact?._emailDraft || {};
     const isDraft = email.mode === 'draft';
+    const isSent = email.mode === 'sent';
 
     const [to, setTo]           = useState(email.to || '');
     const [cc, setCc]           = useState(email.cc || '');
@@ -54,7 +55,7 @@ export default function EmailDraftViewer({ artifact, run, logs, onClose, onSent 
     const [sent, setSent]       = useState(false);
     const [error, setError]     = useState(null);
 
-    const title    = email.display_name || (isDraft ? 'Email Draft' : 'Email Received');
+    const title    = email.display_name || (isSent ? 'Email Sent' : isDraft ? 'Email Draft' : 'Email Received');
     const fromAddr = email.from || 'pace@ferring.com';
 
     /* ── Send handler (draft mode only) ── */
@@ -177,7 +178,15 @@ export default function EmailDraftViewer({ artifact, run, logs, onClose, onSent 
                 )}
             </div>
 
-            {/* ─── Footer (draft mode only) ─── */}
+            {/* ─── Footer ─── */}
+            {isSent && (
+                <div className="px-5 py-3 border-t border-[#F0F0F0] bg-white">
+                    <div className="flex items-center gap-2">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-500"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span className="text-[11px] text-green-600 font-medium">Sent by Pace</span>
+                    </div>
+                </div>
+            )}
             {isDraft && (
                 <div className="px-5 py-3 border-t border-[#F0F0F0] bg-white">
                     {error && (
