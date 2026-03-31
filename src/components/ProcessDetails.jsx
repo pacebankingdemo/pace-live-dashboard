@@ -1103,7 +1103,7 @@ const ProcessDetails = () => {
 
     const formatTime = (ts) => {
         if (!ts) return '';
-        return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
     };
     const formatDate = (ts) => {
         if (!ts) return '';
@@ -1313,6 +1313,12 @@ const ProcessDetails = () => {
 
                                 return (
                                     <div key={firstLog.id} className="flex gap-4 pb-6 relative">
+                                        {/* Timestamp gutter */}
+                                        <div className="w-[52px] flex-shrink-0 flex items-start justify-end pt-[2px]">
+                                            <span className="text-[10px] text-[#9CA3AF] whitespace-nowrap">
+                                                {formatTime(firstLog.created_at)}
+                                            </span>
+                                        </div>
                                         <div className="flex flex-col items-center w-[11px] flex-shrink-0 pt-[4px]">
                                             <div className={`w-[11px] h-[11px] rounded-[2px] border flex-shrink-0 ${
                                                 status === 'complete'
@@ -1326,13 +1332,10 @@ const ProcessDetails = () => {
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0 pb-2">
-                                            {/* Step name + timestamp */}
+                                            {/* Step name */}
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 <span className="text-[13px] font-medium text-[#171717]">
                                                     {stepLabel}
-                                                </span>
-                                                <span className="text-[10px] text-[#9CA3AF]">
-                                                    {formatTime(firstLog.created_at)}
                                                 </span>
                                                 {group.logs.length > 1 && (
                                                     <span className="text-[10px] text-[#D1D5DB]">
