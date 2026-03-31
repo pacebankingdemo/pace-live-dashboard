@@ -1332,10 +1332,9 @@ const ProcessDetails = () => {
                                 return (
                                     <div
                                         key={firstLog.id}
-                                        className="flex gap-4 pb-6 relative"
+                                        className="flex gap-4 pb-6 relative log-entry-float"
                                         style={{
-                                            animation: 'logFadeIn 0.45s ease both',
-                                            animationDelay: `${groupIndex * 0.05}s`,
+                                            '--entry-delay': `${groupIndex * 0.05}s`,
                                         }}
                                     >
                                         {/* Timestamp gutter */}
