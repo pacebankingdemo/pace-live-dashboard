@@ -1110,6 +1110,13 @@ const ProcessDetails = () => {
         });
     }, [logs, artifacts, recordings, logMetaClassified]);
 
+    // Reset animation state when navigating to a different run
+    useEffect(() => {
+        hasAnimated.current = false;
+        setVisibleCount(0);
+        setIsAnimating(false);
+    }, [runId]);
+
     // Staggered log animation — plays once when groups first load
     const groupedLogsLength = groupedLogs.length;
     useEffect(() => {
