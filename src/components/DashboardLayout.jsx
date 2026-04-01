@@ -18,6 +18,13 @@ const HIDDEN_PROCESS_IDS = new Set([
     '1b9b7c8c-d65b-4c8a-a76e-d1dc1b23ab90', // SAR Narrative Generation (sub-skill)
 ]);
 
+// Preferred org display order — first entry is the default landing org
+const ORG_ORDER = [
+    '078da434-5802-4e98-b066-24761f56a077', // Compliance & Financial Crime
+    'bc1cc87f-db42-4e08-932d-e3437f116300', // Credit & Lending
+    '0649e502-b1ff-490f-8d31-cd8e4fb2d1ab', // Bank Overview
+];
+
 const DashboardLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -33,9 +40,15 @@ const DashboardLayout = () => {
         const loadOrgs = async () => {
             try {
                 const data = await fetchOrgs();
-                setOrgs(data);
+                // Sort orgs by preferred display order
+                const sorted = [...data].sort((a, b) => {
+                    const ai = ORG_ORDER.indexOf(a.id);
+                    const bi = ORG_ORDER.indexOf(b.id);
+                    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+                });
+                setOrgs(sorted);
                 const savedOrgId = sessionStorage.getItem('currentOrgId');
-                const org = savedOrgId ? data.find(o => o.id === savedOrgId) : data[0];
+                const org = savedOrgId ? sorted.find(o => o.id === savedOrgId) : sorted[0];
                 if (org) setCurrentOrg(org);
             } catch (err) { console.error('Error loading orgs:', err); }
         };
