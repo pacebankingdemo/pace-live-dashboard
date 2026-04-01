@@ -125,6 +125,13 @@ const RENDERERS = {
     text:         (val) => val 
         ? <span className="text-[#171717] text-[12px] font-[500]">{val}</span>
         : <span className="text-[#d1d5db]">—</span>,
+    boolean:      (val) => {
+        if (val === null || val === undefined || val === '') return <span className="text-[#d1d5db]">—</span>;
+        const isTrue = val === true || val === 'true' || val === 1;
+        return isTrue
+            ? <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-[600] bg-[#FFDADA] text-[#A40000] border border-[#A40000]/20">Yes</span>
+            : <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-[600] bg-[#F3F4F6] text-[#6B7280] border border-[#E5E7EB]">No</span>;
+    },
 };
 
 /**
