@@ -7,10 +7,15 @@ import {
 } from 'lucide-react';
 import { supabase, fetchOrgs, fetchProcesses, subscribeToTable } from '../services/supabase';
 
-// Process IDs used by the Insights panel — hide from the sidebar process list
-const INSIGHTS_PROCESS_IDS = new Set([
-    '795b85bb-ef67-4e56-aaec-2a07d5ed8c90', // NatWest Insights
-    'fa91e289-044b-4fc9-a626-ebdb6c0ee64b', // PwC Insights
+// Process IDs to hide from the sidebar — sub-skills never create their own runs
+const HIDDEN_PROCESS_IDS = new Set([
+    '795b85bb-ef67-4e56-aaec-2a07d5ed8c90', // NatWest Insights (legacy)
+    'fa91e289-044b-4fc9-a626-ebdb6c0ee64b', // PwC Insights (legacy)
+    '634c603a-b18f-4605-aa2a-1160bcc26f20', // Adverse Media Screening (sub-skill)
+    '16ff2409-24ba-4df3-ab36-f1b70d8243e4', // Case Disposition (sub-skill)
+    'ba0c4a4c-815c-4e10-8720-bbb891c6f5b7', // Document Packaging (sub-skill)
+    'ac2bc5a3-8501-466b-bc68-d2d5e7ccaf96', // Risk Scoring (sub-skill)
+    '1b9b7c8c-d65b-4c8a-a76e-d1dc1b23ab90', // SAR Narrative Generation (sub-skill)
 ]);
 
 const DashboardLayout = () => {
@@ -146,7 +151,7 @@ const DashboardLayout = () => {
                             <span className="text-[12px] font-[550] text-[#8f8f8f]">Processes</span>
                         </div>
                         {(() => {
-                            const visibleProcesses = processes.filter(proc => !INSIGHTS_PROCESS_IDS.has(proc.id));
+                            const visibleProcesses = processes.filter(proc => !HIDDEN_PROCESS_IDS.has(proc.id));
                             return visibleProcesses.length === 0 ? (
                             <div className="px-3 py-2 text-[12px] text-[#cacaca]">No processes yet</div>
                         ) : (
