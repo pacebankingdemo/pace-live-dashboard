@@ -1118,11 +1118,17 @@ const ProcessDetails = () => {
     }, [runId]);
 
     // Staggered log animation — plays once when groups first load
+    // Only animates for orgs in ANIMATED_ORG_IDS; all others get instant render
     const groupedLogsLength = groupedLogs.length;
     useEffect(() => {
         if (hasAnimated.current) return;
         if (groupedLogsLength === 0) return;
         hasAnimated.current = true;
+        // Skip stagger for orgs not opted into the animation
+        if (!ANIMATED_ORG_IDS.has(run?.processes?.org_id)) {
+            setVisibleCount(groupedLogsLength);
+            return;
+        }
         setVisibleCount(0);
         setIsAnimating(true);
         let current = 0;
@@ -1135,7 +1141,15 @@ const ProcessDetails = () => {
             }
         }, 600);
         return () => clearInterval(interval);
-    }, [groupedLogsLength]);
+    }, [groupedLogsLength, run?.processes?.org_id]);
+
+    // After initial animation, keep visibleCount in sync with live log arrivals
+    useEffect(() => {
+        if (!hasAnimated.current) return;
+        if (!isAnimating) {
+            setVisibleCount(groupedLogsLength);
+        }
+    }, [groupedLogsLength, isAnimating]);
 
     const formatTime = (ts) => {
         if (!ts) return '';

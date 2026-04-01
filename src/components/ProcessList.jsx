@@ -92,12 +92,19 @@ const ProcessList = () => {
         };
 
         loadRuns();
-        const unsub = subscribeToTable(
+        const unsubRuns = subscribeToTable(
             'activity_runs',
             `process_id=eq.${currentProcess.id}`,
             () => loadRuns()
         );
-        return unsub;
+        // Also subscribe to step-0 system log insertions so column data
+        // appears in real-time without waiting for a run status change
+        const unsubLogs = subscribeToTable(
+            'activity_logs',
+            `step_number=eq.0`,
+            () => loadRuns()
+        );
+        return () => { unsubRuns(); unsubLogs(); };
     }, [currentProcess]);
 
     /* ── Tab helpers ── */
