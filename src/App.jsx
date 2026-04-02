@@ -19,7 +19,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/done" element={<DashboardLayout />}>
-          <Route index element={<Navigate to="processes" replace />} />
+          <Route index element={<Navigate to="tasks" replace />} />
           <Route path="processes" element={<ProcessList />} />
           <Route path="knowledge-base" element={<KnowledgeBase />} />
           <Route path="process/:runId" element={<ErrorBoundary><ProcessDetails /></ErrorBoundary>} />
