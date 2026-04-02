@@ -116,11 +116,11 @@ const DashboardLayout = () => {
                     <IconBtn icon={Home}         active={isHome}       onClick={() => navigate('/done/home')}     title="Home" />
                     <IconBtn icon={Zap}          active={isTasks}      onClick={() => navigate('/done/tasks')}    title="Tasks" />
                     <IconBtn icon={Settings}     active={isSettings}   onClick={() => navigate('/done/settings')} title="Settings" />
-                    {/* Chat toggle — only shown on tasks page */}
-                    {isTasks && (
+                    {/* Chat toggle — shown on tasks and settings pages */}
+                    {(isTasks || isSettings) && (
                         <IconBtn
                             icon={MessageSquare}
-                            active={isChatActive}
+                            active={chatOpen}
                             onClick={() => setChatOpen(o => !o)}
                             title={chatOpen ? 'Hide chat' : 'Show chat'}
                         />

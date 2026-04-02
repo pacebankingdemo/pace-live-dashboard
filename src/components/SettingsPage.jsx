@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { Settings, Users, Puzzle, ChevronDown, LogOut, Copy, Check } from 'lucide-react';
 import { fetchOrgs, subscribeToTable } from '../services/supabase';
+import InlineChatPanel from './InlineChatPanel';
 
 const ORG_ORDER = [
     '078da434-5802-4e98-b066-24761f56a077',
@@ -211,12 +212,18 @@ const IntegrationsSection = () => (
 
 // ── Main ─────────────────────────────────────────────────────
 const SettingsPage = () => {
-    const { currentOrg } = useOutletContext();
+    const { currentOrg, chatOpen } = useOutletContext();
     const navigate        = useNavigate();
     const [section, setSection]         = useState('general');
     const [orgs, setOrgs]               = useState([]);
     const [orgDropOpen, setOrgDropOpen] = useState(false);
     const [activeOrg, setActiveOrg]     = useState(null);
+    const [chatVisible, setChatVisible] = useState(false);
+
+    // Sync with navbar chat toggle
+    useEffect(() => {
+        setChatVisible(chatOpen);
+    }, [chatOpen]);
 
     useEffect(() => {
         const load = async () => {
@@ -304,6 +311,11 @@ const SettingsPage = () => {
                         <span>Logout</span>
                     </button>
                 </div>
+            </div>
+
+            {/* ── Chat Panel ── */}
+            <div className={`flex flex-col overflow-hidden bg-[#111] border-r border-[#222] transition-all duration-200 ${chatVisible ? 'w-[320px] flex-shrink-0' : 'w-0'}`}>
+                {chatVisible && <InlineChatPanel />}
             </div>
 
             {/* ── Content ── */}
