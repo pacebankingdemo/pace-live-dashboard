@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronRight, Check, Loader2, AlertCircle, Globe, Monitor, FileText, Database, Search, Cpu } from 'lucide-react';
+import { ChevronDown, ChevronRight, Check, Loader2, AlertCircle, Globe, Monitor, FileText, Database, Search, Cpu, ArrowLeft } from 'lucide-react';
 import { fetchLogs, subscribeToTable } from '../services/supabase';
 
 // ── Tool call icon by keyword matching ──
@@ -196,7 +196,7 @@ const TypingIndicator = () => (
 
 
 // ── Main TaskChatPanel ──
-const TaskChatPanel = ({ run }) => {
+const TaskChatPanel = ({ run, onBack }) => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(false);
     const bottomRef = useRef(null);
@@ -276,6 +276,15 @@ const TaskChatPanel = ({ run }) => {
 
             {/* Header */}
             <div className="px-4 pt-4 pb-3 border-b border-[#f0f0f0] flex-shrink-0">
+                {onBack && (
+                    <button
+                        onClick={onBack}
+                        className="flex items-center gap-1.5 text-[12px] text-[#8f8f8f] hover:text-[#383838] transition-colors mb-2"
+                    >
+                        <ArrowLeft size={12} />
+                        <span>Back</span>
+                    </button>
+                )}
                 <div className="flex items-start justify-between gap-2">
                     <h2 className="text-[13px] font-[600] text-[#171717] leading-snug line-clamp-2 flex-1">
                         {run.name || 'Untitled task'}

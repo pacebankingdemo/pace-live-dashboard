@@ -109,14 +109,22 @@ const TasksView = () => {
     return (
         <div className="flex h-full bg-white overflow-hidden">
 
-            {/* ── LEFT: chat panel ── */}
+            {/* ── LEFT: static placeholder panel ── */}
             <div className="w-[280px] flex-shrink-0 border-r border-[#f0f0f0] flex flex-col overflow-hidden bg-[#FAFAFA]">
-                <TaskChatPanel run={selectedRun} />
+                <div className="flex flex-col h-full items-center justify-center text-center px-6">
+                    <div className="text-[13px] font-[500] text-[#171717] mb-1">Chat</div>
+                    <div className="text-[12px] text-[#8f8f8f]">Conversation interface coming soon.</div>
+                </div>
             </div>
 
-            {/* ── CENTER: task list ── */}
+            {/* ── CENTER: task list OR chat log ── */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden border-r border-[#f0f0f0]">
 
+                {selectedRun ? (
+                    /* ── Chat/logs view for selected run ── */
+                    <TaskChatPanel run={selectedRun} onBack={() => setSelectedRun(null)} />
+                ) : (
+                <>{/* ── Task list ── */}
                 {/* Header */}
                 <div className="px-6 pt-5 pb-0 flex-shrink-0">
                     <h1 className="text-[15px] font-[600] text-[#171717] mb-3">Tasks</h1>
@@ -190,6 +198,8 @@ const TasksView = () => {
                         </div>
                     ))}
                 </div>
+                </>
+                )}
             </div>
 
             {/* ── RIGHT: process filter ── */}
