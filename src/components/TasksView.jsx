@@ -31,7 +31,7 @@ const STATUS_GROUPS = [
 
 const StatusDot = ({ group }) => (
     <span
-        className={`inline-block flex-shrink-0 w-[8px] h-[8px] ${group.dot} opacity-90`}
+        className={`inline-block flex-shrink-0 w-[8px] h-[8px] border ${group.border} opacity-90`}
         style={{ transform: 'rotate(45deg)', borderRadius: '1px' }}
     />
 );
