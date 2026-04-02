@@ -208,16 +208,21 @@ const DashboardLayout = () => {
                         })() : null}
                         {/* Always render the outlet so state is preserved; hide it when a tab is active */}
                         <div className={activeTabId && tabs.find(t => t.id === activeTabId)?.type !== 'run' ? 'hidden' : 'h-full'}>
-                            <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen, theme, setTheme }} />
+                            <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen, theme, setTheme, kbOpen, setKbOpen }} />
                         </div>
                     </div>
                 </main>
-                {/* ══ KB SIDE PANEL (full-height fixed overlay) ══ */}
-                {kbOpen && (
-                    <div className="fixed top-0 right-0 h-screen w-[520px] flex flex-col bg-[#111] border-l border-[#1e1e1e] shadow-2xl overflow-hidden z-50">
+                {/* ══ KB SIDE PANEL (inline flex sibling, tiles with content) ══ */}
+                <div
+                    style={kbOpen ? { width: 'clamp(340px, 28vw, 520px)' } : {}}
+                    className={`flex-shrink-0 flex flex-col overflow-hidden bg-[#111] transition-all duration-200 ${
+                        kbOpen ? 'border-l border-[#1e1e1e]' : 'w-0'
+                    }`}
+                >
+                    {kbOpen && (
                         <KnowledgeBase onClose={() => setKbOpen(false)} embedded currentProcess={currentProcess} />
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </div>
         </TabsContext.Provider>
