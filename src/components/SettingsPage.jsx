@@ -266,7 +266,7 @@ const SettingsPage = () => {
 
             {/* ── Chat Panel ── */}
             <div className={`flex flex-col overflow-hidden bg-[#111] border-r border-[#222] transition-all duration-200 ${chatVisible ? 'w-[320px] flex-shrink-0' : 'w-0'}`}>
-                {chatVisible && <InlineChatPanel />}
+                {chatVisible && <InlineChatPanel theme={theme} />}
             </div>
 
             {/* ── Sidebar ── */}

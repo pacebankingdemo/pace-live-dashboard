@@ -48,7 +48,7 @@ const MarkdownComponents = {
         }
         const copyCode = () => navigator.clipboard.writeText(code).catch(() => {});
         return (
-            <div className="my-3 rounded-lg overflow-hidden border border-[#252525]" style={{ background: '#161616' }}>
+            <div className="my-3 rounded-lg overflow-hidden border border-[#252525] bg-[#161616]">
                 <div className="flex items-center justify-between px-4 py-2 border-b border-[#252525]">
                     <span className="text-[11px] text-[#555] font-mono">{lang || 'code'}</span>
                     <button onClick={copyCode} className="text-[#444] hover:text-[#888] transition-colors">
@@ -85,8 +85,7 @@ const ChatMessage = ({ msg }) => {
         return (
             <div className="mb-6 flex justify-end px-6">
                 <div
-                    className="max-w-[72%] rounded-2xl px-4 py-2.5 text-[13px] text-[#e0e0e0] leading-relaxed"
-                    style={{ background: '#1e1e1e' }}
+                    className={`max-w-[72%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed ${theme === 'light' ? 'bg-[#f0f0f0] text-[#111]' : 'bg-[#1e1e1e] text-[#e0e0e0]'}`}
                 >
                     {msg.content}
                 </div>
@@ -113,7 +112,7 @@ const ChatMessage = ({ msg }) => {
                     {msg.isError ? (
                         <p className="text-[13px] text-red-400 leading-relaxed">{msg.content}</p>
                     ) : (
-                        <div className="text-[13px] text-[#c8c8c8] leading-relaxed prose-custom">
+                        <div className={`text-[13px] leading-relaxed prose-custom ${theme === 'light' ? 'text-[#222]' : 'text-[#c8c8c8]'}`}>
                             <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 components={MarkdownComponents}
@@ -131,7 +130,7 @@ const ChatMessage = ({ msg }) => {
 };
 
 /* ── Main component ───────────────────────────────────────────── */
-const InlineChatPanel = ({ title, onClose, tasksOpen, onOpenTasks, onCloseTasks }) => {
+const InlineChatPanel = ({ title, onClose, tasksOpen, onOpenTasks, onCloseTasks, theme }) => {
     const [messages, setMessages]   = useState([]);
     const [input, setInput]         = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -181,31 +180,31 @@ const InlineChatPanel = ({ title, onClose, tasksOpen, onOpenTasks, onCloseTasks 
     };
 
     return (
-        <div className="flex flex-col h-full" style={{ background: '#111' }}>
+        <div className={`flex flex-col h-full ${theme === 'light' ? 'bg-white' : 'bg-[#111]'}`}>
 
             {/* ── Header ─────────────────────────────────────── */}
-            <div className="flex items-center justify-between px-5 h-11 border-b border-[#1e1e1e] flex-shrink-0">
+            <div className={`flex items-center justify-between px-5 h-11 border-b flex-shrink-0 ${theme === 'light' ? 'border-[#e8e8e8]' : 'border-[#1e1e1e]'}`}>
                 <button className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
-                    <span className="text-[14px] font-[500] text-[#d0d0d0]">{processName}</span>
+                    <span className={`text-[14px] font-[500] ${theme === 'light' ? 'text-[#111]' : 'text-[#d0d0d0]'}`}>{processName}</span>
                     <ChevronDown size={13} className="text-[#555]" />
                 </button>
                 <div className="flex items-center gap-1">
                     {/* Toggle tasks panel */}
                     {onOpenTasks && !tasksOpen && (
                         <button onClick={onOpenTasks} title="Open tasks"
-                            className="w-7 h-7 flex items-center justify-center rounded-md text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors">
+                            className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors ${theme === 'light' ? 'text-[#999] hover:text-[#444] hover:bg-[#f0f0f0]' : 'text-[#444] hover:text-[#888] hover:bg-[#1e1e1e]'}`}>
                             <PanelRightOpen size={14} strokeWidth={1.8} />
                         </button>
                     )}
                     {onCloseTasks && tasksOpen && (
                         <button onClick={onCloseTasks} title="Close tasks"
-                            className="w-7 h-7 flex items-center justify-center rounded-md text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors">
+                            className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors ${theme === 'light' ? 'text-[#999] hover:text-[#444] hover:bg-[#f0f0f0]' : 'text-[#444] hover:text-[#888] hover:bg-[#1e1e1e]'}`}>
                             <PanelRightClose size={14} strokeWidth={1.8} />
                         </button>
                     )}
                     {onClose && (
                         <button onClick={onClose} title="Close chat"
-                            className="w-7 h-7 flex items-center justify-center rounded-md text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors">
+                            className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors ${theme === 'light' ? 'text-[#999] hover:text-[#444] hover:bg-[#f0f0f0]' : 'text-[#444] hover:text-[#888] hover:bg-[#1e1e1e]'}`}>
                             <PanelLeftClose size={14} strokeWidth={1.8} />
                         </button>
                     )}
@@ -217,8 +216,8 @@ const InlineChatPanel = ({ title, onClose, tasksOpen, onOpenTasks, onCloseTasks 
                 {messages.length === 0 && (
                     <div className="flex flex-col items-center justify-center h-full text-center px-8">
                         <img src="/home-pace.svg" alt="Pace" className="w-10 h-10 mb-4 opacity-10" />
-                        <p className="text-[13px] font-[500] text-[#444] mb-1">Chat with Pace</p>
-                        <p className="text-[12px] text-[#333] leading-relaxed">
+                        <p className={`text-[13px] font-[500] mb-1 ${theme === 'light' ? 'text-[#888]' : 'text-[#444]'}`}>Chat with Pace</p>
+                        <p className={`text-[12px] leading-relaxed ${theme === 'light' ? 'text-[#aaa]' : 'text-[#333]'}`}>
                             Ask about tasks, processes, or anything on the dashboard.
                         </p>
                     </div>
@@ -244,8 +243,7 @@ const InlineChatPanel = ({ title, onClose, tasksOpen, onOpenTasks, onCloseTasks 
             {/* ── Input ──────────────────────────────────────── */}
             <div className="flex-shrink-0 px-5 pb-5 pt-2">
                 <div
-                    className="rounded-2xl border border-[#282828] overflow-hidden"
-                    style={{ background: '#181818' }}
+                    className={`rounded-2xl overflow-hidden ${theme === 'light' ? 'border border-[#e0e0e0] bg-[#f7f7f7]' : 'border border-[#282828] bg-[#181818]'}`}
                 >
                     <textarea
                         ref={inputRef}
@@ -254,7 +252,7 @@ const InlineChatPanel = ({ title, onClose, tasksOpen, onOpenTasks, onCloseTasks 
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="Do your life's best work with Pace"
-                        className="w-full bg-transparent px-4 pt-4 pb-2 text-[13px] placeholder-[#404040] text-[#d0d0d0] resize-none outline-none leading-relaxed"
+                        className={`w-full bg-transparent px-4 pt-4 pb-2 text-[13px] resize-none outline-none leading-relaxed ${theme === 'light' ? 'placeholder-[#bbb] text-[#111]' : 'placeholder-[#404040] text-[#d0d0d0]'}`}
                     />
                     <div className="flex items-center justify-between px-4 pb-3 pt-1">
                         {/* Left: paperclip */}
@@ -276,7 +274,7 @@ const InlineChatPanel = ({ title, onClose, tasksOpen, onOpenTasks, onCloseTasks 
                                 className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
                                     input.trim() && !isLoading
                                         ? 'bg-white text-black'
-                                        : 'bg-[#222] text-[#444]'
+                                        : (theme === 'light' ? 'bg-[#ebebeb] text-[#bbb]' : 'bg-[#222] text-[#444]')
                                 }`}
                             >
                                 <ArrowUp size={13} />

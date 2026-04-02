@@ -43,7 +43,7 @@ const fmtDate = (ts) => {
 
 const TasksView = () => {
     // chatOpen comes from DashboardLayout (navbar icon controls it)
-    const { currentOrg, openTab, chatOpen, setChatOpen } = useOutletContext();
+    const { currentOrg, openTab, chatOpen, setChatOpen, theme } = useOutletContext();
 
     const [activeTab, setActiveTab]                 = useState('all');
     const [processes, setProcesses]                 = useState([]);
@@ -159,9 +159,10 @@ const TasksView = () => {
             {/* ══ LEFT: Chat ══ */}
             {renderChat && !renderTasks ? (
                 /* Full-page chat: centered at max-w-[720px] */
-                <div className="flex-1 flex justify-center overflow-hidden bg-[#111]">
+                <div className={`flex-1 flex justify-center overflow-hidden ${theme === 'light' ? 'bg-white' : 'bg-[#111]'}`}>
                     <div className="w-full max-w-[720px] flex flex-col h-full">
                         <InlineChatPanel
+                            theme={theme}
                             onClose={() => handleChatToggle(false)}
                             tasksOpen={false}
                             onOpenTasks={() => handleTasksToggle(true)}
@@ -172,13 +173,14 @@ const TasksView = () => {
             ) : (
                 <div
                     style={renderChat && renderTasks ? { width: 'clamp(300px, 22vw, 460px)' } : {}}
-                    className={`flex flex-col overflow-hidden bg-[#111] transition-all duration-200 ${
+                    className={`flex flex-col overflow-hidden transition-all duration-200 ${theme === 'light' ? 'bg-white' : 'bg-[#111]'} ${
                     renderChat
                         ? 'flex-shrink-0 border-r border-[#1e1e1e]'
                         : 'w-0'
                 }`}>
                     {renderChat && (
                         <InlineChatPanel
+                            theme={theme}
                             onClose={() => handleChatToggle(false)}
                             tasksOpen={tasksOpen || !!selectedRun}
                             onOpenTasks={() => handleTasksToggle(true)}
