@@ -161,40 +161,12 @@ const TasksView = () => {
                     : 'w-0'
             }`}>
                 {renderChat && (
-                    <>
-                        {/* Chat toolbar */}
-                        <div className="flex items-center h-9 px-3 border-b border-[#1e1e1e] flex-shrink-0 gap-1">
-                            <button
-                                onClick={() => handleChatToggle(false)}
-                                className="w-6 h-6 flex items-center justify-center rounded text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors"
-                                title="Close chat"
-                            >
-                                <PanelLeftClose size={13} />
-                            </button>
-                            <div className="flex-1" />
-                            {/* Show tasks button — only when tasks not yet open */}
-                            {!tasksOpen && !selectedRun && (
-                                <button
-                                    onClick={() => handleTasksToggle(true)}
-                                    className="w-6 h-6 flex items-center justify-center rounded text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors"
-                                    title="Open tasks"
-                                >
-                                    <PanelRightOpen size={13} />
-                                </button>
-                            )}
-                            {/* Hide tasks button — when tasks is open alongside chat */}
-                            {(tasksOpen || selectedRun) && (
-                                <button
-                                    onClick={() => { setTasksOpen(false); setSelectedRun(null); }}
-                                    className="w-6 h-6 flex items-center justify-center rounded text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors"
-                                    title="Hide tasks"
-                                >
-                                    <PanelRightClose size={13} />
-                                </button>
-                            )}
-                        </div>
-                        <InlineChatPanel />
-                    </>
+                    <InlineChatPanel
+                        onClose={() => handleChatToggle(false)}
+                        tasksOpen={tasksOpen || !!selectedRun}
+                        onOpenTasks={() => handleTasksToggle(true)}
+                        onCloseTasks={() => { setTasksOpen(false); setSelectedRun(null); }}
+                    />
                 )}
             </div>
 
