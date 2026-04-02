@@ -86,6 +86,9 @@ const DashboardLayout = () => {
     const closeTab = (e, id) => {
         e.stopPropagation();
         setTabs(prev => {
+            const closing = prev.find(t => t.id === id);
+            // Fire onClose callback so the originating view can clean up (e.g. deselect a run)
+            closing?.onClose?.();
             const next = prev.filter(t => t.id !== id);
             if (activeTabId === id) setActiveTabId(next[next.length - 1]?.id || null);
             return next;

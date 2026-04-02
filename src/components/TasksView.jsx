@@ -303,6 +303,10 @@ const TasksView = () => {
                                                                 setSelectedRun(run);
                                                                 setTasksOpen(true);
                                                             },
+                                                            onClose: () => {
+                                                                setSelectedRun(null);
+                                                                setTasksOpen(false);
+                                                            },
                                                         });
                                                     }}
                                                     className={`flex items-center gap-3 px-10 py-[7px] cursor-pointer transition-colors border-b border-[#ffffff04] last:border-0 group ${
