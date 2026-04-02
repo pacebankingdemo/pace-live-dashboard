@@ -146,7 +146,7 @@ const TasksView = () => {
     const renderRight  = rightOpen;
 
     // Width behaviour: chat and tasks share space equally when both open
-    const chatClass  = renderChat  ? (renderTasks ? 'w-[320px] flex-shrink-0' : 'flex-1') : 'w-0';
+    const chatClass  = renderChat  ? (renderTasks ? 'w-[380px] flex-shrink-0' : 'flex-1') : 'w-0';
     const tasksClass = renderTasks ? 'flex-1 min-w-0' : 'w-0 overflow-hidden';
 
     return (
@@ -168,7 +168,7 @@ const TasksView = () => {
             ) : (
                 <div className={`flex flex-col overflow-hidden bg-[#111] transition-all duration-200 ${
                     renderChat
-                        ? 'w-[320px] flex-shrink-0 border-r border-[#1e1e1e]'
+                        ? 'w-[380px] flex-shrink-0 border-r border-[#1e1e1e]'
                         : 'w-0'
                 }`}>
                     {renderChat && (
