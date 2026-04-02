@@ -142,7 +142,7 @@ const DashboardLayout = () => {
 
             {/* ══ PAGE CONTENT ══ */}
             <main className="flex-1 overflow-hidden bg-[#111]">
-                <div className="h-full overflow-y-auto">
+                <div className="h-full overflow-hidden">
                     <Outlet context={{ currentOrg, currentProcess, processes, openTab }} />
                 </div>
             </main>

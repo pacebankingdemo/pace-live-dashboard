@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { ChevronDown, ChevronRight, Activity, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { ChevronDown, ChevronRight, Activity, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Search } from 'lucide-react';
 import { supabase, fetchProcesses, subscribeToTable } from '../services/supabase';
 import ProcessDetails from './ProcessDetails';
 import InlineChatPanel from './InlineChatPanel';
@@ -120,6 +120,11 @@ const TasksView = () => {
                     </button>
 
                     <div className="flex-1" />
+
+                    {/* Search icon */}
+                    <button className="w-6 h-6 flex items-center justify-center rounded text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors flex-shrink-0" title="Search tasks">
+                        <Search size={13} />
+                    </button>
 
                     <button
                         onClick={() => setRightOpen(o => !o)}

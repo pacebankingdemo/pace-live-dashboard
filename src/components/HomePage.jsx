@@ -24,7 +24,7 @@ const HomePage = () => {
     };
 
     return (
-        <div className="flex flex-col h-screen bg-[#111] text-white font-sans antialiased">
+        <div className="flex flex-col h-full bg-[#111] text-white font-sans antialiased">
             {/* Centered content */}
             <div className="flex-1 flex flex-col items-center justify-center px-6">
                 {/* Pace logo orb */}

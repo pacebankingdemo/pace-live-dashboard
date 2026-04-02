@@ -358,11 +358,11 @@ const CollapsibleReasoning = ({ reasoning, messageDetail, reasoningSteps, summar
 
     return (
         <div className="mt-2.5">
-            <div className="border border-[#E5E7EB] rounded-lg overflow-hidden" style={{ width: "min(50vw, 480px)" }}>
+            <div className="border border-[#2a2a2a] rounded-lg overflow-hidden" style={{ width: "min(50vw, 480px)" }}>
                 {/* Toggle row — compact width, grey */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="w-full flex items-center justify-between px-3 py-2 text-[12px] text-[#6B7280] hover:bg-[#F9FAFB] transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-2 text-[12px] text-[#666] hover:bg-[#1a1a1a] transition-colors"
                 >
                     <span className="font-medium">{isOpen ? 'Hide reasoning' : 'See reasoning'}</span>
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
@@ -387,16 +387,16 @@ const CollapsibleReasoning = ({ reasoning, messageDetail, reasoningSteps, summar
                                         {/* Content */}
                                         <div className="flex-1 py-0.5">
                                             {line.type === 'narrative' && (
-                                                <p className="text-[12px] text-[#555] leading-relaxed whitespace-pre-wrap">{line.text}</p>
+                                                <p className="text-[12px] text-[#888] leading-relaxed whitespace-pre-wrap">{line.text}</p>
                                             )}
                                             {line.type === 'kv' && (
                                                 <div className="flex items-baseline gap-2">
-                                                    <span className="text-[12px] text-[#6B7280] flex-shrink-0">{line.label}:</span>
-                                                    <span className="text-[12px] text-[#171717] font-medium break-all">{line.value}</span>
+                                                    <span className="text-[12px] text-[#666] flex-shrink-0">{line.label}:</span>
+                                                    <span className="text-[12px] text-[#e8e8e8] font-medium break-all">{line.value}</span>
                                                 </div>
                                             )}
                                             {line.type === 'step' && (
-                                                <span className="text-[12px] text-[#555]">{line.text}</span>
+                                                <span className="text-[12px] text-[#888]">{line.text}</span>
                                             )}
                                         </div>
                                     </div>
@@ -478,7 +478,7 @@ const EmailArtifactPill = ({ artifact, onClick }) => {
     return (
         <button
             onClick={() => onClick && onClick(artifact)}
-            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] transition-colors text-[#374151] text-[12px] font-medium"
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#F3F4F6] hover:bg-[#2a2a2a] border border-[#2a2a2a] transition-colors text-[#374151] text-[12px] font-medium"
             style={{maxWidth: '360px'}}
         >
             <GmailIcon />
@@ -494,22 +494,22 @@ const EmailViewer = ({ artifact, onClose }) => {
     const displayName = email.display_name || artifact.filename?.replace(/\.eml$/i, '') || 'Email';
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="bg-[#111] rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
                 {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E7EB]">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-[#2a2a2a]">
                     <div className="flex items-center gap-2.5">
                         <GmailIcon />
-                        <span className="text-[14px] font-semibold text-[#171717]">{displayName}</span>
+                        <span className="text-[14px] font-semibold text-[#e8e8e8]">{displayName}</span>
                     </div>
                     <button onClick={onClose} className="text-[#9CA3AF] hover:text-[#374151] text-xl font-light leading-none w-6 h-6 flex items-center justify-center">×</button>
                 </div>
                 {/* Fields */}
-                <div className="px-5 py-3 space-y-1.5 bg-[#F9FAFB] border-b border-[#E5E7EB]">
-                    {email.from && <div className="flex gap-3 text-[12px]"><span className="text-[#6B7280] w-14 flex-shrink-0 font-medium">From</span><span className="text-[#171717]">{email.from}</span></div>}
-                    {email.to && <div className="flex gap-3 text-[12px]"><span className="text-[#6B7280] w-14 flex-shrink-0 font-medium">To</span><span className="text-[#171717]">{email.to}</span></div>}
-                    {email.cc && <div className="flex gap-3 text-[12px]"><span className="text-[#6B7280] w-14 flex-shrink-0 font-medium">CC</span><span className="text-[#171717]">{email.cc}</span></div>}
-                    {email.date && <div className="flex gap-3 text-[12px]"><span className="text-[#6B7280] w-14 flex-shrink-0 font-medium">Date</span><span className="text-[#171717]">{email.date}</span></div>}
-                    {email.subject && <div className="flex gap-3 text-[12px]"><span className="text-[#6B7280] w-14 flex-shrink-0 font-medium">Subject</span><span className="text-[#171717] font-semibold">{email.subject}</span></div>}
+                <div className="px-5 py-3 space-y-1.5 bg-[#1a1a1a] border-b border-[#2a2a2a]">
+                    {email.from && <div className="flex gap-3 text-[12px]"><span className="text-[#666] w-14 flex-shrink-0 font-medium">From</span><span className="text-[#e8e8e8]">{email.from}</span></div>}
+                    {email.to && <div className="flex gap-3 text-[12px]"><span className="text-[#666] w-14 flex-shrink-0 font-medium">To</span><span className="text-[#e8e8e8]">{email.to}</span></div>}
+                    {email.cc && <div className="flex gap-3 text-[12px]"><span className="text-[#666] w-14 flex-shrink-0 font-medium">CC</span><span className="text-[#e8e8e8]">{email.cc}</span></div>}
+                    {email.date && <div className="flex gap-3 text-[12px]"><span className="text-[#666] w-14 flex-shrink-0 font-medium">Date</span><span className="text-[#e8e8e8]">{email.date}</span></div>}
+                    {email.subject && <div className="flex gap-3 text-[12px]"><span className="text-[#666] w-14 flex-shrink-0 font-medium">Subject</span><span className="text-[#e8e8e8] font-semibold">{email.subject}</span></div>}
                 </div>
                 {/* Body */}
                 <div className="px-5 py-4 max-h-80 overflow-y-auto custom-scrollbar">
@@ -552,9 +552,9 @@ const DocumentPreview = ({ artifact, onClose }) => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-white flex-1 min-w-[400px] overflow-hidden">
+        <div className="flex flex-col h-full bg-[#111] flex-1 min-w-[400px] overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white z-10 w-full">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#222] bg-[#111] z-10 w-full">
                 <div className="flex items-center gap-3 min-w-0">
                     <div className="p-1.5 bg-red-50 rounded">
                         {docType === 'pdf'
@@ -563,7 +563,7 @@ const DocumentPreview = ({ artifact, onClose }) => {
                         }
                     </div>
                     <div className="min-w-0">
-                        <span className="text-[14px] font-medium text-[#171717] truncate block">{fileName}</span>
+                        <span className="text-[14px] font-medium text-[#e8e8e8] truncate block">{fileName}</span>
                         {fileSize && (
                             <span className="text-[11px] text-[#9CA3AF]">{formatSize(fileSize)}</span>
                         )}
@@ -571,15 +571,15 @@ const DocumentPreview = ({ artifact, onClose }) => {
                 </div>
                 <div className="flex items-center gap-1">
                     <button onClick={handleDownload} title="Download"
-                        className="p-1.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 transition-colors">
+                        className="p-1.5 hover:bg-[#1a1a1a] rounded text-[#555] hover:text-[#888] transition-colors">
                         <Download className="w-4 h-4" />
                     </button>
                     <button onClick={() => fileUrl && window.open(fileUrl, '_blank')} title="Open in new tab"
-                        className="p-1.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 transition-colors">
+                        className="p-1.5 hover:bg-[#1a1a1a] rounded text-[#555] hover:text-[#888] transition-colors">
                         <ExternalLink className="w-4 h-4" />
                     </button>
                     <button onClick={onClose} title="Close"
-                        className="p-1.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 transition-colors">
+                        className="p-1.5 hover:bg-[#1a1a1a] rounded text-[#555] hover:text-[#888] transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -587,22 +587,22 @@ const DocumentPreview = ({ artifact, onClose }) => {
 
             {/* Toolbar for zoom/rotate (images) */}
             {docType === 'image' && (
-                <div className="flex items-center justify-center gap-2 px-4 py-2 border-b border-gray-100 bg-[#fafafa]">
+                <div className="flex items-center justify-center gap-2 px-4 py-2 border-b border-[#222] bg-[#111]">
                     <button onClick={() => setZoom(z => Math.max(25, z - 25))}
-                        className="p-1 hover:bg-gray-200 rounded text-gray-500"><ZoomOut className="w-4 h-4" /></button>
-                    <span className="text-[11px] text-gray-500 w-12 text-center">{zoom}%</span>
+                        className="p-1 hover:bg-[#2a2a2a] rounded text-[#666]"><ZoomOut className="w-4 h-4" /></button>
+                    <span className="text-[11px] text-[#666] w-12 text-center">{zoom}%</span>
                     <button onClick={() => setZoom(z => Math.min(300, z + 25))}
-                        className="p-1 hover:bg-gray-200 rounded text-gray-500"><ZoomIn className="w-4 h-4" /></button>
-                    <div className="w-px h-4 bg-gray-200 mx-1" />
+                        className="p-1 hover:bg-[#2a2a2a] rounded text-[#666]"><ZoomIn className="w-4 h-4" /></button>
+                    <div className="w-px h-4 bg-[#2a2a2a] mx-1" />
                     <button onClick={() => setRotation(r => (r + 90) % 360)}
-                        className="p-1 hover:bg-gray-200 rounded text-gray-500"><RotateCw className="w-4 h-4" /></button>
+                        className="p-1 hover:bg-[#2a2a2a] rounded text-[#666]"><RotateCw className="w-4 h-4" /></button>
                     <button onClick={() => setZoom(100)}
-                        className="px-2 py-0.5 text-[10px] text-gray-500 hover:bg-gray-200 rounded">Reset</button>
+                        className="px-2 py-0.5 text-[10px] text-[#666] hover:bg-[#2a2a2a] rounded">Reset</button>
                 </div>
             )}
 
             {/* Document content */}
-            <div className="flex-1 overflow-auto bg-[#f5f5f5]">
+            <div className="flex-1 overflow-auto bg-[#1a1a1a]">
                 {docType === 'pdf' && fileUrl ? (
                     <iframe
                         src={`${fileUrl}#toolbar=1&navpanes=0`}
@@ -624,11 +624,11 @@ const DocumentPreview = ({ artifact, onClose }) => {
                         />
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400">
+                    <div className="flex flex-col items-center justify-center h-full gap-3 text-[#555]">
                         <FileText className="w-12 h-12" strokeWidth={1} />
                         <p className="text-sm">Preview not available</p>
                         <button onClick={handleDownload}
-                            className="px-3 py-1.5 bg-black text-white text-xs rounded-md hover:bg-gray-800 transition-colors">
+                            className="px-3 py-1.5 bg-black text-white text-xs rounded-md hover:bg-[#1a1a1a] transition-colors">
                             Download File
                         </button>
                     </div>
@@ -695,9 +695,9 @@ const DatasetViewer = ({ artifact, onClose, allDataArtifacts, onSelectTab }) => 
 
     // Format cell values identically to DataExplorer
     const formatCell = (value, type) => {
-        if (value === null || value === undefined) return <span className="text-gray-300">\u2014</span>;
+        if (value === null || value === undefined) return <span className="text-[#444]">\u2014</span>;
         if (type === 'json' || typeof value === 'object') {
-            return <span className="font-mono text-[10px] text-gray-500">{JSON.stringify(value).slice(0, 80)}</span>;
+            return <span className="font-mono text-[10px] text-[#666]">{JSON.stringify(value).slice(0, 80)}</span>;
         }
         if (type === 'number') return <span className="font-mono">{value}</span>;
         if (type === 'boolean') return value ? '\u2713' : '\u2717';
@@ -744,18 +744,18 @@ const DatasetViewer = ({ artifact, onClose, allDataArtifacts, onSelectTab }) => 
     const activeTabId = artifact?.id;
 
     return (
-        <div className="flex flex-col h-full bg-white flex-1 min-w-[340px] overflow-hidden">
+        <div className="flex flex-col h-full bg-[#111] flex-1 min-w-[340px] overflow-hidden">
             {/* Tabs row — only if multiple data artifacts */}
             {hasTabs && (
-                <div className="flex items-center gap-0 border-b border-gray-100 bg-[#FAFAFA] overflow-x-auto flex-shrink-0">
+                <div className="flex items-center gap-0 border-b border-[#222] bg-[#FAFAFA] overflow-x-auto flex-shrink-0">
                     {allDataArtifacts.map(da => (
                         <button
                             key={da.id}
                             onClick={() => onSelectTab && onSelectTab(da)}
                             className={`px-4 py-2.5 text-[12px] font-medium whitespace-nowrap border-b-2 transition-colors ${
                                 da.id === activeTabId
-                                    ? 'border-[#171717] text-[#171717] bg-white'
-                                    : 'border-transparent text-[#9CA3AF] hover:text-[#6B7280] hover:bg-gray-50'
+                                    ? 'border-[#e8e8e8] text-[#e8e8e8] bg-[#111]'
+                                    : 'border-transparent text-[#9CA3AF] hover:text-[#666] hover:bg-[#161616]'
                             }`}
                         >
                             {da._stepName || da.filename || 'Data'}
@@ -765,13 +765,13 @@ const DatasetViewer = ({ artifact, onClose, allDataArtifacts, onSelectTab }) => 
             )}
 
             {/* Header — matches DataExplorer exactly */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white z-10 w-full">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#222] bg-[#111] z-10 w-full">
                 <div className="flex items-center gap-3">
-                    <Database className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm font-semibold text-gray-900">
+                    <Database className="w-4 h-4 text-[#555]" />
+                    <span className="text-sm font-semibold text-[#e8e8e8]">
                         {artifact?._stepName || artifact?.filename || 'Artifact Data'}
                     </span>
-                    <span className="text-[10px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] text-[#555] bg-[#161616] px-1.5 py-0.5 rounded">
                         {rowData.length} {rowData.length === 1 ? 'row' : 'rows'} \u00b7 {fields.length} fields
                     </span>
                 </div>
@@ -782,30 +782,30 @@ const DatasetViewer = ({ artifact, onClose, allDataArtifacts, onSelectTab }) => 
                             <button
                                 onClick={() => setCurrentRow(r => Math.max(0, r - 1))}
                                 disabled={currentRow === 0}
-                                className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="p-1 hover:bg-[#1a1a1a] rounded text-[#555] hover:text-[#888] disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                                 <ChevronUp className="w-3.5 h-3.5" />
                             </button>
-                            <span className="text-[11px] text-[#6B7280] font-medium tabular-nums min-w-[60px] text-center">
+                            <span className="text-[11px] text-[#666] font-medium tabular-nums min-w-[60px] text-center">
                                 ROW {currentRow + 1} / {rowData.length}
                             </span>
                             <button
                                 onClick={() => setCurrentRow(r => Math.min(rowData.length - 1, r + 1))}
                                 disabled={currentRow >= rowData.length - 1}
-                                className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="p-1 hover:bg-[#1a1a1a] rounded text-[#555] hover:text-[#888] disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                                 <ChevronDown className="w-3.5 h-3.5" />
                             </button>
                         </div>
                     )}
-                    <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+                    <button onClick={onClose} className="p-1.5 hover:bg-[#1a1a1a] rounded text-[#555] hover:text-[#888]"><X className="w-5 h-5" /></button>
                 </div>
             </div>
 
             {/* Data content */}
-            <div className="flex-1 overflow-auto bg-white custom-scrollbar min-h-0">
+            <div className="flex-1 overflow-auto bg-[#111] custom-scrollbar min-h-0">
                 {artifact?._loading ? (
-                    <div className="flex items-center justify-center h-full gap-2 text-gray-400">
+                    <div className="flex items-center justify-center h-full gap-2 text-[#555]">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         <span className="text-[12px]">Loading data\u2026</span>
                     </div>
@@ -815,12 +815,12 @@ const DatasetViewer = ({ artifact, onClose, allDataArtifacts, onSelectTab }) => 
                         {fields.map(f => {
                             const val = currentRowData[f.name];
                             return (
-                                <div key={f.name} className="flex items-start gap-4 px-4 py-3 hover:bg-gray-50/50 transition-colors">
+                                <div key={f.name} className="flex items-start gap-4 px-4 py-3 hover:bg-[#161616]/50 transition-colors">
                                     <div className="flex items-center gap-1.5 min-w-[140px] max-w-[180px] flex-shrink-0">
                                         <span className="text-[#9CA3AF]">{typeIcon(f.type)}</span>
-                                        <span className="text-[12px] text-[#6B7280] font-medium truncate">{f.name}</span>
+                                        <span className="text-[12px] text-[#666] font-medium truncate">{f.name}</span>
                                     </div>
-                                    <div className="flex-1 text-[12px] text-[#171717] font-[500] break-words">
+                                    <div className="flex-1 text-[12px] text-[#e8e8e8] font-[500] break-words">
                                         {formatCell(val, f.type)}
                                     </div>
                                 </div>
@@ -831,16 +831,16 @@ const DatasetViewer = ({ artifact, onClose, allDataArtifacts, onSelectTab }) => 
                     /* ── Horizontal table view (multiple rows) ── */
                     <div className="w-full h-full overflow-auto">
                         <table className="min-w-full text-left border-collapse">
-                            <thead className="sticky top-0 bg-white z-10">
-                                <tr className="border-b border-gray-100">
+                            <thead className="sticky top-0 bg-[#111] z-10">
+                                <tr className="border-b border-[#222]">
                                     {fields.map(f => (
                                         <th key={f.name}
                                             onClick={() => handleSort(f.name)}
-                                            className="px-3 py-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-gray-600 select-none">
+                                            className="px-3 py-2 text-[10px] font-semibold text-[#555] uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-[#888] select-none">
                                             <span className="flex items-center gap-1">
                                                 {typeIcon(f.type)}
                                                 {f.name}
-                                                <ArrowUpDown className={`w-2.5 h-2.5 ${sortField === f.name ? 'text-gray-600' : 'text-gray-300'}`} />
+                                                <ArrowUpDown className={`w-2.5 h-2.5 ${sortField === f.name ? 'text-[#888]' : 'text-[#444]'}`} />
                                             </span>
                                         </th>
                                     ))}
@@ -848,9 +848,9 @@ const DatasetViewer = ({ artifact, onClose, allDataArtifacts, onSelectTab }) => 
                             </thead>
                             <tbody>
                                 {sortedRows.map((row, i) => (
-                                    <tr key={i} className={`border-b border-gray-50 hover:bg-gray-50/50 transition-colors ${i % 2 === 0 ? '' : 'bg-gray-50/30'}`}>
+                                    <tr key={i} className={`border-b border-[#1e1e1e] hover:bg-[#161616]/50 transition-colors ${i % 2 === 0 ? '' : 'bg-[#161616]/30'}`}>
                                         {fields.map(f => (
-                                            <td key={f.name} className="px-3 py-2 text-[11px] text-gray-700 max-w-[200px] truncate">
+                                            <td key={f.name} className="px-3 py-2 text-[11px] text-[#ccc] max-w-[200px] truncate">
                                                 {formatCell(row?.[f.name], f.type)}
                                             </td>
                                         ))}
@@ -1280,15 +1280,15 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
 
     return (
         <>
-        <div className="flex h-full bg-white overflow-hidden">
+        <div className="flex h-full bg-[#111] overflow-hidden">
             {/* Main content - NO margin-right, flex handles it */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Header */}
-                <div className="flex-shrink-0 px-6 py-5 border-b border-[#f0f0f0] bg-white">
+                <div className="flex-shrink-0 px-6 py-5 border-b border-[#222] bg-[#111]">
                     {onBack && (
                         <button
                             onClick={onBack}
-                            className="flex items-center gap-1.5 text-[12px] text-[#8f8f8f] hover:text-[#383838] transition-colors mb-3"
+                            className="flex items-center gap-1.5 text-[12px] text-[#666] hover:text-[#ccc] transition-colors mb-3"
                         >
                             <ChevronLeft size={13} />
                             <span>Back to tasks</span>
@@ -1296,7 +1296,7 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                     )}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <h2 className="text-[16px] font-semibold text-[#171717]">
+                            <h2 className="text-[16px] font-semibold text-[#e8e8e8]">
                                 {run?.document_name || run?.name || `Run ${runId?.slice(0, 8)}`}
                             </h2>
                             {(() => {
@@ -1339,7 +1339,7 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                 <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar">
                     {logs.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-center">
-                            <div className="w-10 h-10 border border-[#f0f0f0] rounded-lg flex items-center justify-center mb-3">
+                            <div className="w-10 h-10 border border-[#222] rounded-lg flex items-center justify-center mb-3">
                                 <Activity className="w-5 h-5 text-[#9CA3AF]" />
                             </div>
                             <p className="text-sm text-[#666]">No activity logs yet</p>
@@ -1396,13 +1396,13 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                                                     : 'bg-[#DADAFF] border-[#0000A4] animate-square-to-diamond'
                                             }`} />
                                             {!isLastGroup && (
-                                                <div className="w-[1px] bg-[#E5E7EB] flex-1 min-h-[20px] mt-1" />
+                                                <div className="w-[1px] bg-[#2a2a2a] flex-1 min-h-[20px] mt-1" />
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0 pb-2">
                                             {/* Step name */}
                                             <div className="flex items-center gap-2 flex-wrap">
-                                                <span className="text-[13px] font-medium text-[#171717]">
+                                                <span className="text-[13px] font-medium text-[#e8e8e8]">
                                                     {stepLabel}
                                                 </span>
                                                 {group.logs.length > 1 && (
@@ -1445,14 +1445,14 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                                                         const isImg = /\.(png|jpg|jpeg|gif|webp)$/i.test(art.filename || '');
                                                         return (
                                                             <button key={art.id} onClick={() => handleArtifactClick(art)}
-                                                                className={"bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] rounded-md px-2 py-0.5 flex items-center gap-1.5 transition-colors group/chip"}>
-                                                                <div className={"w-4 h-4 rounded flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]"}>
+                                                                className={"bg-[#F3F4F6] hover:bg-[#2a2a2a] border border-[#2a2a2a] rounded-md px-2 py-0.5 flex items-center gap-1.5 transition-colors group/chip"}>
+                                                                <div className={"w-4 h-4 rounded flex items-center justify-center flex-shrink-0 bg-[#2a2a2a]"}>
                                                                     {isPdf ? (
-                                                                        <FileText className="h-3 w-3 text-[#6B7280]" strokeWidth={2} />
+                                                                        <FileText className="h-3 w-3 text-[#666]" strokeWidth={2} />
                                                                     ) : isImg ? (
-                                                                        <Image className="h-3 w-3 text-[#6B7280]" strokeWidth={2} />
+                                                                        <Image className="h-3 w-3 text-[#666]" strokeWidth={2} />
                                                                     ) : (
-                                                                        <FileText className="h-3 w-3 text-[#6B7280]" strokeWidth={2} />
+                                                                        <FileText className="h-3 w-3 text-[#666]" strokeWidth={2} />
                                                                     )}
                                                                 </div>
                                                                 <span className="text-[11px] font-medium text-[#374151]">{art.filename}</span>
@@ -1466,7 +1466,7 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                                                             return (
                                                                 <a key={da.id} href={da.url || '#'} target="_blank" rel="noreferrer"
                                                                     className="bg-[#f0f6ff] hover:bg-[#e1ecff] border border-[#c8dfff] rounded-lg px-2.5 py-1.5 flex items-center gap-2 transition-colors group/chip no-underline">
-                                                                    <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 bg-white border border-[#d0e4ff]">
+                                                                    <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 bg-[#111] border border-[#2a4080]">
                                                                         <svg width="12" height="12" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                             <circle cx="12" cy="12" r="10" fill="#0364B8"/>
                                                                             <circle cx="21" cy="19" r="9" fill="#0078D4"/>
@@ -1484,7 +1484,7 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                                                         if (da._isEmailDraft) {
                                                             return (
                                                                 <button key={da.id} onClick={() => handleArtifactClick(da)}
-                                                                    className="bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg px-2.5 py-1.5 flex items-center gap-2 transition-colors group/chip">
+                                                                    className="bg-[#111] hover:bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-2.5 py-1.5 flex items-center gap-2 transition-colors group/chip">
                                                                     <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
                                                                         <path d="M1 5.5V18.5C1 19.6 1.9 20.5 3 20.5H5V9.5L12 14.5L19 9.5V20.5H21C22.1 20.5 23 19.6 23 18.5V5.5C23 4.1 21.4 3.2 20.2 4L12 9.5L3.8 4C2.6 3.2 1 4.1 1 5.5Z" fill="#EA4335"/>
                                                                         <path d="M5 20.5V9.5L12 14.5" fill="#4285F4"/>
@@ -1503,9 +1503,9 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                                                         if (da.url && !isDataArt) {
                                                             return (
                                                                 <button key={da.id} onClick={() => handleArtifactClick(da)}
-                                                                    className="bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] rounded-md px-2 py-0.5 flex items-center gap-1.5 transition-colors group/chip">
-                                                                    <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]">
-                                                                        <Database className="h-3 w-3 text-[#6B7280]" strokeWidth={2} />
+                                                                    className="bg-[#F3F4F6] hover:bg-[#2a2a2a] border border-[#2a2a2a] rounded-md px-2 py-0.5 flex items-center gap-1.5 transition-colors group/chip">
+                                                                    <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 bg-[#2a2a2a]">
+                                                                        <Database className="h-3 w-3 text-[#666]" strokeWidth={2} />
                                                                     </div>
                                                                     <span className="text-[11px] font-medium text-[#374151]">{da.filename}</span>
                                                                     <Eye className="h-3 w-3 text-[#D1D5DB] group-hover/chip:text-[#9CA3AF] flex-shrink-0 ml-0.5" strokeWidth={1.5} />
@@ -1515,9 +1515,9 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                                                         // Inline data artifacts (NatWest data{} pattern) — open DatasetViewer
                                                         return (
                                                             <button key={da.id} onClick={() => handleArtifactClick(da)}
-                                                                className="bg-[#F3F4F6] hover:bg-[#E5E7EB] border border-[#E5E7EB] rounded-md px-2 py-0.5 flex items-center gap-1.5 transition-colors group/chip">
-                                                                <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]">
-                                                                    <Database className="h-3 w-3 text-[#6B7280]" strokeWidth={2} />
+                                                                className="bg-[#F3F4F6] hover:bg-[#2a2a2a] border border-[#2a2a2a] rounded-md px-2 py-0.5 flex items-center gap-1.5 transition-colors group/chip">
+                                                                <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 bg-[#2a2a2a]">
+                                                                    <Database className="h-3 w-3 text-[#666]" strokeWidth={2} />
                                                                 </div>
                                                                 <span className="text-[11px] font-medium text-[#374151]">{da.filename}</span>
                                                                 <Eye className="h-3 w-3 text-[#D1D5DB] group-hover/chip:text-[#9CA3AF] flex-shrink-0 ml-0.5" strokeWidth={1.5} />
@@ -1557,7 +1557,7 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                     {/* Middle panel: DatasetViewer with tabs */}
                     <div className="w-1 cursor-col-resize hover:bg-blue-200 active:bg-blue-300 transition-colors flex-shrink-0"
                         onMouseDown={() => setIsResizing(true)} />
-                    <div className="flex-1 min-w-[340px] border-l border-[#f0f0f0]">
+                    <div className="flex-1 min-w-[340px] border-l border-[#222]">
                         <DatasetViewer
                                 artifact={selectedArtifact}
                                 onClose={() => { setSelectedArtifact(null); setSelectedDocument(null); setDataArtifactTabs([]); }}
@@ -1566,7 +1566,7 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                             />
                     </div>
                     {/* Right panel: PDF DocumentPreview */}
-                    <div className="w-[480px] flex-shrink-0 border-l border-[#f0f0f0]">
+                    <div className="w-[480px] flex-shrink-0 border-l border-[#222]">
                         <DocumentPreview
                             artifact={selectedDocument}
                             onClose={() => setSelectedDocument(null)}
@@ -1577,7 +1577,7 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                 <>
                     <div className="w-1 cursor-col-resize hover:bg-blue-200 active:bg-blue-300 transition-colors flex-shrink-0"
                         onMouseDown={() => setIsResizing(true)} />
-                    <div style={{ width: artifactWidth }} className="flex-shrink-0 border-l border-[#f0f0f0]">
+                    <div style={{ width: artifactWidth }} className="flex-shrink-0 border-l border-[#222]">
                         {selectedArtifact._isEmailDraft ? (
                             <EmailDraftViewer
                                 artifact={selectedArtifact}
@@ -1601,9 +1601,9 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                     </div>
                 </>
             ) : (
-                <div className="w-[400px] flex-shrink-0 border-l border-[#f0f0f0] bg-white overflow-y-auto custom-scrollbar">
+                <div className="w-[400px] flex-shrink-0 border-l border-[#222] bg-[#111] overflow-y-auto custom-scrollbar">
                     <div className="px-5 pt-5 pb-4">
-                        <h3 className="text-[14px] font-semibold text-[#171717]">Key Details</h3>
+                        <h3 className="text-[14px] font-semibold text-[#e8e8e8]">Key Details</h3>
                     </div>
 
                     {/* P2 Prepaid Expense Booking — Key Details panel */}
@@ -1634,17 +1634,17 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                         }
                         const dividerAfter = new Set([2, 5, 8]);
                         return (
-                            <div className="mx-4 mb-3 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                            <div className="mx-4 mb-3 bg-[#111] rounded-xl border border-[#2a2a2a] shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
                                 <div className="flex items-center gap-2 px-4 pt-3.5 pb-2">
-                                    <Briefcase className="w-3.5 h-3.5 text-[#6B7280]" />
-                                    <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Invoice Details</span>
+                                    <Briefcase className="w-3.5 h-3.5 text-[#666]" />
+                                    <span className="text-[11px] font-semibold text-[#666] uppercase tracking-wider">Invoice Details</span>
                                 </div>
                                 <div className="px-4 pb-3.5 space-y-0">
                                     {rows.map((row, idx) => (
                                         <React.Fragment key={row.label}>
                                             <div className="flex items-start justify-between py-2.5 gap-4">
-                                                <p className="text-[12px] text-[#6B7280] whitespace-nowrap">{row.label}</p>
-                                                <p className="text-[12px] font-semibold text-[#171717] text-right">{row.value}</p>
+                                                <p className="text-[12px] text-[#666] whitespace-nowrap">{row.label}</p>
+                                                <p className="text-[12px] font-semibold text-[#e8e8e8] text-right">{row.value}</p>
                                             </div>
                                             {dividerAfter.has(idx) && <div className="border-t border-[#F3F4F6]" />}
                                         </React.Fragment>
@@ -1674,7 +1674,7 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                             const color = (vl === 'complete' || vl === 'active') ? 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]'
                                         : (vl === 'in progress' || vl.includes('draft')) ? 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
                                         : vl === 'awaiting' ? 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]'
-                                        : 'bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]';
+                                        : 'bg-[#F3F4F6] text-[#374151] border-[#2a2a2a]';
                             return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${color}`}>{v}</span>;
                         };
 
@@ -1703,12 +1703,12 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                             : new Set(['end_date', 'erp_invoices_extracted']);
 
                         return (
-                            <div className="mx-4 mb-3 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                            <div className="mx-4 mb-3 bg-[#111] rounded-xl border border-[#2a2a2a] shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
                                 <div className="flex items-center gap-2 px-4 pt-3.5 pb-2">
-                                    <Briefcase className="w-3.5 h-3.5 text-[#6B7280]" />
+                                    <Briefcase className="w-3.5 h-3.5 text-[#666]" />
                                     {isContractSetup
-                                        ? <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Contract Details</span>
-                                        : <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Run Details</span>
+                                        ? <span className="text-[11px] font-semibold text-[#666] uppercase tracking-wider">Contract Details</span>
+                                        : <span className="text-[11px] font-semibold text-[#666] uppercase tracking-wider">Run Details</span>
                                     }
                                 </div>
                                 <div className="px-4 pb-3.5 space-y-0">
@@ -1717,10 +1717,10 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                                         return (
                                             <React.Fragment key={key}>
                                                 <div className="flex items-start justify-between py-2.5 gap-4">
-                                                    <p className="text-[12px] text-[#6B7280] flex-shrink-0 whitespace-nowrap">{sectionLabels[key]}</p>
+                                                    <p className="text-[12px] text-[#666] flex-shrink-0 whitespace-nowrap">{sectionLabels[key]}</p>
                                                     {statusKeys.has(key)
                                                         ? statusPill(val)
-                                                        : <p className="text-[13px] font-semibold text-[#171717] text-right">{key === 'region' && val ? String(val).toUpperCase() : (val || '—')}</p>
+                                                        : <p className="text-[13px] font-semibold text-[#e8e8e8] text-right">{key === 'region' && val ? String(val).toUpperCase() : (val || '—')}</p>
                                                     }
                                                 </div>
                                                 {dividerAfter.has(key) && <div className="border-t border-[#F3F4F6]" />}
@@ -1749,16 +1749,16 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                         const nonDxc = Object.fromEntries(Object.entries(caseDetails).filter(([k]) => !dxcKeys.has(k)));
                         if (Object.keys(nonDxc).length === 0) return null;
                         return (
-                            <div className="mx-4 mb-3 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                            <div className="mx-4 mb-3 bg-[#111] rounded-xl border border-[#2a2a2a] shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
                                 <div className="flex items-center gap-2 px-4 pt-3.5 pb-2">
-                                    <Briefcase className="w-3.5 h-3.5 text-[#6B7280]" />
-                                    <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Case Details</span>
+                                    <Briefcase className="w-3.5 h-3.5 text-[#666]" />
+                                    <span className="text-[11px] font-semibold text-[#666] uppercase tracking-wider">Case Details</span>
                                 </div>
                                 <div className="px-4 pb-3.5 space-y-3">
                                     {Object.entries(nonDxc).map(([key, value]) => (
                                         <div key={key}>
                                             <p className="text-[10px] font-medium text-[#9CA3AF] uppercase tracking-wider mb-0.5">{formatFieldKey(key)}</p>
-                                            <p className="text-[13px] text-[#171717] font-medium break-words leading-snug">
+                                            <p className="text-[13px] text-[#e8e8e8] font-medium break-words leading-snug">
                                                 {formatCaseValue(key, value)}
                                             </p>
                                         </div>
@@ -1770,10 +1770,10 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
 
 
                     {/* Artifacts */}
-                    <div className="mx-4 mb-4 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                    <div className="mx-4 mb-4 bg-[#111] rounded-xl border border-[#2a2a2a] shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
                         <div className="flex items-center gap-2 px-4 pt-3.5 pb-2">
-                            <Presentation className="w-3.5 h-3.5 text-[#6B7280]" />
-                            <span className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Artifacts</span>
+                            <Presentation className="w-3.5 h-3.5 text-[#666]" />
+                            <span className="text-[11px] font-semibold text-[#666] uppercase tracking-wider">Artifacts</span>
                         </div>
                         <div className="px-4 pb-3.5">
                             {allArtifacts.length === 0 ? (
@@ -1798,7 +1798,7 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                                                 <a key={art.id} href={art.url || '#'} target="_blank" rel="noreferrer"
                                                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[#f0f6ff] transition-colors text-left group border border-[#e1ecff] bg-[#f7fbff] mb-1">
                                                     {/* SharePoint logo SVG */}
-                                                    <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 bg-white border border-[#d0e4ff] shadow-sm">
+                                                    <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 bg-[#111] border border-[#2a4080] shadow-sm">
                                                         <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                             <circle cx="12" cy="12" r="10" fill="#0364B8"/>
                                                             <circle cx="21" cy="19" r="9" fill="#0078D4"/>
@@ -1819,15 +1819,15 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                                         if (isExcel) {
                                             return (
                                                 <button key={art.id} onClick={() => handleArtifactClick(art)}
-                                                    className="w-full flex items-center gap-1.5 px-2.5 py-1 rounded-md hover:bg-[#E5E7EB] bg-[#F3F4F6] transition-colors text-left group">
-                                                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]">
+                                                    className="w-full flex items-center gap-1.5 px-2.5 py-1 rounded-md hover:bg-[#2a2a2a] bg-[#F3F4F6] transition-colors text-left group">
+                                                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-[#2a2a2a]">
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                                                             <rect x="2" y="3" width="20" height="18" rx="2" fill="#217346"/>
                                                             <path d="M8 8l3 4-3 4M12 8l4 8" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                                                         </svg>
                                                     </div>
                                                     <div className="min-w-0 flex-1">
-                                                        <p className="text-[12px] font-medium text-[#171717] truncate">{art.filename}</p>
+                                                        <p className="text-[12px] font-medium text-[#e8e8e8] truncate">{art.filename}</p>
                                                         <p className="text-[10px] text-[#9CA3AF]">{art.content ? 'Excel · Click to download' : 'Excel · SharePoint'}</p>
                                                     </div>
                                                     <Eye className="w-3.5 h-3.5 text-[#d1d5db] group-hover:text-[#9CA3AF] flex-shrink-0" />
@@ -1837,20 +1837,20 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
 
                                         return (
                                             <button key={art.id} onClick={() => handleArtifactClick(art)}
-                                                className="w-full flex items-center gap-1.5 px-2.5 py-1 rounded-md hover:bg-[#E5E7EB] bg-[#F3F4F6] transition-colors text-left group">
-                                                <div className={"w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-[#E5E7EB]"}>
+                                                className="w-full flex items-center gap-1.5 px-2.5 py-1 rounded-md hover:bg-[#2a2a2a] bg-[#F3F4F6] transition-colors text-left group">
+                                                <div className={"w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-[#2a2a2a]"}>
                                                     {art._isMetaArtifact ? (
-                                                        <Database className="w-3.5 h-3.5 text-[#6B7280]" />
+                                                        <Database className="w-3.5 h-3.5 text-[#666]" />
                                                     ) : isPdf ? (
-                                                        <FileText className="w-3.5 h-3.5 text-[#6B7280]" />
+                                                        <FileText className="w-3.5 h-3.5 text-[#666]" />
                                                     ) : isImg ? (
-                                                        <Image className="w-3.5 h-3.5 text-[#6B7280]" />
+                                                        <Image className="w-3.5 h-3.5 text-[#666]" />
                                                     ) : (
-                                                        <FileText className="w-3.5 h-3.5 text-[#6B7280]" />
+                                                        <FileText className="w-3.5 h-3.5 text-[#666]" />
                                                     )}
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="text-[12px] font-medium text-[#171717] truncate">
+                                                    <p className="text-[12px] font-medium text-[#e8e8e8] truncate">
                                                         {art._isMetaArtifact
                                                             ? (run?.name || art.filename)
                                                             : art.filename}
