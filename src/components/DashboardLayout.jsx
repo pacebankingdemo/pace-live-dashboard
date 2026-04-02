@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Zap, Settings, X, MessageSquare, FileText, Play, BookOpen } from 'lucide-react';
+import { Home, Zap, Settings, X, MessageSquare, FileText, Play, BookOpen, LayoutDashboard } from 'lucide-react';
 import VideoPlayer from './VideoPlayer';
 import DocumentPreview from './DocumentPreview';
 import KnowledgeBase from './KnowledgeBase';
@@ -170,14 +170,19 @@ const DashboardLayout = () => {
                 </div>
 
                 {/* RIGHT: KB icon + org name */}
-                <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
+                <div className="flex items-center gap-0.5 ml-2 flex-shrink-0">
                     <IconBtn
                         icon={BookOpen}
                         active={isKb}
                         onClick={() => navigate(isKb ? '/done/tasks' : '/done/knowledge-base')}
                         title={isKb ? 'Hide knowledge base' : 'Open knowledge base'}
                     />
-                    <span className="text-[12px] text-[#505050] px-2">{currentOrg?.name || ''}</span>
+                    <IconBtn
+                        icon={LayoutDashboard}
+                        active={location.pathname === '/done/processes'}
+                        onClick={() => navigate('/done/processes')}
+                        title="Process dashboard"
+                    />
                 </div>
             </header>
 
