@@ -24,13 +24,12 @@ const KnowledgeBasePage = () => {
 
     const [processes, setProcesses]           = useState([]);
     const [selectedProcessId, setSelectedProcessId] = useState(null);
-    // kbOpen: whether KB content column is visible alongside chat
+    // kbOpen: whether KB content column is visible (false = chat takes full width)
     const [kbOpen, setKbOpen]                 = useState(true);
 
-    // Sync kbOpen with chatOpen (same logic as tasksOpen in TasksView)
+    // When chat closes, always restore KB
     useEffect(() => {
-        if (chatOpen) setKbOpen(true);
-        else setKbOpen(true); // KB always visible when chat closes
+        if (!chatOpen) setKbOpen(true);
     }, [chatOpen]);
 
     useEffect(() => {
@@ -45,7 +44,6 @@ const KnowledgeBasePage = () => {
         return subscribeToTable('processes', `org_id=eq.${currentOrg.id}`, load);
     }, [currentOrg]);
 
-    // Derive the active process for KB (selected from right panel, or outlet context)
     const activeProcess = selectedProcessId
         ? processes.find(p => p.id === selectedProcessId) || currentProcess
         : currentProcess;
@@ -56,84 +54,69 @@ const KnowledgeBasePage = () => {
     return (
         <div className="flex h-full bg-[#0d0d0d] overflow-hidden">
 
-            {/* LEFT: Chat */}
-            {renderChat && !kbOpen ? (
-                <div className={`flex-1 flex justify-center overflow-hidden ${theme === 'light' ? 'bg-white' : 'bg-[#111]'}`}>
-                    <div className="w-full max-w-[720px] flex flex-col h-full">
-                        <InlineChatPanel
-                            theme={theme}
-                            onClose={() => setChatOpen(false)}
-                            tasksOpen={false}
-                            onOpenTasks={() => setKbOpen(true)}
-                            onCloseTasks={null}
-                        />
-                    </div>
-                </div>
-            ) : (
+            {/* LEFT: Chat sidebar — fixed width when KB visible, full-width when KB hidden */}
+            {renderChat && (
                 <div
-                    style={renderChat ? { width: 'clamp(300px, 22vw, 460px)' } : {}}
+                    style={kbOpen ? { width: 'clamp(300px, 22vw, 460px)' } : {}}
                     className={`flex flex-col overflow-hidden transition-all duration-200 ${theme === 'light' ? 'bg-white' : 'bg-[#111]'} ${
-                        renderChat
+                        kbOpen
                             ? 'flex-shrink-0 border-r border-[#1e1e1e]'
-                            : 'w-0'
+                            : 'flex-1'
                     }`}
                 >
-                    {renderChat && (
-                        <InlineChatPanel
-                            theme={theme}
-                            onClose={() => setChatOpen(false)}
-                            tasksOpen={kbOpen}
-                            onOpenTasks={() => setKbOpen(true)}
-                            onCloseTasks={() => setKbOpen(false)}
-                        />
-                    )}
+                    <InlineChatPanel
+                        theme={theme}
+                        onClose={() => setChatOpen(false)}
+                        tasksOpen={kbOpen}
+                        onOpenTasks={() => setKbOpen(true)}
+                        onCloseTasks={() => setKbOpen(false)}
+                    />
                 </div>
             )}
 
-            {/* CENTER: Knowledge Base */}
-            <div className="flex-1 flex flex-col overflow-hidden bg-[#111] min-w-0 transition-all duration-200">
-                {/* Toolbar - mirrors Tasks toolbar */}
-                <div className="flex items-center h-9 px-3 border-b border-[#1e1e1e] flex-shrink-0 gap-1">
-                    {/* Open chat (when chat closed) */}
-                    {!chatOpen && (
+            {/* CENTER: Knowledge Base — only shown when kbOpen (or chat is closed) */}
+            {(!renderChat || kbOpen) && (
+                <div className="flex-1 flex flex-col overflow-hidden bg-[#111] min-w-0 transition-all duration-200">
+                    {/* Toolbar */}
+                    <div className="flex items-center h-9 px-3 border-b border-[#1e1e1e] flex-shrink-0 gap-1">
+                        {!chatOpen && (
+                            <button
+                                onClick={() => setChatOpen(true)}
+                                className="w-6 h-6 flex items-center justify-center rounded text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors flex-shrink-0"
+                                title="Open chat"
+                            >
+                                <PanelLeftOpen size={13} />
+                            </button>
+                        )}
+                        {chatOpen && kbOpen && (
+                            <button
+                                onClick={() => setKbOpen(false)}
+                                className="w-6 h-6 flex items-center justify-center rounded text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors flex-shrink-0"
+                                title="Expand chat, hide KB"
+                            >
+                                <PanelLeftClose size={13} />
+                            </button>
+                        )}
+                        <div className="flex-1" />
                         <button
-                            onClick={() => setChatOpen(true)}
+                            onClick={() => setRightOpen(o => !o)}
                             className="w-6 h-6 flex items-center justify-center rounded text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors flex-shrink-0"
-                            title="Open chat"
+                            title={rightOpen ? 'Hide processes' : 'Show processes'}
                         >
-                            <PanelLeftOpen size={13} />
+                            {rightOpen ? <PanelRightClose size={13} /> : <PanelRightOpen size={13} />}
                         </button>
-                    )}
-                    {/* Close KB alongside chat */}
-                    {chatOpen && kbOpen && (
-                        <button
-                            onClick={() => setKbOpen(false)}
-                            className="w-6 h-6 flex items-center justify-center rounded text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors flex-shrink-0"
-                            title="Close KB panel"
-                        >
-                            <PanelLeftClose size={13} />
-                        </button>
-                    )}
-                    <div className="flex-1" />
-                    {/* Right panel toggle */}
-                    <button
-                        onClick={() => setRightOpen(o => !o)}
-                        className="w-6 h-6 flex items-center justify-center rounded text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors flex-shrink-0"
-                        title={rightOpen ? 'Hide processes' : 'Show processes'}
-                    >
-                        {rightOpen ? <PanelRightClose size={13} /> : <PanelRightOpen size={13} />}
-                    </button>
-                </div>
+                    </div>
 
-                {/* KB content */}
-                <div className="flex-1 overflow-hidden">
-                    <KnowledgeBase
-                        embedded
-                        onClose={null}
-                        currentProcess={activeProcess}
-                    />
+                    {/* KB content */}
+                    <div className="flex-1 overflow-hidden">
+                        <KnowledgeBase
+                            embedded
+                            onClose={null}
+                            currentProcess={activeProcess}
+                        />
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* RIGHT: Processes */}
             {renderRight && (
