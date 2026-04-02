@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
     ArrowUp, Paperclip, ChevronDown, ChevronRight,
-    Copy, ThumbsUp, ThumbsDown, Mic, Plus, MoreHorizontal,
-    PanelRightOpen, PanelRightClose, PanelLeftClose
+    Mic, PanelRightOpen, PanelRightClose, PanelLeftClose
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -124,18 +123,7 @@ const ChatMessage = ({ msg }) => {
                         </div>
                     )}
 
-                    {/* Feedback row */}
-                    <div className="flex items-center gap-1 mt-3">
-                        <button className="p-1 text-[#3a3a3a] hover:text-[#666] transition-colors rounded">
-                            <Copy size={13} />
-                        </button>
-                        <button className="p-1 text-[#3a3a3a] hover:text-[#666] transition-colors rounded">
-                            <ThumbsUp size={13} />
-                        </button>
-                        <button className="p-1 text-[#3a3a3a] hover:text-[#666] transition-colors rounded">
-                            <ThumbsDown size={13} />
-                        </button>
-                    </div>
+
                 </>
             )}
         </div>

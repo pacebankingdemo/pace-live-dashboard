@@ -153,22 +153,34 @@ const TasksView = () => {
         <div className="flex h-full bg-[#0d0d0d] overflow-hidden">
 
             {/* ══ LEFT: Chat ══ */}
-            <div className={`flex flex-col overflow-hidden bg-[#111] transition-all duration-200 ${
-                renderChat
-                    ? (renderTasks
+            {renderChat && !renderTasks ? (
+                /* Full-page chat: centered at max-w-[720px] */
+                <div className="flex-1 flex justify-center overflow-hidden bg-[#111]">
+                    <div className="w-full max-w-[720px] flex flex-col h-full">
+                        <InlineChatPanel
+                            onClose={() => handleChatToggle(false)}
+                            tasksOpen={false}
+                            onOpenTasks={() => handleTasksToggle(true)}
+                            onCloseTasks={null}
+                        />
+                    </div>
+                </div>
+            ) : (
+                <div className={`flex flex-col overflow-hidden bg-[#111] transition-all duration-200 ${
+                    renderChat
                         ? 'w-[320px] flex-shrink-0 border-r border-[#1e1e1e]'
-                        : 'flex-1 border-r-0')
-                    : 'w-0'
-            }`}>
-                {renderChat && (
-                    <InlineChatPanel
-                        onClose={() => handleChatToggle(false)}
-                        tasksOpen={tasksOpen || !!selectedRun}
-                        onOpenTasks={() => handleTasksToggle(true)}
-                        onCloseTasks={() => { setTasksOpen(false); setSelectedRun(null); }}
-                    />
-                )}
-            </div>
+                        : 'w-0'
+                }`}>
+                    {renderChat && (
+                        <InlineChatPanel
+                            onClose={() => handleChatToggle(false)}
+                            tasksOpen={tasksOpen || !!selectedRun}
+                            onOpenTasks={() => handleTasksToggle(true)}
+                            onCloseTasks={() => { setTasksOpen(false); setSelectedRun(null); }}
+                        />
+                    )}
+                </div>
+            )}
 
             {/* ══ CENTER: Tasks / Run detail ══ */}
             <div className={`flex flex-col overflow-hidden bg-[#111] transition-all duration-200 ${
