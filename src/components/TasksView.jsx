@@ -58,14 +58,18 @@ const TasksView = () => {
     // When chat opens from a tasks-only state, keep tasks visible alongside
     const handleChatToggle = (open) => {
         setChatOpen(open);
-        if (!open) {
-            // closing chat → tasks becomes primary (always show tasks)
-            setTasksOpen(false); // reset so tasks fills full width
-        } else {
-            // opening chat → always show tasks alongside it
-            setTasksOpen(true);
-        }
     };
+
+    // Sync tasksOpen whenever chatOpen changes (including navbar icon clicks)
+    useEffect(() => {
+        if (chatOpen) {
+            // chat opened → always show tasks alongside it
+            setTasksOpen(true);
+        } else {
+            // chat closed → tasks fills full width, reset tasksOpen
+            setTasksOpen(false);
+        }
+    }, [chatOpen]);
 
     const handleTasksToggle = (open) => {
         setTasksOpen(open);
