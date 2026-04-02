@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../services/supabase';
+import { useOutletContext } from 'react-router-dom';
 import { saveKnowledgeBase } from '../services/supabase';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -53,8 +53,12 @@ const isPreviewable = (fileType) => {
     return fileType.startsWith('image/') || fileType === 'application/pdf';
 };
 
-const KnowledgeBase = ({ onClose, embedded = false }) => {
-    const { currentProcess } = useOutletContext();
+const KnowledgeBase = ({ onClose, embedded = false, currentProcess: currentProcessProp }) => {
+    // When embedded in DashboardLayout, currentProcess is passed as prop.
+    // When rendered as a route (inside Outlet), get it from outlet context.
+    let outletCtx = null;
+    try { outletCtx = useOutletContext(); } catch (e) { /* not inside an Outlet */ }
+    const currentProcess = currentProcessProp ?? outletCtx?.currentProcess ?? null;
     const [markdown, setMarkdown] = useState('');
     const [kbMeta, setKbMeta] = useState(null);
     const [loading, setLoading] = useState(true);

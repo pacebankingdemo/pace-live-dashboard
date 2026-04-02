@@ -214,14 +214,15 @@ const DashboardLayout = () => {
             {/* ══ KB SLIDE-OVER PANEL ══ */}
             {kbOpen && (
                 <div className="fixed inset-y-9 right-0 z-30 flex">
-                    {/* Backdrop — clicking it closes the panel */}
+                    {/* Backdrop — clicking outside the panel closes it */}
                     <div
-                        className="fixed inset-0 top-9"
+                        className="fixed inset-0 top-9 bg-black/20"
+                        style={{ right: '520px' }}
                         onClick={() => setKbOpen(false)}
                     />
                     {/* Panel */}
                     <div className="relative w-[520px] flex flex-col bg-[#111] border-l border-[#1e1e1e] shadow-2xl overflow-hidden">
-                        <KnowledgeBase onClose={() => setKbOpen(false)} embedded />
+                        <KnowledgeBase onClose={() => setKbOpen(false)} embedded currentProcess={currentProcess} />
                     </div>
                 </div>
             )}
