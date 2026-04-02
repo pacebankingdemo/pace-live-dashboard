@@ -30,7 +30,10 @@ const STATUS_GROUPS = [
 ];
 
 const StatusDot = ({ group }) => (
-    <span className={`inline-block flex-shrink-0 w-[7px] h-[7px] rounded-full ${group.dot} opacity-90`} />
+    <span
+        className={`inline-block flex-shrink-0 w-[8px] h-[8px] ${group.dot} opacity-90`}
+        style={{ transform: 'rotate(45deg)', borderRadius: '1px' }}
+    />
 );
 
 const fmtDate = (ts) => {
@@ -266,7 +269,7 @@ const TasksView = () => {
                                         <div key={group.key}>
                                             <button
                                                 onClick={() => toggleCollapse(group.key)}
-                                                className="w-full flex items-center gap-2 px-6 py-[7px] bg-transparent hover:bg-[#ffffff04] transition-colors group border-b border-[#1e1e1e]"
+                                                className="w-full flex items-center gap-2 px-6 py-[8px] bg-[#161616] hover:bg-[#1a1a1a] transition-colors group border-b border-[#222]"
                                             >
                                                 <span className="text-[#444] group-hover:text-[#666] transition-colors">
                                                     {collapsed[group.key] ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
@@ -296,7 +299,7 @@ const TasksView = () => {
                                                             },
                                                         });
                                                     }}
-                                                    className={`flex items-center gap-3 px-6 py-[7px] cursor-pointer transition-colors border-b border-[#1e1e1e] last:border-0 group ${
+                                                    className={`flex items-center gap-3 px-6 py-[10px] cursor-pointer transition-colors border-b border-[#1e1e1e] last:border-0 group ${
                                                         selectedRun?.id === run.id ? 'bg-[#1e1e1e]' : 'hover:bg-[#181818]'
                                                     }`}
                                                 >
