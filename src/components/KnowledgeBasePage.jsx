@@ -20,11 +20,10 @@ const HIDDEN_PROCESS_IDS = new Set([
 ]);
 
 const KnowledgeBasePage = () => {
-    const { currentOrg, currentProcess, chatOpen, setChatOpen, theme } = useOutletContext();
+    const { currentOrg, currentProcess, chatOpen, setChatOpen, theme, rightOpen, setRightOpen } = useOutletContext();
 
     const [processes, setProcesses]           = useState([]);
     const [selectedProcessId, setSelectedProcessId] = useState(null);
-    const [rightOpen, setRightOpen]           = useState(false);
     // kbOpen: whether KB content column is visible alongside chat
     const [kbOpen, setKbOpen]                 = useState(true);
 

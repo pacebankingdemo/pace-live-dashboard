@@ -179,9 +179,9 @@ const DashboardLayout = () => {
                     />
                     <IconBtn
                         icon={LayoutDashboard}
-                        active={location.pathname === '/done/processes'}
-                        onClick={() => navigate('/done/processes')}
-                        title="Process dashboard"
+                        active={rightOpen}
+                        onClick={() => setRightOpen(o => !o)}
+                        title={rightOpen ? 'Hide processes' : 'Show processes'}
                     />
                 </div>
             </header>
@@ -212,7 +212,7 @@ const DashboardLayout = () => {
                         })() : null}
                         {/* Always render the outlet so state is preserved; hide it when a tab is active */}
                         <div className={activeTabId && tabs.find(t => t.id === activeTabId)?.type !== 'run' ? 'hidden' : 'h-full'}>
-                            <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen, theme, setTheme }} />
+                            <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen, theme, setTheme, rightOpen, setRightOpen }} />
                         </div>
                     </div>
                 </main>

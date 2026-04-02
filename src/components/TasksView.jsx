@@ -43,7 +43,7 @@ const fmtDate = (ts) => {
 
 const TasksView = () => {
     // chatOpen comes from DashboardLayout (navbar icon controls it)
-    const { currentOrg, openTab, chatOpen, setChatOpen, theme } = useOutletContext();
+    const { currentOrg, openTab, chatOpen, setChatOpen, theme, rightOpen, setRightOpen } = useOutletContext();
 
     const [activeTab, setActiveTab]                 = useState('all');
     const [processes, setProcesses]                 = useState([]);
@@ -54,8 +54,6 @@ const TasksView = () => {
     const [selectedRun, setSelectedRun]             = useState(null);
     // tasksOpen: whether the tasks/detail center column is visible alongside chat
     const [tasksOpen, setTasksOpen]                 = useState(false);
-    // rightOpen: whether the processes panel is visible
-    const [rightOpen, setRightOpen]                 = useState(false);
 
     // When chat closes, tasks must be the primary view
     // When chat opens from a tasks-only state, keep tasks visible alongside
