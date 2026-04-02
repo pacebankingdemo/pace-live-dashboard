@@ -11,6 +11,7 @@ import InsightsPanel from './components/InsightsPanel';
 import AccuracyPanel from './components/AccuracyPanel';
 import PeoplePage from './components/People';
 import TasksView from './components/TasksView';
+import HomePage from './components/HomePage';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
@@ -19,7 +20,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/done" element={<DashboardLayout />}>
-          <Route index element={<Navigate to="tasks" replace />} />
+          <Route index element={<Navigate to="home" replace />} />
+          <Route path="home" element={<HomePage />} />
           <Route path="processes" element={<ProcessList />} />
           <Route path="knowledge-base" element={<KnowledgeBase />} />
           <Route path="process/:runId" element={<ErrorBoundary><ProcessDetails /></ErrorBoundary>} />

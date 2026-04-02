@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import {
-    ChevronDown, Database, Users, BookOpen, LogOut,
-    ArrowLeft, Activity, Search, Lightbulb, BarChart2,
-    ListTodo
-} from 'lucide-react';
+import React, { useState, useEffect, useContext, createContext } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Home, Zap, Settings, X, LayoutGrid, ChevronDown, Search, LogOut } from 'lucide-react';
 import { fetchOrgs, fetchProcesses, subscribeToTable } from '../services/supabase';
+
+const ORG_ORDER = [
+    '078da434-5802-4e98-b066-24761f56a077',
+    'bc1cc87f-db42-4e08-932d-e3437f116300',
+    '0649e502-b1ff-490f-8d31-cd8e4fb2d1ab',
+];
+
+// Context so children can open a run tab
+export const TabsContext = createContext({ openTab: () => {} });
 
 const HIDDEN_PROCESS_IDS = new Set([
     '795b85bb-ef67-4e56-aaec-2a07d5ed8c90',
@@ -17,79 +22,92 @@ const HIDDEN_PROCESS_IDS = new Set([
     '1b9b7c8c-d65b-4c8a-a76e-d1dc1b23ab90',
 ]);
 
-const ORG_ORDER = [
-    '078da434-5802-4e98-b066-24761f56a077',
-    'bc1cc87f-db42-4e08-932d-e3437f116300',
-    '0649e502-b1ff-490f-8d31-cd8e4fb2d1ab',
-];
-
 const DashboardLayout = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
-    const [orgSearch, setOrgSearch] = useState('');
-    const [orgs, setOrgs] = useState([]);
-    const [currentOrg, setCurrentOrg] = useState(null);
-    const [processes, setProcesses] = useState([]);
+    const navigate   = useNavigate();
+    const location   = useLocation();
+    const [orgs, setOrgs]               = useState([]);
+    const [currentOrg, setCurrentOrg]   = useState(null);
+    const [processes, setProcesses]     = useState([]);
     const [currentProcess, setCurrentProcess] = useState(null);
+    const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
+    const [orgSearch, setOrgSearch]     = useState('');
+    // Run tabs: [{ id, label, icon }]
+    const [tabs, setTabs]               = useState([]);
+    const [activeTabId, setActiveTabId] = useState(null);
 
+    // ── Orgs ──
     useEffect(() => {
-        const loadOrgs = async () => {
+        const load = async () => {
             try {
                 const data = await fetchOrgs();
                 const sorted = [...data].sort((a, b) => {
-                    const ai = ORG_ORDER.indexOf(a.id);
-                    const bi = ORG_ORDER.indexOf(b.id);
+                    const ai = ORG_ORDER.indexOf(a.id), bi = ORG_ORDER.indexOf(b.id);
                     return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
                 });
                 setOrgs(sorted);
-                const savedOrgId = sessionStorage.getItem('currentOrgId');
-                const org = savedOrgId ? sorted.find(o => o.id === savedOrgId) : sorted[0];
+                const saved = sessionStorage.getItem('currentOrgId');
+                const org   = (saved && sorted.find(o => o.id === saved)) || sorted[0];
                 if (org) setCurrentOrg(org);
-            } catch (err) { console.error('Error loading orgs:', err); }
+            } catch (e) { console.error(e); }
         };
-        loadOrgs();
-        const unsub = subscribeToTable('organizations', undefined, () => loadOrgs());
-        return unsub;
+        load();
+        return subscribeToTable('organizations', undefined, load);
     }, []);
 
+    // ── Processes ──
     useEffect(() => {
         if (!currentOrg) return;
-        sessionStorage.setItem('currentOrgId', currentOrg.id);
+        sessionStorage.setItem('currentOrgId',   currentOrg.id);
         sessionStorage.setItem('currentOrgName', currentOrg.name || '');
-        const loadProcesses = async () => {
+        const load = async () => {
             try {
                 const data = await fetchProcesses(currentOrg.id);
                 setProcesses(data);
-                const savedProcId = sessionStorage.getItem('currentProcessId');
-                const proc = savedProcId ? data.find(p => p.id === savedProcId) : data[0];
-                if (proc) setCurrentProcess(proc);
-                else setCurrentProcess(null);
-            } catch (err) { console.error('Error loading processes:', err); }
+                const saved = sessionStorage.getItem('currentProcessId');
+                const proc  = (saved && data.find(p => p.id === saved)) || data[0];
+                setCurrentProcess(proc || null);
+            } catch (e) { console.error(e); }
         };
-        loadProcesses();
-        const unsub = subscribeToTable('processes', `org_id=eq.${currentOrg.id}`, () => loadProcesses());
-        return unsub;
+        load();
+        return subscribeToTable('processes', `org_id=eq.${currentOrg.id}`, load);
     }, [currentOrg]);
 
     useEffect(() => {
         if (currentProcess) {
-            sessionStorage.setItem('currentProcessId', currentProcess.id);
+            sessionStorage.setItem('currentProcessId',   currentProcess.id);
             sessionStorage.setItem('currentProcessName', currentProcess.name || '');
         }
     }, [currentProcess]);
 
+    // ── Tab management ──
+    const openTab = ({ id, label, icon = 'zap' }) => {
+        setTabs(prev => {
+            if (prev.find(t => t.id === id)) return prev;
+            return [...prev, { id, label, icon }];
+        });
+        setActiveTabId(id);
+    };
+
+    const closeTab = (e, id) => {
+        e.stopPropagation();
+        setTabs(prev => {
+            const next = prev.filter(t => t.id !== id);
+            if (activeTabId === id) setActiveTabId(next[next.length - 1]?.id || null);
+            return next;
+        });
+    };
+
     const handleOrgSwitch = (org) => {
         setCurrentOrg(org);
-        setIsOrgDropdownOpen(false);
+        setOrgDropdownOpen(false);
         setOrgSearch('');
         setCurrentProcess(null);
         navigate('/done/tasks');
     };
 
     const handleLogout = () => {
-        setIsOrgDropdownOpen(false);
         sessionStorage.clear();
+        setOrgDropdownOpen(false);
         navigate('/');
     };
 
@@ -97,92 +115,93 @@ const DashboardLayout = () => {
         o.name.toLowerCase().includes(orgSearch.toLowerCase())
     );
 
-    const isProcessDetailPage = location.pathname.includes('/process/');
-    const isKBPage = location.pathname.includes('/knowledge-base');
-    const isTasksPage = location.pathname === '/done/tasks';
-    const currentProcessName = currentProcess?.name || 'Processes';
+    const isHome   = location.pathname === '/done/home';
+    const isTasks  = location.pathname === '/done/tasks';
 
-    const NavItem = ({ to, label, isActive }) => (
-        <NavLink
-            to={to}
-            className={`flex items-center h-full px-3 text-[13px] font-[500] border-b-2 transition-colors whitespace-nowrap ${
-                isActive
-                    ? 'border-[#171717] text-[#171717]'
-                    : 'border-transparent text-[#8f8f8f] hover:text-[#383838]'
+    // Nav icon button
+    const IconBtn = ({ icon: Icon, active, onClick, title }) => (
+        <button
+            onClick={onClick}
+            title={title}
+            className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors ${
+                active
+                    ? 'bg-[#2a2a2a] text-white'
+                    : 'text-[#666] hover:text-[#aaa] hover:bg-[#1e1e1e]'
             }`}
         >
-            {label}
-        </NavLink>
+            <Icon size={14} strokeWidth={1.8} />
+        </button>
     );
 
-    const insightsOrAccuracy = currentProcess?.id === '6f037763-bd41-410e-ba46-a74dc65dde61'
-        ? { to: '/done/accuracy', label: 'Accuracy' }
-        : { to: '/done/insights', label: 'Insights' };
-
-
     return (
+        <TabsContext.Provider value={{ openTab }}>
         <div className="flex flex-col h-screen bg-white font-sans antialiased text-[#171717]">
 
-            {/* ══ TOP NAVBAR ══ */}
-            <header className="flex-shrink-0 h-11 flex items-center justify-between px-4 bg-[#FAFAFA] border-b border-[#ebebeb] relative z-20">
+            {/* ══ TOP NAVBAR — dark ══ */}
+            <header className="flex-shrink-0 h-9 flex items-center bg-[#111] border-b border-[#222] px-2 gap-0 relative z-20">
 
-                {/* LEFT — logo + nav links */}
-                <div className="flex items-center h-full gap-1">
-                    <img src="/zamp-icon.svg" alt="zamp" className="w-[18px] h-[18px] mr-3 flex-shrink-0" />
-
-                    {/* Back arrow on detail/KB pages */}
-                    {(isProcessDetailPage || isKBPage) && (
-                        <button
-                            onClick={() => navigate('/done/processes')}
-                            className="flex items-center justify-center w-7 h-7 rounded-md text-[#b8b8b8] hover:text-[#555] hover:bg-[#f0f0f0] transition-colors mr-1 flex-shrink-0"
-                        >
-                            <ArrowLeft size={14} />
-                        </button>
-                    )}
-
-                    <NavItem to="/done/tasks"     label="Tasks"    isActive={location.pathname === '/done/tasks'} />
-                    <NavItem to="/done/processes" label="Processes" isActive={location.pathname.includes('/done/processes') || isProcessDetailPage} />
-                    <NavItem to="/done/data"      label="Data"     isActive={location.pathname === '/done/data'} />
-                    <NavItem to="/done/people"    label="People"   isActive={location.pathname === '/done/people'} />
-                    <NavItem to={insightsOrAccuracy.to} label={insightsOrAccuracy.label} isActive={location.pathname === insightsOrAccuracy.to} />
+                {/* LEFT: icon nav buttons */}
+                <div className="flex items-center gap-0.5 mr-2">
+                    <IconBtn icon={Home}     active={isHome}  onClick={() => navigate('/done/home')}  title="Home" />
+                    <IconBtn icon={Zap}      active={isTasks} onClick={() => navigate('/done/tasks')} title="Tasks" />
+                    <IconBtn icon={Settings}                  onClick={() => navigate('/done/tasks')} title="Settings" />
                 </div>
 
-                {/* RIGHT — KB button + org switcher */}
-                <div className="flex items-center gap-2">
-                    {currentProcess && !isTasksPage && (
-                        <button
-                            onClick={() => navigate('/done/knowledge-base')}
-                            title="Knowledge Base"
-                            className="flex items-center justify-center w-[28px] h-[28px] rounded-lg bg-white border border-[#e8e8e8] shadow-[0_1px_2px_rgba(0,0,0,0.06)] text-[#5f5f5f] hover:text-[#333] hover:shadow-[0_2px_5px_rgba(0,0,0,0.1)] transition-all"
+                {/* Divider */}
+                <div className="w-px h-4 bg-[#2e2e2e] mx-1.5 flex-shrink-0" />
+
+                {/* CENTER: run tabs */}
+                <div className="flex items-center gap-0.5 flex-1 overflow-x-auto no-scrollbar min-w-0">
+                    {tabs.map(tab => (
+                        <div
+                            key={tab.id}
+                            onClick={() => setActiveTabId(tab.id)}
+                            className={`flex items-center gap-1.5 h-7 px-2.5 rounded-md cursor-pointer flex-shrink-0 max-w-[180px] transition-colors group ${
+                                activeTabId === tab.id
+                                    ? 'bg-[#1e1e1e] text-white'
+                                    : 'text-[#555] hover:bg-[#1a1a1a] hover:text-[#aaa]'
+                            }`}
                         >
-                            <BookOpen size={14} strokeWidth={1.6} />
-                        </button>
-                    )}
+                            <Zap size={11} strokeWidth={1.8} className="flex-shrink-0 text-[#888]" />
+                            <span className="text-[12px] truncate">{tab.label}</span>
+                            <button
+                                onClick={(e) => closeTab(e, tab.id)}
+                                className="ml-0.5 text-[#555] hover:text-[#ccc] flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                                <X size={10} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+
+                {/* RIGHT: process explorer + org switcher */}
+                <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                    <IconBtn icon={LayoutGrid} onClick={() => navigate('/done/processes')} title="Processes" />
 
                     {/* Org switcher */}
                     <div className="relative">
                         <button
-                            onClick={() => setIsOrgDropdownOpen(!isOrgDropdownOpen)}
-                            className="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[13px] text-[#383838] hover:bg-[#00000008] transition-colors"
+                            onClick={() => setOrgDropdownOpen(o => !o)}
+                            className="flex items-center gap-1.5 h-7 px-2 rounded-md text-[#666] hover:text-[#aaa] hover:bg-[#1e1e1e] transition-colors"
                         >
-                            <div className="w-5 h-5 bg-[#ebebeb] rounded flex items-center justify-center text-black font-bold text-[10px]">
+                            <div className="w-4 h-4 bg-[#2e2e2e] rounded flex items-center justify-center text-[#aaa] font-bold text-[9px]">
                                 {currentOrg?.avatar_letter || '?'}
                             </div>
-                            <span className="font-[500] max-w-[140px] truncate">{currentOrg?.name || 'Select Org'}</span>
-                            <ChevronDown className={`w-3.5 h-3.5 text-[#c9c9c9] transition-transform duration-200 ${isOrgDropdownOpen ? 'rotate-180' : ''}`} />
+                            <span className="text-[12px] max-w-[100px] truncate text-[#666]">{currentOrg?.name || '…'}</span>
+                            <ChevronDown size={10} className={`text-[#444] transition-transform ${orgDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
 
-                        {isOrgDropdownOpen && (
-                            <div className="absolute top-full right-0 mt-1 w-[220px] bg-white border border-[#f0f0f0] rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.08)] py-1 z-50 max-h-[320px] flex flex-col">
-                                <div className="px-2 py-1.5 border-b border-[#f0f0f0]">
-                                    <div className="flex items-center gap-2 px-2 py-1 bg-[#f9f9f9] rounded-md border border-[#f0f0f0]">
-                                        <Search className="w-3 h-3 text-[#cacaca]" />
+                        {orgDropdownOpen && (
+                            <div className="absolute top-full right-0 mt-1 w-[220px] bg-[#1a1a1a] border border-[#2e2e2e] rounded-lg shadow-[0_4px_24px_rgba(0,0,0,0.5)] py-1 z-50 max-h-[320px] flex flex-col">
+                                <div className="px-2 py-1.5 border-b border-[#2e2e2e]">
+                                    <div className="flex items-center gap-2 px-2 py-1 bg-[#222] rounded-md">
+                                        <Search size={11} className="text-[#555]" />
                                         <input
                                             type="text"
-                                            placeholder="Search organization..."
+                                            placeholder="Search org..."
                                             value={orgSearch}
                                             onChange={(e) => setOrgSearch(e.target.value)}
-                                            className="bg-transparent text-[12px] text-[#383838] placeholder-[#cacaca] outline-none w-full"
+                                            className="bg-transparent text-[12px] text-[#ccc] placeholder-[#555] outline-none w-full"
                                             autoFocus
                                         />
                                     </div>
@@ -190,16 +209,16 @@ const DashboardLayout = () => {
                                 <div className="overflow-y-auto flex-1 py-1">
                                     {filteredOrgs.map(org => (
                                         <button key={org.id} onClick={() => handleOrgSwitch(org)}
-                                            className={`w-full flex items-center gap-2.5 px-3 py-2 text-[12px] hover:bg-[#fbfbfb] transition-colors ${currentOrg?.id === org.id ? 'bg-[#f7f7f7]' : ''}`}>
-                                            <div className="w-5 h-5 bg-[#ebebeb] rounded flex items-center justify-center text-black font-bold text-[10px]">{org.avatar_letter}</div>
-                                            <span className="text-[#383838] font-[450]">{org.name}</span>
+                                            className={`w-full flex items-center gap-2 px-3 py-2 text-[12px] hover:bg-[#222] transition-colors ${currentOrg?.id === org.id ? 'bg-[#222]' : ''}`}>
+                                            <div className="w-4 h-4 bg-[#333] rounded flex items-center justify-center text-[#aaa] font-bold text-[9px]">{org.avatar_letter}</div>
+                                            <span className="text-[#ccc]">{org.name}</span>
                                         </button>
                                     ))}
-                                    {filteredOrgs.length === 0 && <div className="px-3 py-2 text-[12px] text-[#cacaca]">No orgs found</div>}
+                                    {filteredOrgs.length === 0 && <div className="px-3 py-2 text-[12px] text-[#555]">No orgs found</div>}
                                 </div>
-                                <div className="border-t border-[#f0f0f0] py-1">
-                                    <button onClick={handleLogout} className="w-full flex items-center px-3 py-2 text-xs text-[#383838] hover:bg-[#fbfbfb]">
-                                        <LogOut className="w-3.5 h-3.5 mr-2.5" />Logout
+                                <div className="border-t border-[#2e2e2e] py-1">
+                                    <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[#888] hover:bg-[#222] hover:text-[#ccc] transition-colors">
+                                        <LogOut size={12} /> Logout
                                     </button>
                                 </div>
                             </div>
@@ -211,10 +230,11 @@ const DashboardLayout = () => {
             {/* ══ PAGE CONTENT ══ */}
             <main className="flex-1 overflow-hidden bg-white">
                 <div className="h-full overflow-y-auto">
-                    <Outlet context={{ currentOrg, currentProcess, processes }} />
+                    <Outlet context={{ currentOrg, currentProcess, processes, openTab }} />
                 </div>
             </main>
         </div>
+        </TabsContext.Provider>
     );
 };
 

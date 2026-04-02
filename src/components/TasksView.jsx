@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import InlineChatPanel from './InlineChatPanel';
 import { ChevronDown, ChevronRight, Activity } from 'lucide-react';
 import { supabase, fetchProcesses, subscribeToTable } from '../services/supabase';
 import ProcessDetails from './ProcessDetails';
@@ -34,7 +35,7 @@ const fmtDate = (ts) => {
 };
 
 const TasksView = () => {
-    const { currentOrg } = useOutletContext();
+    const { currentOrg, openTab } = useOutletContext();
     const [activeTab, setActiveTab]           = useState('all');
     const [processes, setProcesses]           = useState([]);
     const [selectedProcessId, setSelectedProcessId] = useState(null);
@@ -109,12 +110,9 @@ const TasksView = () => {
     return (
         <div className="flex h-full bg-white overflow-hidden">
 
-            {/* ── LEFT: static placeholder panel ── */}
+            {/* ── LEFT: inline chat panel ── */}
             <div className="w-[280px] flex-shrink-0 border-r border-[#f0f0f0] flex flex-col overflow-hidden bg-[#FAFAFA]">
-                <div className="flex flex-col h-full items-center justify-center text-center px-6">
-                    <div className="text-[13px] font-[500] text-[#171717] mb-1">Chat</div>
-                    <div className="text-[12px] text-[#8f8f8f]">Conversation interface coming soon.</div>
-                </div>
+                <InlineChatPanel />
             </div>
 
             {/* ── CENTER: task list OR chat log ── */}
@@ -177,7 +175,7 @@ const TasksView = () => {
                             {!collapsed[group.key] && group.runs.map(run => (
                                 <div
                                     key={run.id}
-                                    onClick={() => setSelectedRun(run)}
+                                    onClick={() => { setSelectedRun(run); openTab?.({ id: run.id, label: run.name || 'Untitled run' }); }}
                                     className={`flex items-center gap-3 px-10 py-[7px] cursor-pointer transition-colors border-b border-[#fafafa] last:border-0 group ${
                                         selectedRun?.id === run.id ? 'bg-[#f5f5f5]' : 'hover:bg-[#fafafa]'
                                     }`}

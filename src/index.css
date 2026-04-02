@@ -226,3 +226,7 @@ body {
   @apply px-8 py-5 border-t border-[#ebebeb] text-[17px] text-[#666666];
 }
 
+
+/* Hide scrollbar but keep scrollability */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
