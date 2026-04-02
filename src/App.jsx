@@ -10,6 +10,7 @@ import DataExplorer from './components/DataExplorer';
 import InsightsPanel from './components/InsightsPanel';
 import AccuracyPanel from './components/AccuracyPanel';
 import PeoplePage from './components/People';
+import TasksView from './components/TasksView';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
           <Route path="insights" element={<InsightsPanel />} />
           <Route path="accuracy" element={<AccuracyPanel />} />
           <Route path="people" element={<PeoplePage />} />
+          <Route path="tasks" element={<TasksView />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

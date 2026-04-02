@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
-    ChevronDown, Database, Users, BookOpen, LogOut,
+    ChevronDown, Database, Users, BookOpen, LogOut, ListTodo,
     ArrowLeft, ChevronRight, MessageSquare, Activity,
     Search, Lightbulb, BarChart2
 } from 'lucide-react';
@@ -152,6 +152,7 @@ const DashboardLayout = () => {
                 </div>
                 <nav className="flex-1 overflow-y-auto px-2 pb-4 space-y-1 mt-2">
                     <div className="pb-4 border-b border-[#f0f0f0]">
+                        <SidebarItem to="/done/tasks"    icon={<ListTodo />}  label="Tasks"   isActive={location.pathname === '/done/tasks'} />
                         <SidebarItem to="/done/data"     icon={<Database />}  label="Data"     isActive={location.pathname === '/done/data'} />
                         <SidebarItem to="/done/people"   icon={<Users />}     label="People"   isActive={location.pathname === '/done/people'} />
                         {currentProcess?.id === '6f037763-bd41-410e-ba46-a74dc65dde61'
