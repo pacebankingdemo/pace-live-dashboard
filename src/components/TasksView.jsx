@@ -295,7 +295,6 @@ const TasksView = () => {
                                                     onClick={() => {
                                                         setSelectedRun(run);
                                                         setTasksOpen(true);
-                                                        openTab?.({ id: run.id, label: run.name || 'Untitled run' });
                                                     }}
                                                     className={`flex items-center gap-3 px-10 py-[7px] cursor-pointer transition-colors border-b border-[#ffffff04] last:border-0 group ${
                                                         selectedRun?.id === run.id ? 'bg-[#1e1e1e]' : 'hover:bg-[#ffffff05]'
