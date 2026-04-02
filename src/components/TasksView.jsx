@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { ChevronDown, ChevronRight, Activity } from 'lucide-react';
 import { supabase, fetchProcesses, subscribeToTable } from '../services/supabase';
-import TaskChatPanel from './TaskChatPanel';
+import ProcessDetails from './ProcessDetails';
 
 const HIDDEN_PROCESS_IDS = new Set([
     '795b85bb-ef67-4e56-aaec-2a07d5ed8c90',
@@ -122,7 +122,7 @@ const TasksView = () => {
 
                 {selectedRun ? (
                     /* ── Chat/logs view for selected run ── */
-                    <TaskChatPanel run={selectedRun} onBack={() => setSelectedRun(null)} />
+                    <ProcessDetails runId={selectedRun.id} onBack={() => setSelectedRun(null)} />
                 ) : (
                 <>{/* ── Task list ── */}
                 {/* Header */}

@@ -866,8 +866,9 @@ const DatasetViewer = ({ artifact, onClose, allDataArtifacts, onSelectTab }) => 
 };
 
 /* ─── ProcessDetails ─── */
-const ProcessDetails = () => {
-    const { runId } = useParams();
+const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
+    const params = useParams();
+    const runId = runIdProp || params.runId;
     const [logs, setLogs] = useState([]);
     const [artifacts, setArtifacts] = useState([]);
     const [run, setRun] = useState(null);
@@ -1284,6 +1285,15 @@ const ProcessDetails = () => {
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Header */}
                 <div className="flex-shrink-0 px-6 py-5 border-b border-[#f0f0f0] bg-white">
+                    {onBack && (
+                        <button
+                            onClick={onBack}
+                            className="flex items-center gap-1.5 text-[12px] text-[#8f8f8f] hover:text-[#383838] transition-colors mb-3"
+                        >
+                            <ChevronLeft size={13} />
+                            <span>Back to tasks</span>
+                        </button>
+                    )}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <h2 className="text-[16px] font-semibold text-[#171717]">
