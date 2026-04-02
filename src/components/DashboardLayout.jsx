@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Zap, Settings, X } from 'lucide-react';
+import { Home, Zap, Settings, X, MessageSquare } from 'lucide-react';
 import { fetchOrgs, fetchProcesses, subscribeToTable } from '../services/supabase';
 
 const ORG_ORDER = [
@@ -30,6 +30,8 @@ const DashboardLayout = () => {
     const [currentProcess, setCurrentProcess] = useState(null);
     const [tabs, setTabs]                     = useState([]);
     const [activeTabId, setActiveTabId]       = useState(null);
+    // Chat panel open state — lives here so navbar icon can control it
+    const [chatOpen, setChatOpen]             = useState(true);
 
     useEffect(() => {
         const load = async () => {
@@ -90,6 +92,8 @@ const DashboardLayout = () => {
     const isHome     = location.pathname === '/done/home';
     const isTasks    = location.pathname === '/done/tasks';
     const isSettings = location.pathname === '/done/settings';
+    // Chat icon is active when on tasks page AND chat is open
+    const isChatActive = isTasks && chatOpen;
 
     const IconBtn = ({ icon: Icon, active, onClick, title }) => (
         <button onClick={onClick} title={title}
@@ -109,9 +113,19 @@ const DashboardLayout = () => {
 
                 {/* LEFT: icon buttons */}
                 <div className="flex items-center gap-0.5 mr-2">
-                    <IconBtn icon={Home}     active={isHome}     onClick={() => navigate('/done/home')}     title="Home" />
-                    <IconBtn icon={Zap}      active={isTasks}    onClick={() => navigate('/done/tasks')}    title="Tasks" />
-                    <IconBtn icon={Settings} active={isSettings} onClick={() => navigate('/done/settings')} title="Settings" />
+                    <IconBtn icon={Home}         active={isHome}       onClick={() => navigate('/done/home')}     title="Home" />
+                    <IconBtn icon={Zap}          active={isTasks}      onClick={() => navigate('/done/tasks')}    title="Tasks" />
+                    <IconBtn icon={Settings}     active={isSettings}   onClick={() => navigate('/done/settings')} title="Settings" />
+                    {/* Chat toggle — only relevant on tasks page, always shown for discoverability */}
+                    <IconBtn
+                        icon={MessageSquare}
+                        active={isChatActive}
+                        onClick={() => {
+                            if (!isTasks) navigate('/done/tasks');
+                            setChatOpen(o => !o);
+                        }}
+                        title={chatOpen ? 'Hide chat' : 'Show chat'}
+                    />
                 </div>
 
                 {/* Divider */}
@@ -134,7 +148,7 @@ const DashboardLayout = () => {
                     ))}
                 </div>
 
-                {/* RIGHT: org name only */}
+                {/* RIGHT: org name */}
                 <div className="flex items-center ml-2 flex-shrink-0">
                     <span className="text-[12px] text-[#444] px-2">{currentOrg?.name || ''}</span>
                 </div>
@@ -143,7 +157,7 @@ const DashboardLayout = () => {
             {/* ══ PAGE CONTENT ══ */}
             <main className="flex-1 overflow-hidden bg-[#111]">
                 <div className="h-full overflow-hidden">
-                    <Outlet context={{ currentOrg, currentProcess, processes, openTab }} />
+                    <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen }} />
                 </div>
             </main>
         </div>
