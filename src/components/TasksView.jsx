@@ -30,7 +30,7 @@ const STATUS_GROUPS = [
 ];
 
 const StatusDot = ({ group }) => (
-    <span className={`inline-block flex-shrink-0 w-[7px] h-[7px] rounded-[2px] border ${group.dot} ${group.border} opacity-80`} />
+    <span className={`inline-block flex-shrink-0 w-[7px] h-[7px] rounded-full ${group.dot} opacity-90`} />
 );
 
 const fmtDate = (ts) => {
@@ -266,14 +266,14 @@ const TasksView = () => {
                                         <div key={group.key}>
                                             <button
                                                 onClick={() => toggleCollapse(group.key)}
-                                                className="w-full flex items-center gap-2 px-6 py-2 bg-[#141414] hover:bg-[#181818] transition-colors group"
+                                                className="w-full flex items-center gap-2 px-6 py-[7px] bg-transparent hover:bg-[#ffffff04] transition-colors group border-b border-[#1e1e1e]"
                                             >
                                                 <span className="text-[#444] group-hover:text-[#666] transition-colors">
                                                     {collapsed[group.key] ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                                                 </span>
                                                 <StatusDot group={group} />
-                                                <span className="text-[12px] font-[500] text-[#777]">{group.label}</span>
-                                                <span className="text-[12px] text-[#505050] ml-0.5">{group.runs.length}</span>
+                                                <span className="text-[12px] font-[500] text-[#aaa]">{group.label}</span>
+                                                <span className="text-[12px] text-[#666] ml-0.5">{group.runs.length}</span>
                                             </button>
 
                                             {!collapsed[group.key] && group.runs.map(run => (
@@ -296,18 +296,18 @@ const TasksView = () => {
                                                             },
                                                         });
                                                     }}
-                                                    className={`flex items-center gap-3 px-10 py-[7px] cursor-pointer transition-colors border-b border-[#ffffff04] last:border-0 group ${
+                                                    className={`flex items-center gap-3 px-6 py-[7px] cursor-pointer transition-colors border-b border-[#1e1e1e] last:border-0 group ${
                                                         selectedRun?.id === run.id ? 'bg-[#1e1e1e]' : 'hover:bg-[#181818]'
                                                     }`}
                                                 >
                                                     <StatusDot group={group} />
-                                                    <span className="flex-1 text-[13px] text-[#c0c0c0] truncate min-w-0">
+                                                    <span className="flex-1 text-[13px] text-[#d8d8d8] truncate min-w-0">
                                                         {run.name || 'Untitled run'}
                                                     </span>
-                                                    <div className="w-5 h-5 bg-[#2a2a2a] rounded-full flex items-center justify-center text-[#888] font-bold text-[9px] flex-shrink-0">
+                                                    <div className="w-5 h-5 bg-[#6b3a1f] rounded-full flex items-center justify-center text-[#e8b89a] font-bold text-[9px] flex-shrink-0">
                                                         V
                                                     </div>
-                                                    <span className="text-[12px] text-[#505050] flex-shrink-0 w-[38px] text-right">
+                                                    <span className="text-[12px] text-[#555] flex-shrink-0 w-[38px] text-right">
                                                         {fmtDate(run.updated_at)}
                                                     </span>
                                                 </div>
