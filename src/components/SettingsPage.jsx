@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
-import { Settings, Users, Puzzle, ChevronDown, LogOut, Copy, Check } from 'lucide-react';
+import { Settings, Users, Puzzle, ChevronDown, LogOut, Copy, Check, Plus } from 'lucide-react';
 import { fetchOrgs, subscribeToTable } from '../services/supabase';
 import InlineChatPanel from './InlineChatPanel';
 
@@ -17,6 +17,32 @@ const MOCK_MEMBERS = [
 const MOCK_USER = {
     email:  'vishesh@zamp.ai',
     userId: '943bf487-378f-43fd-add9-8f88cef789e1',
+};
+
+/* ── Org avatar with deterministic colour ───────────────────────────────── */
+const ORG_COLOURS = [
+    { bg: '#1e3a5f', text: '#5ba3f5' }, // blue
+    { bg: '#2d1b4e', text: '#a78bfa' }, // purple
+    { bg: '#1a3d2e', text: '#4ade80' }, // green
+    { bg: '#3d1f1f', text: '#f87171' }, // red
+    { bg: '#3d2e1a', text: '#fbbf24' }, // amber
+    { bg: '#1a3340', text: '#38bdf8' }, // sky
+    { bg: '#2e1f3d', text: '#e879f9' }, // fuchsia
+    { bg: '#1f3329', text: '#34d399' }, // emerald
+];
+const orgColour = (name = '') => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+    return ORG_COLOURS[hash % ORG_COLOURS.length];
+};
+const OrgAvatar = ({ name = '', size = 'md' }) => {
+    const { bg, text } = orgColour(name);
+    const dim = size === 'md' ? 'w-6 h-6 text-[11px]' : 'w-5 h-5 text-[10px]';
+    return (
+        <div className={`${dim} rounded-md flex items-center justify-center font-[700] flex-shrink-0`} style={{ backgroundColor: bg, color: text }}>
+            {name.charAt(0).toUpperCase()}
+        </div>
+    );
 };
 
 const TIMEZONES = [
@@ -266,37 +292,54 @@ const SettingsPage = () => {
         <div className="flex h-full bg-[#0d0d0d] overflow-hidden text-[#ccc]">
 
             {/* ── Chat Panel ── */}
-            <div className={`flex flex-col overflow-hidden bg-[#111] border-r border-[#222] transition-all duration-200 ${chatVisible ? 'w-[320px] flex-shrink-0' : 'w-0'}`}>
+            <div style={chatVisible ? { width: 'clamp(300px, 22vw, 460px)' } : {}} className={`flex flex-col overflow-hidden bg-[#111] border-r border-[#222] transition-all duration-200 ${chatVisible ? 'flex-shrink-0' : 'w-0'}`}>
                 {chatVisible && <InlineChatPanel theme={theme} />}
             </div>
 
             {/* ── Sidebar ── */}
-            <div className="w-[160px] flex-shrink-0 border-r border-[#1e1e1e] flex flex-col bg-[#0d0d0d]">
+            <div className="w-[200px] flex-shrink-0 border-r border-[#1e1e1e] flex flex-col bg-[#0d0d0d]">
 
                 {/* Org header */}
-                <div className="px-3 pt-3 pb-3 border-b border-[#1e1e1e]">
+                <div className="px-3 pt-3 pb-2 border-b border-[#1e1e1e]">
+                    {/* Current org button */}
                     <button
                         onClick={() => setOrgDropOpen(o => !o)}
-                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[#1a1a1a] transition-colors"
+                        className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-[#181818] transition-colors group"
                     >
-                        <div className="w-5 h-5 rounded bg-[#c0392b] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
-                            {activeOrg?.name?.charAt(0) || 'Z'}
-                        </div>
-                        <span className="text-[13px] font-[500] text-[#ddd] truncate flex-1 text-left">
+                        <OrgAvatar name={activeOrg?.name} size="md" />
+                        <span className="text-[12px] font-[500] text-[#ccc] truncate flex-1 text-left leading-tight">
                             {activeOrg?.name || 'Loading…'}
                         </span>
-                        <ChevronDown size={12} className={`text-[#444] flex-shrink-0 transition-transform ${orgDropOpen ? 'rotate-180' : ''}`} />
+                        <ChevronDown size={11} className={`text-[#555] flex-shrink-0 transition-transform duration-150 ${orgDropOpen ? 'rotate-180' : ''}`} />
                     </button>
 
+                    {/* Dropdown */}
                     {orgDropOpen && (
-                        <div className="mt-1 bg-[#1a1a1a] border border-[#2e2e2e] rounded-lg overflow-hidden">
-                            {orgs.map(org => (
-                                <button key={org.id} onClick={() => switchOrg(org)}
-                                    className={`w-full flex items-center gap-2 px-3 py-2 text-[12px] hover:bg-[#222] transition-colors ${activeOrg?.id === org.id ? 'bg-[#222]' : ''}`}>
-                                    <span className="font-bold text-[#888]">{org.name?.charAt(0)}</span>
-                                    <span className="text-[#ccc] truncate">{org.name}</span>
+                        <div className="mt-1.5 bg-[#161616] border border-[#272727] rounded-lg overflow-hidden shadow-xl">
+                            <div className="px-2 py-1.5 border-b border-[#222]">
+                                <p className="text-[10px] font-[600] text-[#444] uppercase tracking-wider px-1">Switch workspace</p>
+                            </div>
+                            <div className="py-1 max-h-[260px] overflow-y-auto">
+                                {orgs.map(org => {
+                                    const isActive = activeOrg?.id === org.id;
+                                    return (
+                                        <button key={org.id} onClick={() => switchOrg(org)}
+                                            className={`w-full flex items-center gap-2.5 px-2.5 py-2 text-[12px] transition-colors ${isActive ? 'bg-[#1e1e1e]' : 'hover:bg-[#1a1a1a]'}`}>
+                                            <OrgAvatar name={org.name} size="sm" />
+                                            <span className={`truncate flex-1 text-left ${isActive ? 'text-[#e0e0e0] font-[500]' : 'text-[#888] hover:text-[#bbb]'}`}>{org.name}</span>
+                                            {isActive && <Check size={11} className="text-[#666] flex-shrink-0" />}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <div className="border-t border-[#222] py-1">
+                                <button className="w-full flex items-center gap-2.5 px-2.5 py-2 text-[12px] text-[#555] hover:text-[#888] hover:bg-[#1a1a1a] transition-colors">
+                                    <div className="w-5 h-5 rounded-md border border-dashed border-[#333] flex items-center justify-center flex-shrink-0">
+                                        <Plus size={10} className="text-[#444]" />
+                                    </div>
+                                    <span>New workspace</span>
                                 </button>
-                            ))}
+                            </div>
                         </div>
                     )}
                 </div>
