@@ -260,9 +260,9 @@ const SettingsPage = () => {
                         onClick={() => setOrgDropOpen(o => !o)}
                         className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[#1a1a1a] transition-colors"
                     >
-                        <span className="text-[13px] font-[600] text-[#ccc] w-4 h-4 flex items-center justify-center flex-shrink-0">
+                        <div className="w-5 h-5 rounded bg-[#c0392b] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
                             {activeOrg?.name?.charAt(0) || 'Z'}
-                        </span>
+                        </div>
                         <span className="text-[13px] font-[500] text-[#ddd] truncate flex-1 text-left">
                             {activeOrg?.name || 'Loading…'}
                         </span>

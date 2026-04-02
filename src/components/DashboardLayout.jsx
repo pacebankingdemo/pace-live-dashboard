@@ -31,7 +31,7 @@ const DashboardLayout = () => {
     const [tabs, setTabs]                     = useState([]);
     const [activeTabId, setActiveTabId]       = useState(null);
     // Chat panel open state — lives here so navbar icon can control it
-    const [chatOpen, setChatOpen]             = useState(true);
+    const [chatOpen, setChatOpen]             = useState(false);
 
     useEffect(() => {
         const load = async () => {
@@ -116,16 +116,15 @@ const DashboardLayout = () => {
                     <IconBtn icon={Home}         active={isHome}       onClick={() => navigate('/done/home')}     title="Home" />
                     <IconBtn icon={Zap}          active={isTasks}      onClick={() => navigate('/done/tasks')}    title="Tasks" />
                     <IconBtn icon={Settings}     active={isSettings}   onClick={() => navigate('/done/settings')} title="Settings" />
-                    {/* Chat toggle — only relevant on tasks page, always shown for discoverability */}
-                    <IconBtn
-                        icon={MessageSquare}
-                        active={isChatActive}
-                        onClick={() => {
-                            if (!isTasks) navigate('/done/tasks');
-                            setChatOpen(o => !o);
-                        }}
-                        title={chatOpen ? 'Hide chat' : 'Show chat'}
-                    />
+                    {/* Chat toggle — only shown on tasks page */}
+                    {isTasks && (
+                        <IconBtn
+                            icon={MessageSquare}
+                            active={isChatActive}
+                            onClick={() => setChatOpen(o => !o)}
+                            title={chatOpen ? 'Hide chat' : 'Show chat'}
+                        />
+                    )}
                 </div>
 
                 {/* Divider */}
