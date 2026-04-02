@@ -34,6 +34,8 @@ const DashboardLayout = () => {
     const [activeTabId, setActiveTabId]       = useState(null);
     // Chat panel open state — lives here so navbar icon can control it
     const [chatOpen, setChatOpen]             = useState(false);
+    // Theme: 'dark' | 'light' — persisted to localStorage
+    const [theme, setTheme]                   = useState(() => localStorage.getItem('pace-theme') || 'dark');
 
     useEffect(() => {
         const load = async () => {
@@ -100,6 +102,13 @@ const DashboardLayout = () => {
     const isSettings = location.pathname === '/done/settings';
     // Chat icon is active when on tasks page AND chat is open
     const isChatActive = isTasks && chatOpen;
+
+    // Sync theme to <html> element
+    useEffect(() => {
+        document.documentElement.classList.remove('dark', 'light');
+        document.documentElement.classList.add(theme);
+        localStorage.setItem('pace-theme', theme);
+    }, [theme]);
 
     const IconBtn = ({ icon: Icon, active, onClick, title }) => (
         <button onClick={onClick} title={title}
@@ -189,7 +198,7 @@ const DashboardLayout = () => {
                     })() : null}
                     {/* Always render the outlet so state is preserved; hide it when a tab is active */}
                     <div className={activeTabId && tabs.find(t => t.id === activeTabId)?.type !== 'run' ? 'hidden' : 'h-full'}>
-                        <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen }} />
+                        <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen, theme, setTheme }} />
                     </div>
                 </div>
             </main>

@@ -230,3 +230,114 @@ body {
 /* Hide scrollbar but keep scrollability */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ============================================================
+   LIGHT MODE OVERRIDES
+   Applied when <html class="light"> is set.
+   These override Tailwind's arbitrary bg/text/border values
+   by targeting the exact classes used in components.
+   ============================================================ */
+
+html.light {
+    /* ---------- Global backgrounds ---------- */
+    --lm-bg-base:     #f5f5f5;
+    --lm-bg-surface:  #ffffff;
+    --lm-bg-raised:   #efefef;
+    --lm-bg-hover:    #e8e8e8;
+    --lm-bg-active:   #e0e0e0;
+    --lm-border:      #dcdcdc;
+    --lm-border-mid:  #cccccc;
+    --lm-text-strong: #111111;
+    --lm-text-mid:    #444444;
+    --lm-text-dim:    #888888;
+    --lm-text-faint:  #bbbbbb;
+}
+
+/* Base page backgrounds */
+html.light body,
+html.light #root,
+html.light .bg-\[\#0d0d0d\] { background-color: #f0f0f0 !important; }
+html.light .bg-\[\#111\]    { background-color: #f8f8f8 !important; }
+html.light .bg-\[\#111111\] { background-color: #f8f8f8 !important; }
+html.light .bg-\[\#141414\] { background-color: #f2f2f2 !important; }
+html.light .bg-\[\#161616\] { background-color: #eeeeee !important; }
+html.light .bg-\[\#181818\] { background-color: #e8e8e8 !important; }
+html.light .bg-\[\#1a1a1a\] { background-color: #e4e4e4 !important; }
+html.light .bg-\[\#1e1e1e\] { background-color: #e0e0e0 !important; }
+html.light .bg-\[\#222\]    { background-color: #d8d8d8 !important; }
+html.light .bg-\[\#2a2a2a\] { background-color: #d0d0d0 !important; }
+html.light .bg-\[\#333\]    { background-color: #cccccc !important; }
+
+/* Hover backgrounds */
+html.light .hover\:bg-\[\#181818\]:hover { background-color: #e8e8e8 !important; }
+html.light .hover\:bg-\[\#1a1a1a\]:hover { background-color: #e4e4e4 !important; }
+html.light .hover\:bg-\[\#1e1e1e\]:hover { background-color: #e0e0e0 !important; }
+html.light .hover\:bg-\[\#222\]:hover    { background-color: #d8d8d8 !important; }
+html.light .hover\:bg-\[\#ffffff04\]:hover { background-color: rgba(0,0,0,0.04) !important; }
+html.light .hover\:bg-\[\#ffffff03\]:hover { background-color: rgba(0,0,0,0.03) !important; }
+
+/* Borders */
+html.light .border-\[\#1e1e1e\] { border-color: #dcdcdc !important; }
+html.light .border-\[\#222\]    { border-color: #d4d4d4 !important; }
+html.light .border-\[\#2a2a2a\] { border-color: #cccccc !important; }
+html.light .border-\[\#2e2e2e\] { border-color: #cccccc !important; }
+html.light .border-\[\#333\]    { border-color: #c4c4c4 !important; }
+html.light .border-\[\#3a3a3a\] { border-color: #bbbbbb !important; }
+html.light .border-\[\#444\]    { border-color: #aaaaaa !important; }
+
+/* Text colors */
+html.light .text-\[\#e8e8e8\] { color: #111111 !important; }
+html.light .text-\[\#ddd\]    { color: #1a1a1a !important; }
+html.light .text-\[\#d8d8d8\] { color: #1a1a1a !important; }
+html.light .text-\[\#d0d0d0\] { color: #222222 !important; }
+html.light .text-\[\#ccc\]    { color: #333333 !important; }
+html.light .text-\[\#c0c0c0\] { color: #333333 !important; }
+html.light .text-\[\#bbb\]    { color: #444444 !important; }
+html.light .text-\[\#aaa\]    { color: #555555 !important; }
+html.light .text-\[\#999\]    { color: #666666 !important; }
+html.light .text-\[\#888\]    { color: #777777 !important; }
+html.light .text-\[\#777\]    { color: #888888 !important; }
+html.light .text-\[\#666\]    { color: #999999 !important; }
+html.light .text-\[\#555\]    { color: #aaaaaa !important; }
+html.light .text-\[\#505050\] { color: #aaaaaa !important; }
+html.light .text-\[\#444\]    { color: #bbbbbb !important; }
+html.light .text-\[\#3a3a3a\] { color: #cccccc !important; }
+html.light .text-\[\#333\]    { color: #cccccc !important; }
+
+/* Hover text */
+html.light .hover\:text-\[\#e8e8e8\]:hover { color: #111111 !important; }
+html.light .hover\:text-\[\#aaa\]:hover    { color: #555555 !important; }
+html.light .hover\:text-\[\#888\]:hover    { color: #666666 !important; }
+html.light .hover\:text-\[\#999\]:hover    { color: #666666 !important; }
+html.light .hover\:text-\[\#666\]:hover    { color: #888888 !important; }
+
+/* Navbar / sidebar specific */
+html.light .bg-\[\#0d0d0d\].border-b { border-color: #dcdcdc !important; }
+
+/* Input / textarea */
+html.light input,
+html.light textarea {
+    background-color: #ffffff !important;
+    color: #111111 !important;
+    border-color: #dcdcdc !important;
+}
+html.light input::placeholder,
+html.light textarea::placeholder { color: #aaaaaa !important; }
+
+/* Scrollbar */
+html.light ::-webkit-scrollbar-track  { background: #f0f0f0; }
+html.light ::-webkit-scrollbar-thumb  { background: #cccccc; }
+html.light ::-webkit-scrollbar-thumb:hover { background: #aaaaaa; }
+
+/* Tab active indicator — keep white underline readable on light */
+html.light .border-\[\#e8e8e8\] { border-color: #111111 !important; }
+
+/* Tool call blocks in chat */
+html.light .bg-\[\#0a0a0a\] { background-color: #f0f0f0 !important; }
+html.light .border-\[\#1a1a1a\] { border-color: #e0e0e0 !important; }
+
+/* Settings theme toggle pill */
+html.light .bg-\[\#2a2a2a\].text-\[\#e8e8e8\] {
+    background-color: #d8d8d8 !important;
+    color: #111111 !important;
+}

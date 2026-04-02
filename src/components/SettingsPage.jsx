@@ -68,7 +68,7 @@ const SettingsRow = ({ label, value, action, subtext }) => (
 );
 
 // ── General section ──────────────────────────────────────────
-const GeneralSection = () => {
+const GeneralSection = ({ theme, setTheme }) => {
     const [copied, setCopied]     = useState(false);
     const [timezone, setTimezone] = useState('(GMT+05:30) Calcutta');
     const [tzOpen, setTzOpen]     = useState(false);
@@ -113,16 +113,22 @@ const GeneralSection = () => {
             <SettingsCard>
                 <SettingsRow
                     label="Theme"
-                    value="Dark"
+                    value={theme === 'dark' ? 'Dark' : 'Light'}
                     action={
-                        <div className="relative">
-                            <button
-                                onClick={() => {}}
-                                className="flex items-center gap-1.5 px-3 py-1 border border-[#333] rounded text-[12px] text-[#aaa] hover:border-[#555] transition-colors"
-                            >
-                                Dark
-                                <ChevronDown size={11} className="text-[#555]" />
-                            </button>
+                        <div className="flex items-center gap-1 p-0.5 border border-[#333] rounded-md">
+                            {['dark', 'light'].map(t => (
+                                <button
+                                    key={t}
+                                    onClick={() => setTheme(t)}
+                                    className={`px-3 py-1 rounded text-[12px] capitalize transition-colors ${
+                                        theme === t
+                                            ? 'bg-[#2a2a2a] text-[#e8e8e8]'
+                                            : 'text-[#666] hover:text-[#aaa]'
+                                    }`}
+                                >
+                                    {t}
+                                </button>
+                            ))}
                         </div>
                     }
                 />
@@ -212,7 +218,7 @@ const IntegrationsSection = () => (
 
 // ── Main ─────────────────────────────────────────────────────
 const SettingsPage = () => {
-    const { currentOrg, chatOpen } = useOutletContext();
+    const { currentOrg, chatOpen, theme, setTheme } = useOutletContext();
     const navigate        = useNavigate();
     const [section, setSection]         = useState('general');
     const [orgs, setOrgs]               = useState([]);
@@ -320,7 +326,7 @@ const SettingsPage = () => {
 
             {/* ── Content ── */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#111]">
-                {section === 'general'      && <GeneralSection />}
+                {section === 'general'      && <GeneralSection theme={theme} setTheme={setTheme} />}
                 {section === 'people'       && <PeopleSection />}
                 {section === 'integrations' && <IntegrationsSection />}
             </div>
