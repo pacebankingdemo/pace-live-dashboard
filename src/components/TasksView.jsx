@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { ChevronDown, ChevronRight, Activity } from 'lucide-react';
 import { supabase, fetchProcesses, subscribeToTable } from '../services/supabase';
+import TaskChatPanel from './TaskChatPanel';
 
 // Sub-skill process IDs to hide (same as DashboardLayout)
 const HIDDEN_PROCESS_IDS = new Set([
@@ -93,6 +94,7 @@ const TasksView = () => {
     const [activeTab, setActiveTab] = useState('all'); // 'all' | 'needs_action'
     const [processes, setProcesses] = useState([]);
     const [selectedProcessId, setSelectedProcessId] = useState(null); // null = all
+    const [selectedRun, setSelectedRun] = useState(null);
     const [runs, setRuns] = useState([]);
     const [collapsed, setCollapsed] = useState({}); // { [groupKey]: bool }
     const [loading, setLoading] = useState(true);
@@ -176,7 +178,12 @@ const TasksView = () => {
     return (
         <div className="flex h-full bg-white overflow-hidden">
 
-            {/* ── Left: task list ── */}
+            {/* ── Left: chat panel ── */}
+            <div className="w-[300px] flex-shrink-0 border-r border-[#f0f0f0] flex flex-col overflow-hidden bg-[#FAFAFA]">
+                <TaskChatPanel run={selectedRun} />
+            </div>
+
+            {/* ── Center: task list ── */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden border-r border-[#f0f0f0]">
 
                 {/* Header */}
@@ -246,8 +253,8 @@ const TasksView = () => {
                                     return (
                                         <div
                                             key={run.id}
-                                            onClick={() => navigate(`/done/process/${run.id}`)}
-                                            className="flex items-center gap-3 px-8 py-2 hover:bg-[#f9f9f9] cursor-pointer transition-colors border-b border-[#fafafa] last:border-0 group"
+                                            onClick={() => setSelectedRun(run)}
+                                            className={`flex items-center gap-3 px-8 py-2 cursor-pointer transition-colors border-b border-[#fafafa] last:border-0 group ${selectedRun?.id === run.id ? 'bg-[#f4f4f4]' : 'hover:bg-[#f9f9f9]'}`}
                                         >
                                             <StatusDot group={group} />
                                             <span className="flex-1 text-[13px] text-[#171717] truncate min-w-0">
