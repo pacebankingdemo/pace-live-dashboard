@@ -12,6 +12,7 @@ import AccuracyPanel from './components/AccuracyPanel';
 import PeoplePage from './components/People';
 import TasksView from './components/TasksView';
 import HomePage from './components/HomePage';
+import SettingsPage from './components/SettingsPage';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
           <Route path="accuracy" element={<AccuracyPanel />} />
           <Route path="people" element={<PeoplePage />} />
           <Route path="tasks" element={<TasksView />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
