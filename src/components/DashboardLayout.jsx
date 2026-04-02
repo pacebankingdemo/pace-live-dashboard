@@ -1,8 +1,9 @@
 import React, { useState, useEffect, createContext } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Zap, Settings, X, MessageSquare, FileText, Play } from 'lucide-react';
+import { Home, Zap, Settings, X, MessageSquare, FileText, Play, BookOpen } from 'lucide-react';
 import VideoPlayer from './VideoPlayer';
 import DocumentPreview from './DocumentPreview';
+import KnowledgeBase from './KnowledgeBase';
 import { fetchOrgs, fetchProcesses, subscribeToTable } from '../services/supabase';
 
 const ORG_ORDER = [
@@ -36,6 +37,8 @@ const DashboardLayout = () => {
     const [chatOpen, setChatOpen]             = useState(false);
     // Theme: 'dark' | 'light' — persisted to localStorage
     const [theme, setTheme]                   = useState(() => localStorage.getItem('pace-theme') || 'dark');
+    // KB panel open state
+    const [kbOpen, setKbOpen]                 = useState(false);
 
     useEffect(() => {
         const load = async () => {
@@ -167,8 +170,14 @@ const DashboardLayout = () => {
                     ))}
                 </div>
 
-                {/* RIGHT: org name */}
-                <div className="flex items-center ml-2 flex-shrink-0">
+                {/* RIGHT: KB icon + org name */}
+                <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
+                    <IconBtn
+                        icon={BookOpen}
+                        active={kbOpen}
+                        onClick={() => setKbOpen(o => !o)}
+                        title={kbOpen ? 'Hide knowledge base' : 'Open knowledge base'}
+                    />
                     <span className="text-[12px] text-[#505050] px-2">{currentOrg?.name || ''}</span>
                 </div>
             </header>
@@ -202,6 +211,20 @@ const DashboardLayout = () => {
                     </div>
                 </div>
             </main>
+            {/* ══ KB SLIDE-OVER PANEL ══ */}
+            {kbOpen && (
+                <div className="fixed inset-y-9 right-0 z-30 flex">
+                    {/* Backdrop — clicking it closes the panel */}
+                    <div
+                        className="fixed inset-0 top-9"
+                        onClick={() => setKbOpen(false)}
+                    />
+                    {/* Panel */}
+                    <div className="relative w-[520px] flex flex-col bg-[#111] border-l border-[#1e1e1e] shadow-2xl overflow-hidden">
+                        <KnowledgeBase onClose={() => setKbOpen(false)} embedded />
+                    </div>
+                </div>
+            )}
         </div>
         </TabsContext.Provider>
     );

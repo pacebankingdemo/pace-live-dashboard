@@ -53,7 +53,7 @@ const isPreviewable = (fileType) => {
     return fileType.startsWith('image/') || fileType === 'application/pdf';
 };
 
-const KnowledgeBase = () => {
+const KnowledgeBase = ({ onClose, embedded = false }) => {
     const { currentProcess } = useOutletContext();
     const [markdown, setMarkdown] = useState('');
     const [kbMeta, setKbMeta] = useState(null);
@@ -198,7 +198,26 @@ const KnowledgeBase = () => {
     const sourceDocuments = kbMeta?.source_documents || [];
 
     return (
-        <div className="max-w-4xl mx-auto py-8 px-6">
+        <div className={embedded ? "flex flex-col h-full overflow-hidden" : ""}>
+        {/* Header bar when embedded */}
+        {embedded && (
+            <div className="flex-shrink-0 flex items-center justify-between px-5 h-9 border-b border-[#1e1e1e]">
+                <span className="text-[12px] font-[550] text-[#aaa] flex items-center gap-1.5">
+                    <span>Knowledge Base</span>
+                    {kbMeta?.process_name && (
+                        <span className="text-[#555]">— {kbMeta.process_name}</span>
+                    )}
+                </span>
+                <button
+                    onClick={onClose}
+                    className="w-6 h-6 flex items-center justify-center rounded text-[#444] hover:text-[#aaa] hover:bg-[#1e1e1e] transition-colors"
+                >
+                    <X size={13} />
+                </button>
+            </div>
+        )}
+        <div className={embedded ? "flex-1 overflow-y-auto" : ""}>
+        <div className={embedded ? "px-6 py-6" : "max-w-4xl mx-auto py-8 px-6"}>
             {/* Header with Edit button */}
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-[36px] font-bold text-[#171717]">Knowledge Base</h1>
@@ -483,6 +502,9 @@ const KnowledgeBase = () => {
                     </div>
                 </div>
             )}
+        </div>
+        </div>
+        {!embedded && null}
         </div>
     );
 };
