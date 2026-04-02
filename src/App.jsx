@@ -4,6 +4,7 @@ import DashboardLayout from './components/DashboardLayout';
 import ProcessList from './components/ProcessList';
 import ProcessDetails from './components/ProcessDetails';
 import KnowledgeBase from './components/KnowledgeBase';
+import KnowledgeBasePage from './components/KnowledgeBasePage';
 import ChatPanel from './components/ChatPanel';
 import Login from './components/Login';
 import DataExplorer from './components/DataExplorer';
@@ -15,11 +16,6 @@ import HomePage from './components/HomePage';
 import SettingsPage from './components/SettingsPage';
 import ErrorBoundary from './components/ErrorBoundary';
 
-import { useNavigate as useNav } from 'react-router-dom';
-const KnowledgeBasePage = () => {
-  const nav = useNav();
-  return <KnowledgeBase embedded onClose={() => nav('/done/tasks')} />;
-};
 
 function App() {
   return (

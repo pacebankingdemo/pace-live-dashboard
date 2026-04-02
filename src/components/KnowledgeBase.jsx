@@ -203,8 +203,8 @@ const KnowledgeBase = ({ onClose, embedded = false, currentProcess: currentProce
 
     return (
         <div className={embedded ? "flex flex-col h-full overflow-hidden" : ""}>
-        {/* Header bar when embedded */}
-        {embedded && (
+        {/* Header bar when embedded with a close handler */}
+        {embedded && onClose && (
             <div className="flex-shrink-0 flex items-center justify-between px-5 h-9 border-b border-[#1e1e1e]">
                 <span className="text-[12px] font-[550] text-[#aaa] flex items-center gap-1.5">
                     <span>Knowledge Base</span>
