@@ -136,7 +136,7 @@ const DashboardLayout = () => {
                 {/* CENTER: run tabs */}
                 <div className="flex items-center gap-0.5 flex-1 overflow-x-auto no-scrollbar min-w-0">
                     {tabs.map(tab => (
-                        <div key={tab.id} onClick={() => setActiveTabId(tab.id)}
+                        <div key={tab.id} onClick={() => { if (tab.type === 'run') { tab.onSelect?.(); } else { setActiveTabId(tab.id); } }}
                             className={`flex items-center gap-1.5 h-7 px-2.5 rounded-md cursor-pointer flex-shrink-0 max-w-[200px] transition-colors group ${
                                 activeTabId === tab.id ? 'bg-[#1e1e1e] text-[#e8e8e8]' : 'text-[#555] hover:bg-[#1a1a1a] hover:text-[#aaa]'
                             }`}>
@@ -185,7 +185,7 @@ const DashboardLayout = () => {
                         return null;
                     })() : null}
                     {/* Always render the outlet so state is preserved; hide it when a tab is active */}
-                    <div className={activeTabId ? 'hidden' : 'h-full'}>
+                    <div className={activeTabId && tabs.find(t => t.id === activeTabId)?.type !== 'run' ? 'hidden' : 'h-full'}>
                         <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen }} />
                     </div>
                 </div>
