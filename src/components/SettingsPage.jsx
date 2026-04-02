@@ -218,7 +218,7 @@ const IntegrationsSection = () => (
 
 // ── Main ─────────────────────────────────────────────────────
 const SettingsPage = () => {
-    const { currentOrg, chatOpen, theme, setTheme } = useOutletContext();
+    const { currentOrg, setCurrentOrg, chatOpen, theme, setTheme } = useOutletContext();
     const navigate        = useNavigate();
     const [section, setSection]         = useState('general');
     const [orgs, setOrgs]               = useState([]);
@@ -251,6 +251,7 @@ const SettingsPage = () => {
         setActiveOrg(org);
         sessionStorage.setItem('currentOrgId',   org.id);
         sessionStorage.setItem('currentOrgName', org.name || '');
+        setCurrentOrg(org);   // update DashboardLayout state directly
         setOrgDropOpen(false);
         navigate('/done/tasks');
     };

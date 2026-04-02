@@ -213,7 +213,7 @@ const DashboardLayout = () => {
                         })() : null}
                         {/* Always render the outlet so state is preserved; hide it when a tab is active */}
                         <div className={activeTabId && tabs.find(t => t.id === activeTabId)?.type !== 'run' ? 'hidden' : 'h-full'}>
-                            <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen, theme, setTheme, rightOpen, setRightOpen }} />
+                            <Outlet context={{ currentOrg, setCurrentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen, theme, setTheme, rightOpen, setRightOpen }} />
                         </div>
                     </div>
                 </main>
