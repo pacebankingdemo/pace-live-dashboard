@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext } from 'react';
+import React, { useState, useEffect, useRef, createContext } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Home, Zap, Settings, X, MessageSquare, FileText, Play, BookOpen, LayoutDashboard } from 'lucide-react';
 import VideoPlayer from './VideoPlayer';
@@ -57,8 +57,16 @@ const DashboardLayout = () => {
         return subscribeToTable('organizations', undefined, load);
     }, []);
 
+    const prevOrgIdRef = useRef(null);
+
     useEffect(() => {
         if (!currentOrg) return;
+        // Clear tabs when org actually switches (not on initial mount)
+        if (prevOrgIdRef.current && prevOrgIdRef.current !== currentOrg.id) {
+            setTabs([]);
+            setActiveTabId(null);
+        }
+        prevOrgIdRef.current = currentOrg.id;
         sessionStorage.setItem('currentOrgId',   currentOrg.id);
         sessionStorage.setItem('currentOrgName', currentOrg.name || '');
         const load = async () => {

@@ -81,6 +81,9 @@ const TasksView = () => {
 
     useEffect(() => {
         if (!currentOrg) return;
+        // Reset selections when org changes
+        setSelectedProcessId(null);
+        setSelectedRun(null);
         const load = async () => {
             try {
                 const data = await fetchProcesses(currentOrg.id);
