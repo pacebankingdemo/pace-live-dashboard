@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import {
     ChevronDown, ChevronRight, Activity,
-    PanelLeftClose, PanelLeftOpen, Search
+    PanelLeftClose, PanelLeftOpen,
+    PanelRightClose, PanelRightOpen,
+    Search
 } from 'lucide-react';
 import { supabase, fetchProcesses, subscribeToTable } from '../services/supabase';
 import ProcessDetails from './ProcessDetails';
@@ -33,13 +35,10 @@ const StatusDot = ({ group }) => (
 
 const fmtDate = (ts) => {
     if (!ts) return '';
-    const d = new Date(ts);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
 const TasksView = () => {
-    // chatOpen/setChatOpen come from DashboardLayout via outlet context
-    // so the navbar MessageSquare button and the in-panel toggle stay in sync
     const { currentOrg, openTab, chatOpen, setChatOpen } = useOutletContext();
 
     const [activeTab, setActiveTab]                 = useState('all');
@@ -49,6 +48,8 @@ const TasksView = () => {
     const [collapsed, setCollapsed]                 = useState({});
     const [loading, setLoading]                     = useState(true);
     const [selectedRun, setSelectedRun]             = useState(null);
+    // Right panel: true = full processes list visible, false = collapsed to icon strip
+    const [rightOpen, setRightOpen]                 = useState(true);
 
     useEffect(() => {
         if (!currentOrg) return;
@@ -82,7 +83,6 @@ const TasksView = () => {
     }, [currentOrg, selectedProcessId, processes]);
 
     useEffect(() => { loadRuns(); }, [loadRuns]);
-
     useEffect(() => {
         if (!currentOrg) return;
         return subscribeToTable('activity_runs', undefined, loadRuns);
@@ -98,28 +98,32 @@ const TasksView = () => {
 
     const toggleCollapse = (key) => setCollapsed(prev => ({ ...prev, [key]: !prev[key] }));
 
-    // Determine what the center column shows:
-    // - If chat is open AND no task selected → chat fills center (tasks hidden)
-    // - If chat is open AND task selected → task detail fills center (chat hidden)  
-    // - If chat is closed → tasks/detail fill center normally
-    // Right processes panel is ALWAYS visible — it never goes full width.
-
-    const showChatFullWidth = chatOpen && !selectedRun;
-    const showTasksCenter   = !chatOpen || selectedRun;
+    /*
+     * LAYOUT LOGIC
+     * ─────────────────────────────────────────────────────────
+     * chatOpen  rightOpen  → LEFT(chat)  CENTER(tasks)  RIGHT(processes)
+     *   true      true     →   flex-1      flex-1         200px full list
+     *   true      false    →   flex-1      flex-1         44px  icon strip
+     *   false     true     →   hidden      flex-1         200px full list
+     *   false     false    →   hidden      flex-1         44px  icon strip
+     *
+     * Special case: when chatOpen AND a run is selected, tasks/detail takes
+     * the center and chat is hidden (same as existing behaviour).
+     * ─────────────────────────────────────────────────────────
+     */
+    const showChat   = chatOpen && !selectedRun;
+    const showTasks  = !chatOpen || selectedRun; // center col visible
 
     return (
         <div className="flex h-full bg-[#111] overflow-hidden">
 
-            {/* ══ LEFT: Chat panel ══
-                When open: fills the center area (flex-1), tasks/detail column collapses
-                When closed: zero width, hidden */}
-            <div className={`flex-shrink-0 border-r border-[#222] flex flex-col overflow-hidden bg-[#111] transition-all duration-200 ${
-                chatOpen ? 'flex-1 min-w-0' : 'w-0 border-r-0'
+            {/* ══ LEFT: Chat panel ══ */}
+            <div className={`flex-shrink-0 flex flex-col overflow-hidden bg-[#111] transition-all duration-200 ${
+                showChat ? 'flex-1 min-w-0 border-r border-[#222]' : 'w-0'
             }`}>
-                {chatOpen && (
+                {showChat && (
                     <>
-                        {/* Chat toolbar — toggle to collapse */}
-                        <div className="flex items-center h-9 px-3 border-b border-[#222] flex-shrink-0 gap-1">
+                        <div className="flex items-center h-9 px-3 border-b border-[#222] flex-shrink-0">
                             <button
                                 onClick={() => setChatOpen(false)}
                                 className="w-6 h-6 flex items-center justify-center rounded text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors"
@@ -127,24 +131,20 @@ const TasksView = () => {
                             >
                                 <PanelLeftClose size={13} />
                             </button>
-                            <div className="flex-1" />
                         </div>
                         <InlineChatPanel />
                     </>
                 )}
             </div>
 
-            {/* ══ CENTER: Task list OR Run detail ══
-                Hidden when chat is open and no run is selected (chat takes full width)
-                Always shown otherwise */}
+            {/* ══ CENTER: Task list / Run detail ══ */}
             <div className={`flex flex-col min-w-0 overflow-hidden bg-[#111] transition-all duration-200 ${
-                showTasksCenter ? 'flex-1' : 'w-0 overflow-hidden'
+                showTasks ? 'flex-1' : 'w-0 overflow-hidden'
             }`}>
-                {showTasksCenter && (
+                {showTasks && (
                     <>
-                        {/* Center toolbar */}
+                        {/* Toolbar */}
                         <div className="flex items-center h-9 px-3 border-b border-[#222] flex-shrink-0 gap-1">
-                            {/* Open chat button — only shown when chat is closed */}
                             {!chatOpen && (
                                 <button
                                     onClick={() => setChatOpen(true)}
@@ -161,33 +161,35 @@ const TasksView = () => {
                             >
                                 <Search size={13} />
                             </button>
+                            <button
+                                onClick={() => setRightOpen(o => !o)}
+                                className="w-6 h-6 flex items-center justify-center rounded text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors flex-shrink-0"
+                                title={rightOpen ? 'Collapse processes' : 'Expand processes'}
+                            >
+                                {rightOpen ? <PanelRightClose size={13} /> : <PanelRightOpen size={13} />}
+                            </button>
                         </div>
 
                         {selectedRun ? (
                             <ProcessDetails runId={selectedRun.id} onBack={() => setSelectedRun(null)} />
                         ) : (
                             <>
-                                {/* Header */}
                                 <div className="px-6 pt-5 pb-0 flex-shrink-0">
                                     <h1 className="text-[15px] font-[600] text-[#e8e8e8] mb-3">Tasks</h1>
                                     <div className="flex items-center gap-1 border-b border-[#222]">
                                         {[{ key: 'all', label: 'All' }, { key: 'needs_action', label: 'Needs Action' }].map(tab => (
-                                            <button
-                                                key={tab.key}
-                                                onClick={() => setActiveTab(tab.key)}
+                                            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
                                                 className={`px-3 py-2 text-[12px] font-[500] border-b-2 transition-colors -mb-px ${
                                                     activeTab === tab.key
                                                         ? 'border-[#e8e8e8] text-[#e8e8e8]'
                                                         : 'border-transparent text-[#555] hover:text-[#999]'
-                                                }`}
-                                            >
+                                                }`}>
                                                 {tab.label}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
 
-                                {/* Task list */}
                                 <div className="flex-1 overflow-y-auto">
                                     {loading ? (
                                         <div className="flex items-center justify-center h-32">
@@ -243,45 +245,72 @@ const TasksView = () => {
                 )}
             </div>
 
-            {/* ══ RIGHT: Processes filter — ALWAYS visible, never full-width ══ */}
-            <div className="w-[200px] flex-shrink-0 border-l border-[#222] flex flex-col overflow-hidden bg-[#111]">
-                <div className="px-4 pt-[13px] pb-2 flex-shrink-0 border-b border-[#222]">
-                    <span className="text-[11px] font-[550] text-[#444] uppercase tracking-wide">Processes</span>
-                </div>
-                <div className="flex-1 overflow-y-auto px-2 py-3">
-                    <button
-                        onClick={() => setSelectedProcessId(null)}
-                        className={`w-full flex items-center gap-2 px-2.5 py-[7px] rounded-md text-[12px] transition-colors mb-0.5 ${
-                            selectedProcessId === null ? 'bg-[#1e1e1e] text-[#e8e8e8] font-[550]' : 'text-[#666] hover:bg-[#1a1a1a] hover:text-[#aaa]'
-                        }`}
-                    >
-                        <Activity size={12} className={selectedProcessId === null ? 'text-[#888]' : 'text-[#444]'} strokeWidth={1.5} />
-                        <span className="truncate flex-1 text-left">All processes</span>
-                        {selectedProcessId === null && (
-                            <span className="text-[11px] text-[#555] font-normal">{runs.length}</span>
-                        )}
-                    </button>
-                    <div className="border-t border-[#222] my-2 mx-1" />
-                    {processes.map(proc => {
-                        const count    = runs.filter(r => r.process_id === proc.id).length;
-                        const isActive = selectedProcessId === proc.id;
-                        return (
+            {/* ══ RIGHT: Processes — always visible, never disappears ══
+                rightOpen=true  → 200px wide, full list
+                rightOpen=false → 44px wide, icon strip with expand button only */}
+            <div className={`flex-shrink-0 border-l border-[#222] flex flex-col overflow-hidden bg-[#111] transition-all duration-200 ${
+                rightOpen ? 'w-[200px]' : 'w-[44px]'
+            }`}>
+                {rightOpen ? (
+                    /* ── Full list ── */
+                    <>
+                        <div className="flex items-center justify-between px-4 pt-[13px] pb-2 flex-shrink-0 border-b border-[#222]">
+                            <span className="text-[11px] font-[550] text-[#444] uppercase tracking-wide">Processes</span>
                             <button
-                                key={proc.id}
-                                onClick={() => setSelectedProcessId(isActive ? null : proc.id)}
+                                onClick={() => setRightOpen(false)}
+                                className="w-5 h-5 flex items-center justify-center rounded text-[#333] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors"
+                                title="Collapse processes"
+                            >
+                                <PanelRightClose size={12} />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto px-2 py-3">
+                            <button
+                                onClick={() => setSelectedProcessId(null)}
                                 className={`w-full flex items-center gap-2 px-2.5 py-[7px] rounded-md text-[12px] transition-colors mb-0.5 ${
-                                    isActive ? 'bg-[#1e1e1e] text-[#e8e8e8] font-[550]' : 'text-[#666] hover:bg-[#1a1a1a] hover:text-[#aaa]'
+                                    selectedProcessId === null ? 'bg-[#1e1e1e] text-[#e8e8e8] font-[550]' : 'text-[#666] hover:bg-[#1a1a1a] hover:text-[#aaa]'
                                 }`}
                             >
-                                <Activity size={12} className={isActive ? 'text-[#888]' : 'text-[#444]'} strokeWidth={1.5} />
-                                <span className="truncate flex-1 text-left">{proc.name}</span>
-                                {count > 0 && (
-                                    <span className={`text-[11px] font-normal flex-shrink-0 ${isActive ? 'text-[#555]' : 'text-[#333]'}`}>{count}</span>
+                                <Activity size={12} className={selectedProcessId === null ? 'text-[#888]' : 'text-[#444]'} strokeWidth={1.5} />
+                                <span className="truncate flex-1 text-left">All processes</span>
+                                {selectedProcessId === null && (
+                                    <span className="text-[11px] text-[#555] font-normal">{runs.length}</span>
                                 )}
                             </button>
-                        );
-                    })}
-                </div>
+                            <div className="border-t border-[#222] my-2 mx-1" />
+                            {processes.map(proc => {
+                                const count    = runs.filter(r => r.process_id === proc.id).length;
+                                const isActive = selectedProcessId === proc.id;
+                                return (
+                                    <button
+                                        key={proc.id}
+                                        onClick={() => setSelectedProcessId(isActive ? null : proc.id)}
+                                        className={`w-full flex items-center gap-2 px-2.5 py-[7px] rounded-md text-[12px] transition-colors mb-0.5 ${
+                                            isActive ? 'bg-[#1e1e1e] text-[#e8e8e8] font-[550]' : 'text-[#666] hover:bg-[#1a1a1a] hover:text-[#aaa]'
+                                        }`}
+                                    >
+                                        <Activity size={12} className={isActive ? 'text-[#888]' : 'text-[#444]'} strokeWidth={1.5} />
+                                        <span className="truncate flex-1 text-left">{proc.name}</span>
+                                        {count > 0 && (
+                                            <span className={`text-[11px] font-normal flex-shrink-0 ${isActive ? 'text-[#555]' : 'text-[#333]'}`}>{count}</span>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </>
+                ) : (
+                    /* ── Icon strip ── */
+                    <div className="flex flex-col items-center pt-[11px] gap-1">
+                        <button
+                            onClick={() => setRightOpen(true)}
+                            className="w-6 h-6 flex items-center justify-center rounded text-[#333] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors"
+                            title="Expand processes"
+                        >
+                            <PanelRightOpen size={12} />
+                        </button>
+                    </div>
+                )}
             </div>
 
         </div>
