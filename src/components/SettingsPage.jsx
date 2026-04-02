@@ -258,6 +258,11 @@ const SettingsPage = () => {
     return (
         <div className="flex h-full bg-[#111] overflow-hidden text-[#ccc]">
 
+            {/* ── Chat Panel ── */}
+            <div className={`flex flex-col overflow-hidden bg-[#111] border-r border-[#222] transition-all duration-200 ${chatVisible ? 'w-[320px] flex-shrink-0' : 'w-0'}`}>
+                {chatVisible && <InlineChatPanel />}
+            </div>
+
             {/* ── Sidebar ── */}
             <div className="w-[148px] flex-shrink-0 border-r border-[#222] flex flex-col bg-[#111]">
 
@@ -311,11 +316,6 @@ const SettingsPage = () => {
                         <span>Logout</span>
                     </button>
                 </div>
-            </div>
-
-            {/* ── Chat Panel ── */}
-            <div className={`flex flex-col overflow-hidden bg-[#111] border-r border-[#222] transition-all duration-200 ${chatVisible ? 'w-[320px] flex-shrink-0' : 'w-0'}`}>
-                {chatVisible && <InlineChatPanel />}
             </div>
 
             {/* ── Content ── */}
