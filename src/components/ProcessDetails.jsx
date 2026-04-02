@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useContext } from 'react';
 import { useParams } from 'react-router-dom';
+import { TabsContext } from './DashboardLayout';
 import {
     Check, Activity, FileText, Clock, ExternalLink, Loader2, X,
     Database, Presentation, ChevronDown, ChevronUp,
@@ -22,6 +23,7 @@ const DXC_PROCESS_IDS = new Set([
 ]);
 import { supabase } from '../services/supabase';
 import VideoPlayer from './VideoPlayer';
+import DocumentPreview from './DocumentPreview';
 import HitlDecisionPanel from './HitlDecisionPanel';
 import EmailDraftViewer from './EmailDraftViewer';
 
@@ -522,121 +524,7 @@ const EmailViewer = ({ artifact, onClose }) => {
 
 
 
-/* ─── DocumentPreview ─── */
-const DocumentPreview = ({ artifact, onClose }) => {
-    const [zoom, setZoom] = useState(100);
-    const [rotation, setRotation] = useState(0);
-    const docType = getDocumentType(artifact);
-    const fileUrl = artifact?.url || artifact?.file_url || '';
-    const fileName = artifact?.filename || 'Document';
-    const fileSize = artifact?.metadata?.file_size_bytes || artifact?.file_size_bytes;
 
-    const formatSize = (bytes) => {
-        if (!bytes) return '';
-        if (bytes < 1024) return `${bytes} B`;
-        if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
-        return `${(bytes / 1048576).toFixed(1)} MB`;
-    };
-
-    const handleDownload = () => {
-        if (fileUrl) {
-            const a = document.createElement('a');
-            a.href = fileUrl;
-            a.download = fileName;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-    };
-
-    return (
-        <div className="flex flex-col h-full bg-[#111] flex-1 min-w-[400px] overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#222] bg-[#111] z-10 w-full">
-                <div className="flex items-center gap-3 min-w-0">
-                    <div className="p-1.5 bg-red-50 rounded">
-                        {docType === 'pdf'
-                            ? <FileText className="w-4 h-4 text-red-500" strokeWidth={1.5} />
-                            : <Image className="w-4 h-4 text-blue-500" strokeWidth={1.5} />
-                        }
-                    </div>
-                    <div className="min-w-0">
-                        <span className="text-[14px] font-medium text-[#e8e8e8] truncate block">{fileName}</span>
-                        {fileSize && (
-                            <span className="text-[11px] text-[#9CA3AF]">{formatSize(fileSize)}</span>
-                        )}
-                    </div>
-                </div>
-                <div className="flex items-center gap-1">
-                    <button onClick={handleDownload} title="Download"
-                        className="p-1.5 hover:bg-[#1a1a1a] rounded text-[#555] hover:text-[#888] transition-colors">
-                        <Download className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => fileUrl && window.open(fileUrl, '_blank')} title="Open in new tab"
-                        className="p-1.5 hover:bg-[#1a1a1a] rounded text-[#555] hover:text-[#888] transition-colors">
-                        <ExternalLink className="w-4 h-4" />
-                    </button>
-                    <button onClick={onClose} title="Close"
-                        className="p-1.5 hover:bg-[#1a1a1a] rounded text-[#555] hover:text-[#888] transition-colors">
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-            </div>
-
-            {/* Toolbar for zoom/rotate (images) */}
-            {docType === 'image' && (
-                <div className="flex items-center justify-center gap-2 px-4 py-2 border-b border-[#222] bg-[#111]">
-                    <button onClick={() => setZoom(z => Math.max(25, z - 25))}
-                        className="p-1 hover:bg-[#2a2a2a] rounded text-[#666]"><ZoomOut className="w-4 h-4" /></button>
-                    <span className="text-[11px] text-[#666] w-12 text-center">{zoom}%</span>
-                    <button onClick={() => setZoom(z => Math.min(300, z + 25))}
-                        className="p-1 hover:bg-[#2a2a2a] rounded text-[#666]"><ZoomIn className="w-4 h-4" /></button>
-                    <div className="w-px h-4 bg-[#2a2a2a] mx-1" />
-                    <button onClick={() => setRotation(r => (r + 90) % 360)}
-                        className="p-1 hover:bg-[#2a2a2a] rounded text-[#666]"><RotateCw className="w-4 h-4" /></button>
-                    <button onClick={() => setZoom(100)}
-                        className="px-2 py-0.5 text-[10px] text-[#666] hover:bg-[#2a2a2a] rounded">Reset</button>
-                </div>
-            )}
-
-            {/* Document content */}
-            <div className="flex-1 overflow-auto bg-[#1a1a1a]">
-                {docType === 'pdf' && fileUrl ? (
-                    <iframe
-                        src={`${fileUrl}#toolbar=1&navpanes=0`}
-                        className="w-full h-full border-0"
-                        title={fileName}
-                        style={{ minHeight: '100%' }}
-                    />
-                ) : docType === 'image' && fileUrl ? (
-                    <div className="flex items-center justify-center p-4 min-h-full">
-                        <img
-                            src={fileUrl}
-                            alt={fileName}
-                            style={{
-                                transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
-                                transition: 'transform 0.2s ease',
-                                maxWidth: zoom <= 100 ? '100%' : 'none',
-                            }}
-                            className="shadow-lg rounded"
-                        />
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center justify-center h-full gap-3 text-[#555]">
-                        <FileText className="w-12 h-12" strokeWidth={1} />
-                        <p className="text-sm">Preview not available</p>
-                        <button onClick={handleDownload}
-                            className="px-3 py-1.5 bg-black text-white text-xs rounded-md hover:bg-[#1a1a1a] transition-colors">
-                            Download File
-                        </button>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
 
 /* ─── DatasetViewer ─── */
 /* ─── DatasetViewer (enhanced: tabs + row navigation) ─── */
@@ -869,6 +757,7 @@ const DatasetViewer = ({ artifact, onClose, allDataArtifacts, onSelectTab }) => 
 const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
     const params = useParams();
     const runId = runIdProp || params.runId;
+    const { openTab } = useContext(TabsContext);
     const [logs, setLogs] = useState([]);
     const [artifacts, setArtifacts] = useState([]);
     const [run, setRun] = useState(null);
@@ -1185,13 +1074,13 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
     };
 
     const handleArtifactClick = (art) => {
-        // Email draft artifacts → open EmailDraftViewer in right panel
+        // Email draft artifacts → open EmailDraftViewer in right panel (unchanged)
         if (art._isEmailDraft) {
             setSelectedDocument(null);
             setSelectedArtifact(art);
             return;
         }
-        // Excel files with base64 content → trigger browser download
+        // Excel files with base64 content → trigger browser download (unchanged)
         const isExcelArt = /\.(xlsx|xls|csv)$/i.test(art.filename || '') || art.file_type?.includes('spreadsheet') || art.file_type?.includes('excel');
         if (isExcelArt && art.content) {
             try {
@@ -1207,30 +1096,48 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
             } catch (e) { console.error('xlsx download error', e); }
             return;
         }
+        // Browser recordings → open as navbar tab chip
         if (art._isVideo) {
-            setSelectedDocument(null);
-            setSelectedArtifact(art);
-        } else if (isDocumentFile(art)) {
-            // Document clicked directly — show in right panel as document
-            // If we already have a data artifact open, keep it and show PDF alongside
-            if (selectedArtifact && !selectedArtifact._isDocument && !selectedArtifact._isVideo) {
-                setSelectedDocument({ ...art, _isDocument: true });
-            } else {
-                setSelectedDocument(null);
-                setSelectedArtifact({ ...art, _isDocument: true });
+            openTab({
+                id: art.id || art.recording_id || `video-${Date.now()}`,
+                label: art.metadata?.label || art.filename || 'Browser Recording',
+                type: 'video',
+                recording: art,
+            });
+            return;
+        }
+        // PDF / document artifacts → open as navbar tab chip
+        if (isDocumentFile(art)) {
+            openTab({
+                id: art.id || `doc-${art.filename}`,
+                label: art.filename || 'Document',
+                type: 'document',
+                artifact: { ...art, _isDocument: true },
+            });
+            return;
+        }
+        // URL-based document (from url field)
+        if (art.url && !art.filename?.endsWith('.json')) {
+            const ext = art.filename?.split('.').pop()?.toLowerCase() || '';
+            if (['pdf','png','jpg','jpeg','tiff','tif','gif','bmp','webp','svg'].includes(ext)) {
+                openTab({
+                    id: art.id || `doc-${art.filename}`,
+                    label: art.filename || 'Document',
+                    type: 'document',
+                    artifact: { ...art, _isDocument: true },
+                });
+                return;
             }
-        } else if (isViewableArtifact(art) && (art.content || art.data)) {
-            // Data artifact with inline content — open DatasetViewer
-            // Auto-detect PDF to show alongside
+        }
+        // Dataset artifacts (JSON, inline data) → stay in right side panel (unchanged)
+        if (isViewableArtifact(art) && (art.content || art.data)) {
             const pdf = pdfArtifacts[0] || null;
             setSelectedArtifact(art);
             setSelectedDocument(pdf ? { ...pdf, _isDocument: true } : null);
-            // Build tabs from all meta artifacts in the same group
             setDataArtifactTabs(allViewableDataArtifacts.length > 1 ? allViewableDataArtifacts : []);
         } else if (art.url) {
             const isJson = art.file_type === 'application/json' || art.file_type === 'json' || art.filename?.endsWith('.json');
             if (isJson) {
-                // Auto-detect PDF to show alongside
                 const pdf = pdfArtifacts[0] || null;
                 setSelectedArtifact({ ...art, _loading: true });
                 setSelectedDocument(pdf ? { ...pdf, _isDocument: true } : null);
@@ -1246,13 +1153,6 @@ const ProcessDetails = ({ runId: runIdProp, onBack } = {}) => {
                     .catch(() => setSelectedArtifact(prev =>
                         prev?.id === art.id ? { ...art, data: { error: 'Failed to load content' } } : prev
                     ));
-            } else if (isDocumentFile(art)) {
-                if (selectedArtifact && !selectedArtifact._isDocument && !selectedArtifact._isVideo) {
-                    setSelectedDocument({ ...art, _isDocument: true });
-                } else {
-                    setSelectedDocument(null);
-                    setSelectedArtifact({ ...art, _isDocument: true });
-                }
             } else {
                 window.open(art.url, '_blank');
             }

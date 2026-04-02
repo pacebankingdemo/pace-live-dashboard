@@ -1,6 +1,8 @@
 import React, { useState, useEffect, createContext } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Zap, Settings, X, MessageSquare } from 'lucide-react';
+import { Home, Zap, Settings, X, MessageSquare, FileText, Play } from 'lucide-react';
+import VideoPlayer from './VideoPlayer';
+import DocumentPreview from './DocumentPreview';
 import { fetchOrgs, fetchProcesses, subscribeToTable } from '../services/supabase';
 
 const ORG_ORDER = [
@@ -75,9 +77,10 @@ const DashboardLayout = () => {
         }
     }, [currentProcess]);
 
-    const openTab = ({ id, label }) => {
-        setTabs(prev => prev.find(t => t.id === id) ? prev : [...prev, { id, label }]);
-        setActiveTabId(id);
+    const openTab = (tab) => {
+        // tab: { id, label, type, url?, recording?, artifact? }
+        setTabs(prev => prev.find(t => t.id === tab.id) ? prev : [...prev, tab]);
+        setActiveTabId(tab.id);
     };
 
     const closeTab = (e, id) => {
@@ -134,10 +137,15 @@ const DashboardLayout = () => {
                 <div className="flex items-center gap-0.5 flex-1 overflow-x-auto no-scrollbar min-w-0">
                     {tabs.map(tab => (
                         <div key={tab.id} onClick={() => setActiveTabId(tab.id)}
-                            className={`flex items-center gap-1.5 h-7 px-2.5 rounded-md cursor-pointer flex-shrink-0 max-w-[180px] transition-colors group ${
+                            className={`flex items-center gap-1.5 h-7 px-2.5 rounded-md cursor-pointer flex-shrink-0 max-w-[200px] transition-colors group ${
                                 activeTabId === tab.id ? 'bg-[#1e1e1e] text-[#e8e8e8]' : 'text-[#555] hover:bg-[#1a1a1a] hover:text-[#aaa]'
                             }`}>
-                            <Zap size={11} strokeWidth={1.8} className="flex-shrink-0 text-[#555]" />
+                            {tab.type === 'video'
+                                ? <Play size={10} strokeWidth={2} className="flex-shrink-0 text-indigo-400" />
+                                : tab.type === 'document'
+                                    ? <FileText size={10} strokeWidth={2} className="flex-shrink-0 text-red-400" />
+                                    : <Zap size={11} strokeWidth={1.8} className="flex-shrink-0 text-[#555]" />
+                            }
                             <span className="text-[12px] truncate">{tab.label}</span>
                             <button onClick={(e) => closeTab(e, tab.id)}
                                 className="ml-0.5 text-[#444] hover:text-[#aaa] flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -156,7 +164,30 @@ const DashboardLayout = () => {
             {/* ══ PAGE CONTENT ══ */}
             <main className="flex-1 overflow-hidden bg-[#111]">
                 <div className="h-full overflow-hidden">
-                    <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen }} />
+                    {/* Active tab content overlays the page when a tab is selected */}
+                    {activeTabId ? (() => {
+                        const tab = tabs.find(t => t.id === activeTabId);
+                        if (!tab) return null;
+                        if (tab.type === 'video') {
+                            return (
+                                <div className="h-full flex items-center justify-center bg-[#111]">
+                                    <VideoPlayer recording={tab.recording} onClose={() => setActiveTabId(null)} />
+                                </div>
+                            );
+                        }
+                        if (tab.type === 'document') {
+                            return (
+                                <div className="h-full">
+                                    <DocumentPreview artifact={tab.artifact} onClose={() => setActiveTabId(null)} />
+                                </div>
+                            );
+                        }
+                        return null;
+                    })() : null}
+                    {/* Always render the outlet so state is preserved; hide it when a tab is active */}
+                    <div className={activeTabId ? 'hidden' : 'h-full'}>
+                        <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen }} />
+                    </div>
                 </div>
             </main>
         </div>
