@@ -212,9 +212,9 @@ const DashboardLayout = () => {
                         </div>
                     </div>
                 </main>
-                {/* ══ KB SIDE PANEL (inline, not fixed) ══ */}
+                {/* ══ KB SIDE PANEL (full-height fixed overlay) ══ */}
                 {kbOpen && (
-                    <div className="w-[520px] flex-shrink-0 flex flex-col bg-[#111] border-l border-[#1e1e1e] shadow-2xl overflow-hidden">
+                    <div className="fixed top-0 right-0 h-screen w-[520px] flex flex-col bg-[#111] border-l border-[#1e1e1e] shadow-2xl overflow-hidden z-50">
                         <KnowledgeBase onClose={() => setKbOpen(false)} embedded currentProcess={currentProcess} />
                     </div>
                 )}
