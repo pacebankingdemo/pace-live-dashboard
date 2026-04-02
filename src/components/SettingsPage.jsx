@@ -46,7 +46,7 @@ const OutlineBtn = ({ children, danger, onClick }) => (
 
 // A card containing rows, each separated by a divider
 const SettingsCard = ({ children }) => (
-    <div className="border border-[#222] rounded-lg overflow-hidden mb-8">
+    <div className="border border-[#1e1e1e] rounded-lg overflow-hidden mb-8">
         {React.Children.map(children, (child, i) => (
             <>
                 {i > 0 && <div className="border-t border-[#1e1e1e]" />}
@@ -256,7 +256,7 @@ const SettingsPage = () => {
     ];
 
     return (
-        <div className="flex h-full bg-[#111] overflow-hidden text-[#ccc]">
+        <div className="flex h-full bg-[#0d0d0d] overflow-hidden text-[#ccc]">
 
             {/* ── Chat Panel ── */}
             <div className={`flex flex-col overflow-hidden bg-[#111] border-r border-[#222] transition-all duration-200 ${chatVisible ? 'w-[320px] flex-shrink-0' : 'w-0'}`}>
@@ -264,10 +264,10 @@ const SettingsPage = () => {
             </div>
 
             {/* ── Sidebar ── */}
-            <div className="w-[148px] flex-shrink-0 border-r border-[#222] flex flex-col bg-[#111]">
+            <div className="w-[160px] flex-shrink-0 border-r border-[#1e1e1e] flex flex-col bg-[#0d0d0d]">
 
                 {/* Org header */}
-                <div className="px-3 pt-3 pb-3 border-b border-[#222]">
+                <div className="px-3 pt-3 pb-3 border-b border-[#1e1e1e]">
                     <button
                         onClick={() => setOrgDropOpen(o => !o)}
                         className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[#1a1a1a] transition-colors"
@@ -296,11 +296,11 @@ const SettingsPage = () => {
 
                 {/* Nav */}
                 <div className="flex-1 px-2 py-3">
-                    <p className="text-[10px] font-[600] text-[#444] uppercase tracking-wider px-2 mb-2">Account</p>
+                    <p className="text-[10px] font-[600] text-[#505050] uppercase tracking-wider px-2 mb-2">Account</p>
                     {NAV.map(({ key, label, icon: Icon }) => (
                         <button key={key} onClick={() => setSection(key)}
                             className={`w-full flex items-center gap-2 px-2 py-[7px] rounded-md text-[12px] transition-colors mb-0.5 ${
-                                section === key ? 'bg-[#1e1e1e] text-[#e8e8e8]' : 'text-[#666] hover:bg-[#1a1a1a] hover:text-[#aaa]'
+                                section === key ? 'bg-[#1e1e1e] text-[#d8d8d8]' : 'text-[#666] hover:bg-[#181818] hover:text-[#aaa]'
                             }`}>
                             <Icon size={13} strokeWidth={1.6} />
                             <span>{label}</span>
@@ -309,7 +309,7 @@ const SettingsPage = () => {
                 </div>
 
                 {/* Logout */}
-                <div className="px-2 pb-4 border-t border-[#222] pt-3">
+                <div className="px-2 pb-4 border-t border-[#1e1e1e] pt-3">
                     <button onClick={() => { sessionStorage.clear(); navigate('/'); }}
                         className="w-full flex items-center gap-2 px-2 py-[7px] rounded-md text-[12px] text-[#555] hover:bg-[#1a1a1a] hover:text-[#888] transition-colors">
                         <LogOut size={13} strokeWidth={1.6} />
@@ -319,7 +319,7 @@ const SettingsPage = () => {
             </div>
 
             {/* ── Content ── */}
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#111]">
                 {section === 'general'      && <GeneralSection />}
                 {section === 'people'       && <PeopleSection />}
                 {section === 'integrations' && <IntegrationsSection />}

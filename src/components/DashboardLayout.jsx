@@ -112,10 +112,10 @@ const DashboardLayout = () => {
 
     return (
         <TabsContext.Provider value={{ openTab }}>
-        <div className="flex flex-col h-screen bg-[#111] font-sans antialiased">
+        <div className="flex flex-col h-screen bg-[#0d0d0d] font-sans antialiased">
 
             {/* ══ TOP NAVBAR ══ */}
-            <header className="flex-shrink-0 h-9 flex items-center bg-[#111] border-b border-[#222] px-2 gap-0 relative z-20">
+            <header className="flex-shrink-0 h-9 flex items-center bg-[#0d0d0d] border-b border-[#1e1e1e] px-2 gap-0 relative z-20">
 
                 {/* LEFT: icon buttons */}
                 <div className="flex items-center gap-0.5 mr-2">
@@ -134,20 +134,20 @@ const DashboardLayout = () => {
                 </div>
 
                 {/* Divider */}
-                <div className="w-px h-4 bg-[#2e2e2e] mx-1.5 flex-shrink-0" />
+                <div className="w-px h-4 bg-[#222] mx-1.5 flex-shrink-0" />
 
                 {/* CENTER: run tabs */}
                 <div className="flex items-center gap-0.5 flex-1 overflow-x-auto no-scrollbar min-w-0">
                     {tabs.map(tab => (
                         <div key={tab.id} onClick={() => { if (tab.type === 'run') { tab.onSelect?.(); } else { setActiveTabId(tab.id); } }}
                             className={`flex items-center gap-1.5 h-7 px-2.5 rounded-md cursor-pointer flex-shrink-0 max-w-[200px] transition-colors group ${
-                                activeTabId === tab.id ? 'bg-[#1e1e1e] text-[#e8e8e8]' : 'text-[#555] hover:bg-[#1a1a1a] hover:text-[#aaa]'
+                                activeTabId === tab.id ? 'bg-[#1a1a1a] text-[#d0d0d0]' : 'text-[#484848] hover:bg-[#161616] hover:text-[#999]'
                             }`}>
                             {tab.type === 'video'
                                 ? <Play size={10} strokeWidth={2} className="flex-shrink-0 text-indigo-400" />
                                 : tab.type === 'document'
                                     ? <FileText size={10} strokeWidth={2} className="flex-shrink-0 text-red-400" />
-                                    : <Zap size={11} strokeWidth={1.8} className="flex-shrink-0 text-[#555]" />
+                                    : <Zap size={11} strokeWidth={1.8} className="flex-shrink-0 text-[#606060]" />
                             }
                             <span className="text-[12px] truncate">{tab.label}</span>
                             <button onClick={(e) => closeTab(e, tab.id)}
@@ -160,7 +160,7 @@ const DashboardLayout = () => {
 
                 {/* RIGHT: org name */}
                 <div className="flex items-center ml-2 flex-shrink-0">
-                    <span className="text-[12px] text-[#444] px-2">{currentOrg?.name || ''}</span>
+                    <span className="text-[12px] text-[#505050] px-2">{currentOrg?.name || ''}</span>
                 </div>
             </header>
 

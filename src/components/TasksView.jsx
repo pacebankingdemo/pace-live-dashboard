@@ -150,20 +150,20 @@ const TasksView = () => {
     const tasksClass = renderTasks ? 'flex-1 min-w-0' : 'w-0 overflow-hidden';
 
     return (
-        <div className="flex h-full bg-[#111] overflow-hidden">
+        <div className="flex h-full bg-[#0d0d0d] overflow-hidden">
 
             {/* ══ LEFT: Chat ══ */}
             <div className={`flex flex-col overflow-hidden bg-[#111] transition-all duration-200 ${
                 renderChat
                     ? (renderTasks
-                        ? 'w-[320px] flex-shrink-0 border-r border-[#222]'
+                        ? 'w-[320px] flex-shrink-0 border-r border-[#1e1e1e]'
                         : 'flex-1 border-r-0')
                     : 'w-0'
             }`}>
                 {renderChat && (
                     <>
                         {/* Chat toolbar */}
-                        <div className="flex items-center h-9 px-3 border-b border-[#222] flex-shrink-0 gap-1">
+                        <div className="flex items-center h-9 px-3 border-b border-[#1e1e1e] flex-shrink-0 gap-1">
                             <button
                                 onClick={() => handleChatToggle(false)}
                                 className="w-6 h-6 flex items-center justify-center rounded text-[#444] hover:text-[#888] hover:bg-[#1e1e1e] transition-colors"
@@ -205,7 +205,7 @@ const TasksView = () => {
                 {renderTasks && (
                     <>
                         {/* Tasks toolbar */}
-                        <div className="flex items-center h-9 px-3 border-b border-[#222] flex-shrink-0 gap-1">
+                        <div className="flex items-center h-9 px-3 border-b border-[#1e1e1e] flex-shrink-0 gap-1">
                             {/* Open chat (when chat closed) */}
                             {!chatOpen && (
                                 <button
@@ -248,8 +248,8 @@ const TasksView = () => {
                         ) : (
                             <>
                                 <div className="px-6 pt-5 pb-0 flex-shrink-0">
-                                    <h1 className="text-[15px] font-[600] text-[#e8e8e8] mb-3">Tasks</h1>
-                                    <div className="flex items-center gap-1 border-b border-[#222]">
+                                    <h1 className="text-[14px] font-[600] text-[#d0d0d0] mb-3">Tasks</h1>
+                                    <div className="flex items-center gap-1 border-b border-[#1e1e1e]">
                                         {[{ key: 'all', label: 'All' }, { key: 'needs_action', label: 'Needs Action' }].map(tab => (
                                             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
                                                 className={`px-3 py-2 text-[12px] font-[500] border-b-2 transition-colors -mb-px ${
@@ -279,14 +279,14 @@ const TasksView = () => {
                                         <div key={group.key}>
                                             <button
                                                 onClick={() => toggleCollapse(group.key)}
-                                                className="w-full flex items-center gap-2 px-6 py-2 hover:bg-[#ffffff05] transition-colors group"
+                                                className="w-full flex items-center gap-2 px-6 py-2 bg-[#141414] hover:bg-[#181818] transition-colors group"
                                             >
-                                                <span className="text-[#333] group-hover:text-[#555] transition-colors">
+                                                <span className="text-[#444] group-hover:text-[#666] transition-colors">
                                                     {collapsed[group.key] ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                                                 </span>
                                                 <StatusDot group={group} />
                                                 <span className="text-[12px] font-[500] text-[#777]">{group.label}</span>
-                                                <span className="text-[12px] text-[#444] ml-0.5">{group.runs.length}</span>
+                                                <span className="text-[12px] text-[#505050] ml-0.5">{group.runs.length}</span>
                                             </button>
 
                                             {!collapsed[group.key] && group.runs.map(run => (
@@ -310,17 +310,17 @@ const TasksView = () => {
                                                         });
                                                     }}
                                                     className={`flex items-center gap-3 px-10 py-[7px] cursor-pointer transition-colors border-b border-[#ffffff04] last:border-0 group ${
-                                                        selectedRun?.id === run.id ? 'bg-[#1e1e1e]' : 'hover:bg-[#ffffff05]'
+                                                        selectedRun?.id === run.id ? 'bg-[#1e1e1e]' : 'hover:bg-[#181818]'
                                                     }`}
                                                 >
                                                     <StatusDot group={group} />
-                                                    <span className="flex-1 text-[13px] text-[#ccc] truncate min-w-0">
+                                                    <span className="flex-1 text-[13px] text-[#c0c0c0] truncate min-w-0">
                                                         {run.name || 'Untitled run'}
                                                     </span>
                                                     <div className="w-5 h-5 bg-[#2a2a2a] rounded-full flex items-center justify-center text-[#888] font-bold text-[9px] flex-shrink-0">
                                                         V
                                                     </div>
-                                                    <span className="text-[12px] text-[#444] flex-shrink-0 w-[38px] text-right">
+                                                    <span className="text-[12px] text-[#505050] flex-shrink-0 w-[38px] text-right">
                                                         {fmtDate(run.updated_at)}
                                                     </span>
                                                 </div>
@@ -336,8 +336,8 @@ const TasksView = () => {
 
             {/* ══ RIGHT: Processes — only renders when rightOpen ══ */}
             {renderRight && (
-                <div className="w-[200px] flex-shrink-0 border-l border-[#222] flex flex-col overflow-hidden bg-[#111]">
-                    <div className="flex items-center justify-between px-4 pt-[13px] pb-2 flex-shrink-0 border-b border-[#222]">
+                <div className="w-[200px] flex-shrink-0 border-l border-[#1e1e1e] flex flex-col overflow-hidden bg-[#0d0d0d]">
+                    <div className="flex items-center justify-between px-4 pt-[13px] pb-2 flex-shrink-0 border-b border-[#1e1e1e]">
                         <span className="text-[11px] font-[550] text-[#444] uppercase tracking-wide">Processes</span>
                         <button
                             onClick={() => setRightOpen(false)}
