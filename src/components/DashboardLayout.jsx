@@ -182,41 +182,43 @@ const DashboardLayout = () => {
                 </div>
             </header>
 
-            {/* ══ PAGE CONTENT ══ */}
-            <main className="flex-1 overflow-hidden bg-[#111]">
-                <div className="h-full overflow-hidden">
-                    {/* Active tab content overlays the page when a tab is selected */}
-                    {activeTabId ? (() => {
-                        const tab = tabs.find(t => t.id === activeTabId);
-                        if (!tab) return null;
-                        if (tab.type === 'video') {
-                            return (
-                                <div className="h-full flex items-center justify-center bg-[#111]">
-                                    <VideoPlayer recording={tab.recording} onClose={() => setActiveTabId(null)} />
-                                </div>
-                            );
-                        }
-                        if (tab.type === 'document') {
-                            return (
-                                <div className="h-full">
-                                    <DocumentPreview artifact={tab.artifact} onClose={() => setActiveTabId(null)} />
-                                </div>
-                            );
-                        }
-                        return null;
-                    })() : null}
-                    {/* Always render the outlet so state is preserved; hide it when a tab is active */}
-                    <div className={activeTabId && tabs.find(t => t.id === activeTabId)?.type !== 'run' ? 'hidden' : 'h-full'}>
-                        <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen, theme, setTheme }} />
+            {/* ══ PAGE CONTENT + KB PANEL ══ */}
+            <div className="flex flex-1 overflow-hidden">
+                <main className="flex-1 overflow-hidden bg-[#111] min-w-0">
+                    <div className="h-full overflow-hidden">
+                        {/* Active tab content overlays the page when a tab is selected */}
+                        {activeTabId ? (() => {
+                            const tab = tabs.find(t => t.id === activeTabId);
+                            if (!tab) return null;
+                            if (tab.type === 'video') {
+                                return (
+                                    <div className="h-full flex items-center justify-center bg-[#111]">
+                                        <VideoPlayer recording={tab.recording} onClose={() => setActiveTabId(null)} />
+                                    </div>
+                                );
+                            }
+                            if (tab.type === 'document') {
+                                return (
+                                    <div className="h-full">
+                                        <DocumentPreview artifact={tab.artifact} onClose={() => setActiveTabId(null)} />
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })() : null}
+                        {/* Always render the outlet so state is preserved; hide it when a tab is active */}
+                        <div className={activeTabId && tabs.find(t => t.id === activeTabId)?.type !== 'run' ? 'hidden' : 'h-full'}>
+                            <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen, theme, setTheme }} />
+                        </div>
                     </div>
-                </div>
-            </main>
-            {/* ══ KB SLIDE-OVER PANEL ══ */}
-            {kbOpen && (
-                <div className="fixed inset-y-9 right-0 z-30 w-[520px] flex flex-col bg-[#111] border-l border-[#1e1e1e] shadow-2xl overflow-hidden">
-                    <KnowledgeBase onClose={() => setKbOpen(false)} embedded currentProcess={currentProcess} />
-                </div>
-            )}
+                </main>
+                {/* ══ KB SIDE PANEL (inline, not fixed) ══ */}
+                {kbOpen && (
+                    <div className="w-[520px] flex-shrink-0 flex flex-col bg-[#111] border-l border-[#1e1e1e] shadow-2xl overflow-hidden">
+                        <KnowledgeBase onClose={() => setKbOpen(false)} embedded currentProcess={currentProcess} />
+                    </div>
+                )}
+            </div>
         </div>
         </TabsContext.Provider>
     );
