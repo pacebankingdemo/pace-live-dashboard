@@ -35,6 +35,7 @@ const DashboardLayout = () => {
     const [activeTabId, setActiveTabId]       = useState(null);
     // Chat panel open state — lives here so navbar icon can control it
     const [chatOpen, setChatOpen]             = useState(false);
+    const [rightOpen, setRightOpen]           = useState(false);
     // Theme: 'dark' | 'light' — persisted to localStorage
     const [theme, setTheme]                   = useState(() => localStorage.getItem('pace-theme') || 'dark');
 
