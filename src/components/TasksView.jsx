@@ -61,6 +61,9 @@ const TasksView = () => {
         if (!open) {
             // closing chat → tasks becomes primary (always show tasks)
             setTasksOpen(false); // reset so tasks fills full width
+        } else {
+            // opening chat → always show tasks alongside it
+            setTasksOpen(true);
         }
     };
 
