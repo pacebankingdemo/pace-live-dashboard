@@ -37,8 +37,6 @@ const DashboardLayout = () => {
     const [chatOpen, setChatOpen]             = useState(false);
     // Theme: 'dark' | 'light' — persisted to localStorage
     const [theme, setTheme]                   = useState(() => localStorage.getItem('pace-theme') || 'dark');
-    // KB panel open state
-    const [kbOpen, setKbOpen]                 = useState(false);
 
     useEffect(() => {
         const load = async () => {
@@ -101,6 +99,7 @@ const DashboardLayout = () => {
     };
 
     const isHome     = location.pathname === '/done/home';
+    const isKb       = location.pathname === '/done/knowledge-base';
     const isTasks    = location.pathname === '/done/tasks';
     const isSettings = location.pathname === '/done/settings';
     // Chat icon is active when on tasks page AND chat is open
@@ -174,9 +173,9 @@ const DashboardLayout = () => {
                 <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
                     <IconBtn
                         icon={BookOpen}
-                        active={kbOpen}
-                        onClick={() => setKbOpen(o => !o)}
-                        title={kbOpen ? 'Hide knowledge base' : 'Open knowledge base'}
+                        active={isKb}
+                        onClick={() => navigate(isKb ? '/done/tasks' : '/done/knowledge-base')}
+                        title={isKb ? 'Hide knowledge base' : 'Open knowledge base'}
                     />
                     <span className="text-[12px] text-[#505050] px-2">{currentOrg?.name || ''}</span>
                 </div>
@@ -208,21 +207,11 @@ const DashboardLayout = () => {
                         })() : null}
                         {/* Always render the outlet so state is preserved; hide it when a tab is active */}
                         <div className={activeTabId && tabs.find(t => t.id === activeTabId)?.type !== 'run' ? 'hidden' : 'h-full'}>
-                            <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen, theme, setTheme, kbOpen, setKbOpen }} />
+                            <Outlet context={{ currentOrg, currentProcess, processes, openTab, chatOpen, setChatOpen, theme, setTheme }} />
                         </div>
                     </div>
                 </main>
-                {/* ══ KB SIDE PANEL (inline flex sibling, tiles with content) ══ */}
-                <div
-                    style={kbOpen ? { width: 'clamp(340px, 28vw, 520px)' } : {}}
-                    className={`flex-shrink-0 flex flex-col overflow-hidden bg-[#111] transition-all duration-200 ${
-                        kbOpen ? 'border-l border-[#1e1e1e]' : 'w-0'
-                    }`}
-                >
-                    {kbOpen && (
-                        <KnowledgeBase onClose={() => setKbOpen(false)} embedded currentProcess={currentProcess} />
-                    )}
-                </div>
+
             </div>
         </div>
         </TabsContext.Provider>

@@ -15,6 +15,12 @@ import HomePage from './components/HomePage';
 import SettingsPage from './components/SettingsPage';
 import ErrorBoundary from './components/ErrorBoundary';
 
+import { useNavigate as useNav } from 'react-router-dom';
+const KnowledgeBasePage = () => {
+  const nav = useNav();
+  return <KnowledgeBase embedded onClose={() => nav('/done/tasks')} />;
+};
+
 function App() {
   return (
     <BrowserRouter>
@@ -24,7 +30,7 @@ function App() {
           <Route index element={<Navigate to="home" replace />} />
           <Route path="home" element={<HomePage />} />
           <Route path="processes" element={<ProcessList />} />
-          <Route path="knowledge-base" element={<KnowledgeBase />} />
+          <Route path="knowledge-base" element={<KnowledgeBasePage />} />
           <Route path="process/:runId" element={<ErrorBoundary><ProcessDetails /></ErrorBoundary>} />
           <Route path="data" element={<DataExplorer />} />
           <Route path="insights" element={<InsightsPanel />} />
