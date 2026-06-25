@@ -272,75 +272,89 @@ function StatusLabel({ status }) {
   );
 }
 
-function ProposalCard({ proposal, idx }) {
-  const [expanded, setExpanded] = useState(false);
-  const evidence = Array.isArray(proposal.evidence) ? proposal.evidence : [];
-  const hasBeforeAfter = proposal.before || proposal.after;
+function ProposalCard({ insight }) {
+  // Handles the actual Railway API shape for both KB_UPDATE and ENGINE_FIX_APPLIED types
+  const pc = insight.proposed_changes || {};
+  const type = pc.type || 'KB_UPDATE';
+  const isEngFix = type === 'ENGINE_FIX_APPLIED';
+
+  // Evidence: parse JSON string or use as-is
+  let ev = {};
+  try { ev = typeof insight.evidence === 'string' ? JSON.parse(insight.evidence) : (insight.evidence || {}); } catch(_) {}
+
+  const scenariosFixed = Array.isArray(pc.scenarios_fixed) ? pc.scenarios_fixed : [];
+  const fixSites = Array.isArray(pc.fix_sites) ? pc.fix_sites : [];
+  const kbSection = pc.kb_section_to_add || '';
 
   return (
-    <div className="border border-white/8 rounded-lg overflow-hidden">
-      {/* Proposal header — always visible */}
-      <button
-        onClick={() => setExpanded(e => !e)}
-        className="w-full flex items-start justify-between gap-3 p-3 bg-[#12172a] hover:bg-[#161c30] transition-colors text-left"
-      >
-        <div className="flex items-start gap-2.5">
-          <span className="mt-0.5 text-[10px] font-bold text-purple-400 bg-purple-900/30 border border-purple-700/50 px-1.5 py-0.5 rounded shrink-0">
-            #{idx + 1}
+    <div className="space-y-3 text-xs">
+
+      {/* Change summary headline */}
+      <div className="text-sm text-white font-medium leading-snug">
+        {pc.change_summary || pc.description || 'Screening rule improvement'}
+      </div>
+
+      {/* Type badge */}
+      <div className="flex flex-wrap items-center gap-2">
+        {isEngFix
+          ? <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-900/40 text-blue-300 border border-blue-700/50 font-semibold">Engine code fix</span>
+          : <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-900/40 text-purple-300 border border-purple-700/50 font-semibold">Knowledge base rule</span>
+        }
+        {pc.accuracy_before != null && pc.accuracy_after != null && (
+          <span className="text-[10px] text-green-400 font-semibold">
+            Accuracy: {pc.accuracy_before}% → {isEngFix ? pc.accuracy_after : pc.accuracy_after_projected}% (projected)
           </span>
-          <div>
-            <div className="text-sm text-white font-medium leading-snug">
-              {proposal.pattern || proposal.description || `Proposal ${idx + 1}`}
-            </div>
-            {proposal.section && (
-              <div className="text-[10px] text-purple-300 mt-0.5">KB section: {proposal.section}</div>
-            )}
+        )}
+      </div>
+
+      {/* Cases this fixes */}
+      {scenariosFixed.length > 0 && (
+        <div>
+          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Cases addressed</div>
+          <div className="flex flex-wrap gap-1">
+            {scenariosFixed.map(s => (
+              <span key={s} className="text-[10px] font-mono bg-orange-900/30 text-orange-300 border border-orange-700/40 px-1.5 py-0.5 rounded">{s}</span>
+            ))}
           </div>
         </div>
-        <span className="text-gray-500 shrink-0 mt-0.5">
-          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        </span>
-      </button>
+      )}
 
-      {expanded && (
-        <div className="bg-[#0d1220] p-3 space-y-3 border-t border-white/5">
+      {/* Root cause / why it happens */}
+      {ev.root_cause && (
+        <div>
+          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Root cause</div>
+          <div className="text-gray-300 leading-relaxed">{ev.root_cause}</div>
+        </div>
+      )}
 
-          {/* Why this matters — compliance plain language */}
-          {proposal.expected_impact && (
-            <div>
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Why this matters</div>
-              <div className="text-xs text-gray-200 leading-relaxed">{proposal.expected_impact}</div>
-            </div>
-          )}
+      {/* For KB updates: show the proposed new rule text */}
+      {!isEngFix && kbSection && (
+        <div>
+          <div className="text-[9px] text-green-400 font-semibold mb-1">PROPOSED NEW RULE</div>
+          <div className="bg-green-950/20 border border-green-800/30 rounded p-2 text-[11px] text-gray-300 leading-relaxed whitespace-pre-wrap">{kbSection}</div>
+        </div>
+      )}
 
-          {/* Cases this fixes */}
-          {evidence.length > 0 && (
-            <div>
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Supporting evidence</div>
-              <div className="flex flex-wrap gap-1">
-                {evidence.map(e => (
-                  <span key={e} className="text-[10px] font-mono bg-orange-900/30 text-orange-300 border border-orange-700/40 px-1.5 py-0.5 rounded">{e}</span>
-                ))}
-              </div>
-            </div>
-          )}
+      {/* For engine fixes: show the code sites patched */}
+      {isEngFix && fixSites.length > 0 && (
+        <div>
+          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Code locations patched</div>
+          <div className="space-y-0.5">
+            {fixSites.map((s, i) => (
+              <div key={i} className="font-mono text-[10px] bg-[#0d1220] text-blue-300 px-2 py-1 rounded">{s}</div>
+            ))}
+          </div>
+        </div>
+      )}
 
-          {/* What changes in the screening rules */}
-          {hasBeforeAfter && (
-            <div>
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Proposed rule change</div>
-              {proposal.before && (
-                <div className="mb-2">
-                  <div className="text-[9px] text-red-400 font-semibold mb-1">CURRENT RULE</div>
-                  <div className="bg-red-950/30 border border-red-800/30 rounded p-2 text-[11px] text-gray-300 leading-relaxed whitespace-pre-wrap">{proposal.before}</div>
-                </div>
-              )}
-              {proposal.after && (
-                <div>
-                  <div className="text-[9px] text-green-400 font-semibold mb-1">{proposal.before ? 'UPDATED RULE' : 'NEW RULE'}</div>
-                  <div className="bg-green-950/30 border border-green-800/30 rounded p-2 text-[11px] text-gray-300 leading-relaxed whitespace-pre-wrap">{proposal.after}</div>
-                </div>
-              )}
+      {/* Payment details that triggered the miss */}
+      {ev.payment_beneficiary && (
+        <div>
+          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Triggering payment</div>
+          <div className="text-gray-400 font-mono text-[10px] bg-white/3 px-2 py-1 rounded">{ev.payment_beneficiary}</div>
+          {ev.engine_decision && (
+            <div className="text-[10px] text-red-400 mt-0.5">
+              Engine said: <b>{ev.engine_decision}</b> — Correct: <b className="text-green-400">{ev.correct_decision}</b>
             </div>
           )}
         </div>
@@ -436,7 +450,6 @@ function InsightsPanel({ onClose }) {
               <div className="space-y-4">
                 {pending.map(ins => {
                   const pc = ins.proposed_changes || {};
-                  const proposals = Array.isArray(pc.proposals) ? pc.proposals : [];
                   const isOpen = !!expanded[ins.id];
                   return (
                     <div key={ins.id} className="bg-[#1a1f2e] rounded-xl border border-purple-700/30 overflow-hidden">
@@ -456,15 +469,13 @@ function InsightsPanel({ onClose }) {
                             </span>
                           </div>
                           <div className="text-sm text-white font-medium leading-snug">
-                            {pc.summary || `${proposals.length} screening rule improvement${proposals.length !== 1 ? 's' : ''} proposed`}
+                            {pc.change_summary || pc.description || 'Screening rule improvement proposed'}
                           </div>
-                          {proposals.length > 0 && !isOpen && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {proposals.map((p, i) => (
-                                <span key={i} className="text-[10px] text-gray-400 bg-white/5 px-2 py-0.5 rounded-full">
-                                  {p.pattern ? p.pattern.slice(0, 50) + (p.pattern.length > 50 ? '…' : '') : `Change ${i+1}`}
-                                </span>
-                              ))}
+                          {pc.change_summary && !isOpen && (
+                            <div className="mt-1.5">
+                              <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-0.5 rounded-full">
+                                {pc.change_summary.slice(0, 80)}{pc.change_summary.length > 80 ? '…' : ''}
+                              </span>
                             </div>
                           )}
                         </div>
@@ -476,20 +487,9 @@ function InsightsPanel({ onClose }) {
                       {/* Expanded proposals */}
                       {isOpen && (
                         <div className="border-t border-white/5">
-                          {/* Overall evidence summary */}
-                          {ins.evidence && (
-                            <div className="px-4 py-3 bg-[#111827] border-b border-white/5">
-                              <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Analysis summary</div>
-                              <div className="text-xs text-gray-300 leading-relaxed">{ins.evidence}</div>
-                            </div>
-                          )}
-
-                          {/* Individual proposals */}
-                          <div className="p-4 space-y-2">
-                            {proposals.length > 0
-                              ? proposals.map((p, i) => <ProposalCard key={i} proposal={p} idx={i} />)
-                              : <div className="text-xs text-gray-500">No individual proposals in this record.</div>
-                            }
+                          {/* Proposal detail */}
+                          <div className="p-4">
+                            <ProposalCard insight={ins} />
                           </div>
 
                           {/* Approve / Reject */}
@@ -529,7 +529,6 @@ function InsightsPanel({ onClose }) {
               <div className="space-y-2">
                 {resolved.map(ins => {
                   const pc = ins.proposed_changes || {};
-                  const proposals = Array.isArray(pc.proposals) ? pc.proposals : [];
                   const isOpen = !!expanded[ins.id];
                   return (
                     <div key={ins.id} className="bg-[#161b28] rounded-lg border border-white/5 overflow-hidden">
@@ -553,9 +552,9 @@ function InsightsPanel({ onClose }) {
                           {isOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                         </span>
                       </button>
-                      {isOpen && proposals.length > 0 && (
-                        <div className="border-t border-white/5 p-3 space-y-2">
-                          {proposals.map((p, i) => <ProposalCard key={i} proposal={p} idx={i} />)}
+                      {isOpen && (
+                        <div className="border-t border-white/5 p-3">
+                          <ProposalCard insight={ins} />
                         </div>
                       )}
                     </div>
